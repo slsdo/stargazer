@@ -1,0 +1,9 @@
+{
+  "id": "atalanta",
+  "type": "character",
+  "level": "s",
+  "faction": "lightbearer",
+  "class": "marksman",
+  "damage": "physical",
+  "season": "0"
+}

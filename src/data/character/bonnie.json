@@ -1,0 +1,9 @@
+{
+  "id": "bonnie",
+  "type": "character",
+  "level": "a",
+  "faction": "graveborn",
+  "class": "marksman",
+  "damage": "magic",
+  "season": "2"
+}

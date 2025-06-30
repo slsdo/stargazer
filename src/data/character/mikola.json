@@ -1,0 +1,9 @@
+{
+  "id": "mikola",
+  "type": "character",
+  "level": "s",
+  "faction": "mauler",
+  "class": "support",
+  "damage": "physical",
+  "season": "1"
+}

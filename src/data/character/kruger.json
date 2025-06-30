@@ -1,0 +1,9 @@
+{
+  "id": "kruger",
+  "type": "character",
+  "level": "a",
+  "faction": "mauler",
+  "class": "warrior",
+  "damage": "physical",
+  "season": "0"
+}

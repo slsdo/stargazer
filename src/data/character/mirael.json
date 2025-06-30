@@ -1,0 +1,9 @@
+{
+  "id": "mirael",
+  "type": "character",
+  "level": "a",
+  "faction": "lightbearer",
+  "class": "mage",
+  "damage": "magic",
+  "season": "0"
+}

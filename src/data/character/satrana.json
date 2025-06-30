@@ -1,0 +1,9 @@
+{
+  "id": "satrana",
+  "type": "character",
+  "level": "a",
+  "faction": "mauler",
+  "class": "mage",
+  "damage": "magic",
+  "season": "0"
+}

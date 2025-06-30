@@ -1,0 +1,9 @@
+{
+  "id": "ulmus",
+  "type": "character",
+  "level": "a",
+  "faction": "wilder",
+  "class": "tank",
+  "damage": "physical",
+  "season": "1"
+}

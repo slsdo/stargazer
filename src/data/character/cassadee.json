@@ -1,0 +1,9 @@
+{
+  "id": "cassadee",
+  "type": "character",
+  "level": "s",
+  "faction": "lightbearer",
+  "class": "mage",
+  "damage": "magic",
+  "season": "0"
+}

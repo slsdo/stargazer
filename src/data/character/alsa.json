@@ -1,0 +1,9 @@
+{
+  "id": "alsa",
+  "type": "character",
+  "level": "s",
+  "faction": "mauler",
+  "class": "mage",
+  "damage": "magic",
+  "season": "1"
+}

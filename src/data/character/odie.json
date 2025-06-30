@@ -1,0 +1,9 @@
+{
+  "id": "odie",
+  "type": "character",
+  "level": "s",
+  "faction": "mauler",
+  "class": "marksman",
+  "damage": "magic",
+  "season": "0"
+}

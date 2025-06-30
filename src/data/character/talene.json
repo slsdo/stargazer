@@ -1,0 +1,9 @@
+{
+  "id": "talene",
+  "type": "character",
+  "level": "s",
+  "faction": "celestial",
+  "class": "mage",
+  "damage": "magic",
+  "season": "1"
+}

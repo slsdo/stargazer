@@ -1,0 +1,9 @@
+{
+  "id": "natsu",
+  "type": "character",
+  "level": "s",
+  "faction": "dimensional",
+  "class": "warrior",
+  "damage": "physical",
+  "season": "3"
+}

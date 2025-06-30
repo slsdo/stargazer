@@ -1,0 +1,9 @@
+{
+  "id": "fay",
+  "type": "character",
+  "level": "a",
+  "faction": "lightbearer",
+  "class": "support",
+  "damage": "magic",
+  "season": "0"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "sonja",
+  "type": "character",
+  "level": "s",
+  "faction": "lightbearer",
+  "class": "warrior",
+  "damage": "physical",
+  "season": "2"
+}

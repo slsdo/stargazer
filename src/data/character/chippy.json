@@ -1,0 +1,9 @@
+{
+  "id": "chippy",
+  "type": "character",
+  "level": "s",
+  "faction": "wilder",
+  "class": "rogue",
+  "damage": "physical",
+  "season": "0"
+}

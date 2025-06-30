@@ -1,0 +1,9 @@
+{
+  "id": "cyran",
+  "type": "character",
+  "level": "s",
+  "faction": "lightbearer",
+  "class": "mage",
+  "damage": "magic",
+  "season": "3"
+}

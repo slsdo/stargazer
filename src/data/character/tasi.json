@@ -1,0 +1,9 @@
+{
+  "id": "tasi",
+  "type": "character",
+  "level": "s",
+  "faction": "wilder",
+  "class": "mage",
+  "damage": "magic",
+  "season": "2"
+}

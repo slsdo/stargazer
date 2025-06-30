@@ -1,0 +1,9 @@
+{
+  "id": "korin",
+  "type": "character",
+  "level": "a",
+  "faction": "lightbearer",
+  "class": "warrior",
+  "damage": "physical",
+  "season": "0"
+}

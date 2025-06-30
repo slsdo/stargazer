@@ -1,0 +1,9 @@
+{
+  "id": "koko",
+  "type": "character",
+  "level": "a",
+  "faction": "mauler",
+  "class": "support",
+  "damage": "physical",
+  "season": "0"
+}

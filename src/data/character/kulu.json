@@ -1,0 +1,9 @@
+{
+  "id": "kulu",
+  "type": "character",
+  "level": "s",
+  "faction": "hypogean",
+  "class": "marksman",
+  "damage": "physical",
+  "season": "4"
+}

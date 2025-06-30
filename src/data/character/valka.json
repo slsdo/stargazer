@@ -1,0 +1,9 @@
+{
+  "id": "valka",
+  "type": "character",
+  "level": "a",
+  "faction": "graveborn",
+  "class": "warrior",
+  "damage": "physical",
+  "season": "3"
+}

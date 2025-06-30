@@ -1,0 +1,9 @@
+{
+  "id": "hodgkin",
+  "type": "character",
+  "level": "s",
+  "faction": "graveborn",
+  "class": "warrior",
+  "damage": "physical",
+  "season": "2"
+}

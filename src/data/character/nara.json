@@ -1,0 +1,9 @@
+{
+  "id": "nara",
+  "type": "character",
+  "level": "s",
+  "faction": "graveborn",
+  "class": "rogue",
+  "damage": "physical",
+  "season": "2"
+}

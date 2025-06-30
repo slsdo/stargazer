@@ -1,0 +1,9 @@
+{
+  "id": "shemira",
+  "type": "character",
+  "level": "s",
+  "faction": "graveborn",
+  "class": "mage",
+  "damage": "magic",
+  "season": "3"
+}

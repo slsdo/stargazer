@@ -1,0 +1,9 @@
+{
+  "id": "faramor",
+  "type": "character",
+  "level": "a",
+  "faction": "wilder",
+  "class": "rogue",
+  "damage": "physical",
+  "season": "3"
+}

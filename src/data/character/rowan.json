@@ -1,0 +1,9 @@
+{
+  "id": "rowan",
+  "type": "character",
+  "level": "s",
+  "faction": "lightbearer",
+  "class": "support",
+  "damage": "magic",
+  "season": "0"
+}

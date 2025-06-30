@@ -1,0 +1,9 @@
+{
+  "id": "hugin",
+  "type": "character",
+  "level": "a",
+  "faction": "lightbearer",
+  "class": "support",
+  "damage": "physical",
+  "season": "2"
+}

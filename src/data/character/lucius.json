@@ -1,0 +1,9 @@
+{
+  "id": "lucius",
+  "type": "character",
+  "level": "a",
+  "faction": "lightbearer",
+  "class": "tank",
+  "damage": "physical",
+  "season": "0"
+}
