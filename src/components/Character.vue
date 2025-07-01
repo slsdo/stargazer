@@ -1,19 +1,14 @@
 <script setup lang="ts">
-import type { Character as CharacterType } from '../types/character'
+import type { CharacterType } from '../types/character'
 const props = defineProps<{
   character: CharacterType
-  characterImages: Record<string, string>
-  icons: Record<string, string>
+  characterImage: string
 }>()
 </script>
 
 <template>
   <div class="character" :class="`level-${character.level}`">
-    <img :src="characterImages[character.id]" :alt="character.id" class="portrait" />
-    <div class="info">
-      <img :src="icons[`faction-${character.faction}`]" :alt="character.faction" class="icon" />
-      <img :src="icons[`class-${character.class}`]" :alt="character.class" class="icon" />
-    </div>
+    <img :src="characterImage" :alt="character.id" class="portrait" />
   </div>
 </template>
 
@@ -49,17 +44,5 @@ const props = defineProps<{
   border: 2px solid #484848;
   border-radius: 50%;
   z-index: 1;
-}
-.info {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  padding-top: 0.4rem;
-}
-.icon {
-  width: 24px;
-  height: 24px;
-  border: 1px solid #484848;
-  border-radius: 50%;
 }
 </style>

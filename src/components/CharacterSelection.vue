@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import Profile from './Profile.vue'
-const props = defineProps({
-  characters: Array,
-  characterImages: Object,
-  icons: Object,
-})
+import type { CharacterType } from '../types/character'
+
+defineProps<{
+  characters: CharacterType[]
+  characterImages: { [key: string]: string }
+  icons: { [key: string]: string }
+}>()
 </script>
 
 <template>
@@ -13,7 +15,7 @@ const props = defineProps({
       v-for="character in characters"
       :key="character.id"
       :character="character"
-      :characterImages="characterImages"
+      :characterImage="characterImages[character.id]"
       :icons="icons"
     />
   </div>
