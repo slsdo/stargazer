@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import CharacterSelection from '../components/CharacterSelection.vue'
+import type { Character } from '../types/character'
 
-const characters = Object.values(
+const characters: Character[] = Object.values(
   import.meta.glob('../data/character/*.json', { eager: true, import: 'default' }),
 )
 
@@ -29,21 +30,11 @@ const icons = Object.fromEntries(
       </div>
 
       <div class="section">
-        <div class="characters">
-          <div v-for="character in characters" :key="character.id" class="character">
-            <div class="profile" :class="`level-${character.level}`">
-              <img :src="characterImages[character.id]" :alt="character.id" class="portrait" />
-            </div>
-            <div class="info">
-              <img
-                :src="icons[`faction-${character.faction}`]"
-                :alt="character.faction"
-                class="icon"
-              />
-              <img :src="icons[`class-${character.class}`]" :alt="character.class" class="icon" />
-            </div>
-          </div>
-        </div>
+        <CharacterSelection
+          :characters="characters"
+          :characterImages="characterImages"
+          :icons="icons"
+        />
       </div>
     </div>
   </main>
