@@ -10,11 +10,11 @@ const grid = new Grid()
 const layout = new Layout({ size: { x: 32, y: 32 }, origin: { x: 250, y: 250 } })
 const hexes = grid.keys()
 const isIsometric = ref(false)
-const skewX = ref(-3)
-const skewY = ref(1)
-const scaleX = ref(0.95)
-const scaleY = ref(0.65)
-const rotate = ref(0)
+const skewX = ref(-30) // -3
+const skewY = ref(0) // 1
+const scaleX = ref(1) // .95
+const scaleY = ref(0.8602) // .65
+const rotate = ref(0) // 0
 
 const characters = (
   Object.values(
@@ -72,7 +72,7 @@ const icons = Object.fromEntries(
           </label>
         </div>
         <div id="map">
-          <svg :width="500" :height="500" class="">
+          <svg :width="700" :height="500" class="">
             <g
               :transform="
                 isIsometric
