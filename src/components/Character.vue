@@ -14,8 +14,8 @@ const props = defineProps<{
 
 <style scoped>
 .character {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -30,13 +30,15 @@ const props = defineProps<{
   margin-top: 0.25rem;
   color: #333;
 }
+
 .character::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: #fff3;
+  background: #fff4;
 }
+
 .portrait {
   width: 80px;
   height: 80px;
@@ -44,5 +46,13 @@ const props = defineProps<{
   border: 2px solid #484848;
   border-radius: 50%;
   z-index: 1;
+}
+
+.level-s {
+  background: url('@/assets/images/icons/bg-s.png') center/cover;
+}
+
+.level-a {
+  background: url('@/assets/images/icons/bg-a.png') center/cover;
 }
 </style>

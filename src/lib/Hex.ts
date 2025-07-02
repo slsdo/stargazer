@@ -2,14 +2,24 @@ export class Hex {
   readonly q: number
   readonly r: number
   readonly s: number
+  private id: number
 
-  constructor(q: number, r: number, s: number) {
+  constructor(q: number, r: number, s: number, id: number = -1) {
     if (q + r + s !== 0) {
-      throw new Error('q + r + s must be 0')
+      throw new Error(`q=${q} + r=${r} + s=${s} must be 0`)
     }
     this.q = q
     this.r = r
     this.s = s
+    this.id = id
+  }
+
+  setId(id: number): void {
+    this.id = id
+  }
+
+  getId(): number {
+    return this.id
   }
 
   equals(other: Hex): boolean {
