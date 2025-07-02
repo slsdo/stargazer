@@ -14,6 +14,7 @@ const skewX = ref(-3)
 const skewY = ref(1)
 const scaleX = ref(0.95)
 const scaleY = ref(0.65)
+const rotate = ref(0)
 
 const characters = (
   Object.values(
@@ -44,8 +45,6 @@ const icons = Object.fromEntries(
         </div>
       </div>
 
-      <div class="section"><Test /></div>
-
       <div class="section">
         <button @click="isIsometric = !isIsometric" style="margin-bottom: 1em">
           {{ isIsometric ? 'Standard View' : 'Isometric View' }}
@@ -67,12 +66,18 @@ const icons = Object.fromEntries(
             >scaleY: {{ scaleY }}
             <input type="range" min="0.2" max="2" step="0.01" v-model.number="scaleY" />
           </label>
+          <label style="margin-left: 2em"
+            >Rotate: {{ rotate }}
+            <input type="range" min="-180" max="180" v-model.number="rotate" />
+          </label>
         </div>
         <div id="map">
-          <svg :width="500" :height="500">
+          <svg :width="500" :height="500" class="">
             <g
               :transform="
-                isIsometric ? `skewX(${skewX}) skewY(${skewY}) scale(${scaleX},${scaleY})` : ''
+                isIsometric
+                  ? `rotate(${rotate},250,250) skewX(${skewX}) skewY(${skewY}) scale(${scaleX},${scaleY})`
+                  : ''
               "
             >
               <g v-for="hex in hexes" :key="hex.getId()">
