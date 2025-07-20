@@ -1,6 +1,12 @@
+<script setup lang="ts">
+import { useDragDrop } from '../composables/useDragDrop'
+
+const { isDragging, draggedCharacter, draggedImageSrc, dragPreviewPosition } = useDragDrop()
+</script>
+
 <template>
   <Teleport to="body">
-    <div 
+    <div
       v-if="isDragging && draggedCharacter && draggedImageSrc"
       class="drag-preview"
       :style="{
@@ -8,30 +14,12 @@
         top: `${dragPreviewPosition.y}px`,
       }"
     >
-      <div 
-        class="character-preview" 
-        :class="`level-${draggedCharacter.level}`"
-      >
-        <img 
-          :src="draggedImageSrc" 
-          :alt="draggedCharacter.id" 
-          class="portrait" 
-        />
+      <div class="character-preview" :class="`level-${draggedCharacter.level}`">
+        <img :src="draggedImageSrc" :alt="draggedCharacter.id" class="portrait" />
       </div>
     </div>
   </Teleport>
 </template>
-
-<script setup lang="ts">
-import { useDragDrop } from '../composables/useDragDrop'
-
-const { 
-  isDragging, 
-  draggedCharacter, 
-  draggedImageSrc, 
-  dragPreviewPosition 
-} = useDragDrop()
-</script>
 
 <style scoped>
 .drag-preview {
@@ -52,7 +40,9 @@ const {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 0 5px #fff, 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 0 0 5px #fff,
+    0 4px 12px rgba(0, 0, 0, 0.3);
   font-size: 1rem;
   font-weight: 600;
   text-align: center;

@@ -7,6 +7,7 @@ interface Props {
   characterPlacements: Map<number, string>
   hexes: Hex[]
   layout: Layout
+  characterImages: { [key: string]: string }
   outerRadius?: number
   innerRadius?: number
   borderWidth?: number
@@ -31,8 +32,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  characterClick: [hexId: number, imageSrc: string]
-  characterMoved: [fromHexId: number, toHexId: number, imageSrc: string]
+  characterClick: [hexId: number, characterId: string]
+  characterMoved: [fromHexId: number, toHexId: number, characterId: string]
 }>()
 
 const { startDrag, endDrag } = useDragDrop()
@@ -47,17 +48,22 @@ const getHexPosition = (hexId: number) => {
 }
 
 // Simple drag handler - try direct SVG dragging
-const handleCharacterDragStart = (event: DragEvent, hexId: number, imageSrc: string) => {
+const handleCharacterDragStart = (event: DragEvent, hexId: number, characterId: string) => {
   console.log('Character drag start:', hexId)
   
   // Create a mock character object for the drag system
   const mockCharacter = {
     id: `placed-${hexId}`,
-    name: 'Placed Character',
+    type: 'placed',
+    level: '1',
+    faction: 'unknown',
+    class: 'unknown',
+    damage: '0',
+    season: 'current',
     sourceHexId: hexId // Track where this character came from
   }
   
-  startDrag(event, mockCharacter, imageSrc)
+  startDrag(event, mockCharacter, characterId, props.characterImages[characterId])
 }
 
 const handleCharacterDragEnd = (event: DragEvent) => {
@@ -67,7 +73,7 @@ const handleCharacterDragEnd = (event: DragEvent) => {
 </script>
 
 <template>
-  <g v-for="[hexId, imageSrc] in characterPlacements" :key="hexId" class="character-placement">
+  <g v-for="[hexId, characterId] in characterPlacements" :key="hexId" class="character-placement">
     <g v-if="getHexById(hexId)">
       <!-- Background circle -->
       <circle
@@ -95,13 +101,13 @@ const handleCharacterDragEnd = (event: DragEvent) => {
       </defs>
       <!-- Character image (clipped to circle) -->
       <image
-        :href="imageSrc"
+        :href="characterImages[characterId]"
         :x="getHexPosition(hexId).x - innerRadius"
         :y="getHexPosition(hexId).y - innerRadius"
         :width="innerRadius * 2"
         :height="innerRadius * 2"
         :clip-path="`url(#clip-character-${hexId})`"
-        @click="$emit('characterClick', hexId, imageSrc)"
+        @click="$emit('characterClick', hexId, characterId)"
       />
       <!-- Semi-transparent overlay -->
       <circle

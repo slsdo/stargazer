@@ -16,8 +16,8 @@ const handleHexClick = (hex: Hex) => {
   console.log('Hex clicked:', hex.getId())
 }
 
-const handleCharacterClick = (hexId: number, imageSrc: string) => {
-  console.log('Character clicked:', hexId, imageSrc)
+const handleCharacterClick = (hexId: number, characterId: string) => {
+  console.log('Character clicked:', hexId, characterId)
 }
 
 const handleArrowClick = (startHexId: number, endHexId: number) => {
@@ -66,6 +66,7 @@ const icons = Object.fromEntries(
               :character-placements="gridStore.characterPlacements"
               :hexes="gridStore.hexes"
               :layout="gridStore.layout"
+              :character-images="characterImages"
               @character-click="handleCharacterClick"
             />
 

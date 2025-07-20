@@ -6,4 +6,5 @@ export interface CharacterType {
   class: string
   damage: string
   season: string
+  sourceHexId?: number // Optional property for tracking drag source
 }

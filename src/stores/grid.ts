@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { Grid } from '../lib/Grid'
 import { Layout, POINTY } from '../lib/Layout'
+import type { Hex } from '../lib/Hex'
 
 export const useGridStore = defineStore('grid', () => {
   // Core grid instances
@@ -29,9 +30,9 @@ export const useGridStore = defineStore('grid', () => {
   })
 
   // Actions that use Grid instance
-  const placeCharacterOnHex = (hexId: number, imageSrc: string) => {
-    console.log('Store: placing character on hex', hexId, imageSrc)
-    grid.placeCharacterById(hexId, imageSrc)
+  const placeCharacterOnHex = (hexId: number, characterId: string) => {
+    console.log('Store: placing character on hex', hexId, characterId)
+    grid.placeCharacterById(hexId, characterId)
     characterUpdateTrigger.value++ // Trigger reactivity
     console.log('Store: character placements now:', grid.getCharacterPlacements())
   }
@@ -72,7 +73,7 @@ export const useGridStore = defineStore('grid', () => {
     // Core grid data (readonly)
     grid: readonly(grid),
     layout: readonly(layout),
-    hexes: readonly(hexes),
+    hexes: hexes as Hex[],
     gridOrigin: readonly(gridOrigin),
     
     // Reactive state

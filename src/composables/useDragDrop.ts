@@ -12,12 +12,12 @@ const dragPreviewPosition = ref({ x: 0, y: 0 })
 
 export const useDragDrop = () => {
   // Start dragging a character
-  const startDrag = (event: DragEvent, character: CharacterType, imageSrc: string) => {
+  const startDrag = (event: DragEvent, character: CharacterType, characterId: string, imageUrl?: string) => {
     if (!event.dataTransfer) return
 
     isDragging.value = true
     draggedCharacter.value = character
-    draggedImageSrc.value = imageSrc
+    draggedImageSrc.value = imageUrl || characterId
 
     // Set initial position
     updateDragPosition(event.clientX, event.clientY)
@@ -25,7 +25,7 @@ export const useDragDrop = () => {
     // Set drag data
     event.dataTransfer.setData(CHARACTER_MIME_TYPE, JSON.stringify({
       character,
-      imageSrc
+      characterId
     }))
 
     // Set drag effect
@@ -94,7 +94,7 @@ export const useDragDrop = () => {
   }
 
   // Handle drop
-  const handleDrop = (event: DragEvent): { character: CharacterType; imageSrc: string } | null => {
+  const handleDrop = (event: DragEvent): { character: CharacterType; characterId: string } | null => {
     event.preventDefault()
     console.log('handleDrop called')
     
@@ -112,9 +112,9 @@ export const useDragDrop = () => {
         return null
       }
 
-      const { character, imageSrc } = JSON.parse(dragData)
+      const { character, characterId } = JSON.parse(dragData)
       console.log('Parsed character:', character.id)
-      return { character, imageSrc }
+      return { character, characterId }
     } catch (error) {
       console.error('Error parsing drag data:', error)
       return null

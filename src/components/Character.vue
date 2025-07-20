@@ -12,7 +12,7 @@ const { startDrag, endDrag } = useDragDrop()
 
 const handleDragStart = (event: DragEvent) => {
   if (!props.isDraggable) return
-  startDrag(event, props.character, props.characterImage)
+  startDrag(event, props.character, props.character.id, props.characterImage)
 }
 
 const handleDragEnd = (event: DragEvent) => {

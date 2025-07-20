@@ -53,7 +53,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   hexClick: [hex: Hex]
-  characterDropped: [hex: Hex, character: any, imageSrc: string]
+  characterDropped: [hex: Hex, character: any, characterId: string]
 }>()
 
 const { handleDragOver, handleDrop, hasCharacterData } = useDragDrop()
@@ -61,6 +61,8 @@ const gridStore = useGridStore()
 
 // Track which hex is currently being hovered during drag
 const dragHoveredHex = ref<number | null>(null)
+// Track which hex is currently being hovered (non-drag)
+const hoveredHex = ref<number | null>(null)
 
 const gridTransform = computed(() => {
   const transforms: string[] = []
@@ -93,6 +95,17 @@ const getHexStroke = (hex: Hex) => {
   return props.hexStrokeColor
 }
 
+// Mouse hover handling functions
+const handleHexMouseEnter = (hex: Hex) => {
+  hoveredHex.value = hex.getId()
+}
+
+const handleHexMouseLeave = (hex: Hex) => {
+  if (hoveredHex.value === hex.getId()) {
+    hoveredHex.value = null
+  }
+}
+
 // Drop handling functions
 const handleHexDragOver = (event: DragEvent, hex: Hex) => {
   if (hasCharacterData(event)) {
@@ -117,7 +130,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
   dragHoveredHex.value = null
 
   if (dropResult) {
-    const { character, imageSrc } = dropResult
+    const { character, characterId } = dropResult
     console.log('Placing character on hex:', hex.getId(), character.id)
 
     // Check if this is a character being moved from another hex
@@ -132,16 +145,16 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
 
       // Move character from source to target hex
       gridStore.removeCharacterFromHex(sourceHexId)
-      gridStore.placeCharacterOnHex(targetHexId, imageSrc)
+      gridStore.placeCharacterOnHex(targetHexId, characterId)
 
       console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
     } else {
       // This is a new character placement from the character selection
-      gridStore.placeCharacterOnHex(hex.getId(), imageSrc)
+      gridStore.placeCharacterOnHex(hex.getId(), characterId)
     }
 
     // Emit event for any additional handling
-    emit('characterDropped', hex, character, imageSrc)
+    emit('characterDropped', hex, character, characterId)
   } else {
     console.log('No valid drop result')
   }
@@ -152,6 +165,7 @@ const getHexDropClass = (hex: Hex) => {
     'drop-target': true,
     occupied: gridStore.isHexOccupied(hex.getId()),
     'drag-hover': dragHoveredHex.value === hex.getId(),
+    hover: hoveredHex.value === hex.getId(),
   }
 }
 
@@ -183,12 +197,7 @@ onUnmounted(() => {
     </defs>
     <g :transform="gridTransform">
       <!-- Regular hexes (render first, behind elevated hexes) -->
-      <g
-        v-for="hex in regularHexes"
-        :key="hex.getId()"
-        class="hex-tile"
-        :class="getHexDropClass(hex)"
-      >
+      <g v-for="hex in regularHexes" :key="hex.getId()" class="hex-tile">
         <polygon
           :points="
             layout
@@ -199,10 +208,6 @@ onUnmounted(() => {
           :fill="getHexFill(hex)"
           :stroke="getHexStroke(hex)"
           :stroke-width="strokeWidth"
-          @click="$emit('hexClick', hex)"
-          @dragover="handleHexDragOver($event, hex)"
-          @dragleave="handleHexDragLeave($event, hex)"
-          @drop="handleHexDrop($event, hex)"
         />
         <text
           v-if="showHexIds"
@@ -231,12 +236,7 @@ onUnmounted(() => {
       </g>
 
       <!-- Elevated hexes (render above regular hexes, but below character components) -->
-      <g
-        v-for="hex in elevatedHexes"
-        :key="`elevated-${hex.getId()}`"
-        class="hex-tile"
-        :class="getHexDropClass(hex)"
-      >
+      <g v-for="hex in elevatedHexes" :key="`elevated-${hex.getId()}`" class="hex-tile">
         <polygon
           :points="
             layout
@@ -247,10 +247,6 @@ onUnmounted(() => {
           :fill="getHexFill(hex)"
           :stroke="getHexStroke(hex)"
           :stroke-width="strokeWidth"
-          @click="$emit('hexClick', hex)"
-          @dragover="handleHexDragOver($event, hex)"
-          @dragleave="handleHexDragLeave($event, hex)"
-          @drop="handleHexDrop($event, hex)"
         />
         <text
           v-if="showHexIds"
@@ -280,6 +276,32 @@ onUnmounted(() => {
 
       <!-- Character components and other content (render on top of everything) -->
       <slot />
+
+      <!-- Invisible event layer (renders on top for event handling and border styling) -->
+      <g
+        v-for="hex in hexes"
+        :key="`event-${hex.getId()}`"
+        class="hex-event-layer"
+        :class="getHexDropClass(hex)"
+      >
+        <polygon
+          :points="
+            layout
+              .polygonCorners(hex)
+              .map((p) => `${p.x},${p.y}`)
+              .join(' ')
+          "
+          fill="transparent"
+          stroke="transparent"
+          stroke-width="0"
+          @click="$emit('hexClick', hex)"
+          @mouseenter="handleHexMouseEnter(hex)"
+          @mouseleave="handleHexMouseLeave(hex)"
+          @dragover="handleHexDragOver($event, hex)"
+          @dragleave="handleHexDragLeave($event, hex)"
+          @drop="handleHexDrop($event, hex)"
+        />
+      </g>
     </g>
   </svg>
 </template>
@@ -294,42 +316,48 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.hex-tile:hover polygon {
-  fill-opacity: 0.8;
+.hex-event-layer {
+  cursor: pointer;
+  pointer-events: all;
 }
 
-.drop-target polygon {
+.hex-event-layer polygon {
   transition:
     fill 0.2s ease,
     stroke 0.2s ease,
     stroke-width 0.2s ease;
 }
 
-/* Occupied tiles - red border */
-.drop-target.occupied polygon {
-  fill: #ffe8e8;
+/* Occupied tiles - red border on event layer */
+.hex-event-layer.drop-target.occupied polygon {
   stroke: #f44336;
   stroke-width: 3;
 }
 
 /* Drag hover states - highest priority with !important */
-.drop-target.drag-hover:not(.occupied) polygon {
-  fill: #e8f5e8 !important;
+.hex-event-layer.drop-target.drag-hover:not(.occupied) polygon {
+  fill: rgba(232, 245, 232, 0.3) !important;
   stroke: #4caf50 !important;
   stroke-width: 3 !important;
   filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.4));
 }
 
-.drop-target.drag-hover.occupied polygon {
-  fill: #ffe8e8 !important;
+.hex-event-layer.drop-target.drag-hover.occupied polygon {
+  fill: rgba(255, 232, 232, 0.3) !important;
   stroke: #f44336 !important;
   stroke-width: 3 !important;
   filter: drop-shadow(0 0 8px rgba(244, 67, 54, 0.4));
 }
 
 /* Regular hover (when not dragging) */
-.drop-target:not(.occupied):not(.drag-hover):hover polygon {
-  fill: #f0f8f0;
+.hex-event-layer.drop-target:not(.occupied):not(.drag-hover).hover polygon {
+  fill: rgba(240, 248, 240, 0.3);
+  stroke: #4caf50;
   stroke-width: 3;
+}
+
+/* Visual hex tiles remain clean without interaction styling */
+.hex-tile.hover polygon {
+  fill-opacity: 0.8;
 }
 </style>

@@ -142,17 +142,17 @@ export class Grid {
   }
 
   // Character management methods
-  placeCharacter(hex: Hex, imageSrc: string): void {
+  placeCharacter(hex: Hex, characterId: string): void {
     const entry = this.storage.get(Grid.key(hex))
     if (entry) {
-      entry.character = imageSrc
+      entry.character = characterId
     }
   }
 
-  placeCharacterById(hexId: number, imageSrc: string): void {
+  placeCharacterById(hexId: number, characterId: string): void {
     const hex = this.getHexById(hexId)
     if (hex) {
-      this.placeCharacter(hex, imageSrc)
+      this.placeCharacter(hex, characterId)
     }
   }
 
