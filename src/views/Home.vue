@@ -3,7 +3,7 @@ import CharacterSelection from '../components/CharacterSelection.vue'
 import HexGrid from '../components/grid/HexGrid.vue'
 import CharacterPlacement from '../components/grid/CharacterPlacement.vue'
 import HexArrow from '../components/grid/HexArrow.vue'
-import GridStats from '../components/GridStats.vue'
+import DebugGrid from '../components/DebugGrid.vue'
 import type { CharacterType } from '../types/character'
 import type { Hex } from '../lib/Hex'
 import { useGridStore } from '../stores/grid'
@@ -12,11 +12,12 @@ import { ref } from 'vue'
 // Use Pinia grid store
 const gridStore = useGridStore()
 
-// Grid stats visibility toggle
+// Tab state management
+const activeTab = ref('characters')
 const debugGrid = ref(true)
 
-const toggleGridStats = () => {
-  debugGrid.value = !debugGrid.value
+const setActiveTab = (tab: string) => {
+  activeTab.value = tab
 }
 
 // Event handlers
@@ -67,7 +68,7 @@ const icons = Object.fromEntries(
             :center-x="gridStore.gridOrigin.x"
             :center-y="gridStore.gridOrigin.y"
             :text-rotation="30"
-            :show-coordinates="debugGrid"
+            :show-coordinates="activeTab === 'debug'"
             @hex-click="handleHexClick"
           >
             <!-- Character placements -->
@@ -84,26 +85,40 @@ const icons = Object.fromEntries(
         </div>
       </div>
 
-      <!-- Grid Stats Toggle Button -->
-      <div class="stats-toggle-container">
-        <button @click="toggleGridStats" class="stats-toggle-btn">
-          <span class="toggle-icon">{{ debugGrid ? '▼' : '▶' }}</span>
-          {{ debugGrid ? 'Hide' : 'Show' }} Debug
-        </button>
-      </div>
+      <!-- Tab Navigation -->
+      <div class="tab-container">
+        <div class="tab-buttons">
+          <button
+            @click="setActiveTab('characters')"
+            :class="['tab-btn', { active: activeTab === 'characters' }]"
+          >
+            Characters
+          </button>
+          <button
+            @click="setActiveTab('debug')"
+            :class="['tab-btn', { active: activeTab === 'debug' }]"
+          >
+            Debug
+          </button>
+        </div>
 
-      <!-- Grid Stats Section -->
-      <div v-show="debugGrid" class="section">
-        <GridStats />
-      </div>
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Characters Tab -->
+          <div v-show="activeTab === 'characters'" class="tab-panel">
+            <CharacterSelection
+              :characters="characters"
+              :characterImages="characterImages"
+              :icons="icons"
+              :isDraggable="true"
+            />
+          </div>
 
-      <div class="section">
-        <CharacterSelection
-          :characters="characters"
-          :characterImages="characterImages"
-          :icons="icons"
-          :isDraggable="true"
-        />
+          <!-- Debug Tab -->
+          <div v-show="activeTab === 'debug'" class="tab-panel">
+            <DebugGrid />
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -138,42 +153,67 @@ main {
   align-items: center;
 }
 
-.stats-toggle-container {
-  display: flex;
-  justify-content: center;
-  margin: 1rem 0;
+.tab-container {
+  margin: 2rem 0;
 }
 
-.stats-toggle-btn {
-  background: #36958e;
-  color: white;
+.tab-buttons {
+  display: flex;
+  justify-content: flex-start;
+  background: #e8e4d9;
+  border-radius: 8px 8px 0 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #d4cfc0;
+  border-bottom: none;
+}
+
+.tab-btn {
+  background: transparent;
+  color: #666;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  padding: 1rem 2rem;
   cursor: pointer;
   font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition:
-    background-color 0.2s ease,
-    transform 0.1s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border-right: 1px solid #d4cfc0;
+  position: relative;
 }
 
-.stats-toggle-btn:hover {
-  background: #005a9e;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+.tab-btn:last-child {
+  border-right: none;
 }
 
-.stats-toggle-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.tab-btn:hover {
+  background: #f0ebe0;
+  color: #36958e;
 }
 
-.toggle-icon {
-  font-size: 0.9rem;
-  transition: transform 0.2s ease;
+.tab-btn.active {
+  background: #f8f5ec;
+  color: #36958e;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #36958e;
+}
+
+.tab-content {
+  background: #f8f5ec;
+  border: 2px solid #d4cfc0;
+  border-radius: 0 0 8px 8px;
+  border-top: none;
+}
+
+.tab-panel {
+  padding: 2rem;
+  color: #484848;
 }
 </style>

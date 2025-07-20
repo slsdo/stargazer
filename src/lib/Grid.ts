@@ -103,14 +103,14 @@ export class Grid {
   }
 
   setState(hex: Hex, state: State): void {
-    const entry = this.storage.get(Grid.key(hex))
-    if (entry) {
-      entry.state = state
+    const tile = this.getTile(hex)
+    if (tile) {
+      tile.state = state
     }
   }
 
   getState(hex: Hex): State | undefined {
-    return this.storage.get(Grid.key(hex))?.state
+    return this.getTile(hex)?.state
   }
 
   keys(): Hex[] {
@@ -124,71 +124,73 @@ export class Grid {
     return hex
   }
 
-  // Calculate curved arrow path between two hex IDs
-  getArrowPath(startId: number, endId: number, layout: any): string {
-    const startHex = this.getHexById(startId)
-    const endHex = this.getHexById(endId)
+  // Get GridTile by hex
+  getTile(hex: Hex): GridTile | undefined {
+    return this.storage.get(Grid.key(hex))
+  }
 
-    const start = layout.hexToPixel(startHex)
-    const end = layout.hexToPixel(endHex)
+  // Get GridTile by hex ID
+  getTileById(hexId: number): GridTile | undefined {
+    return Array.from(this.storage.values()).find((tile) => tile.hex.getId() === hexId)
+  }
 
-    // Calculate control point for curve (offset perpendicular to line)
-    const midX = (start.x + end.x) / 2
-    const midY = (start.y + end.y) / 2
-    const dx = end.x - start.x
-    const dy = end.y - start.y
-    const length = Math.sqrt(dx * dx + dy * dy)
-    const curvature = length * 0.3 // Adjust curve intensity
+  // Get all GridTiles
+  getAllTiles(): GridTile[] {
+    return Array.from(this.storage.values())
+  }
 
-    // Perpendicular offset for control point
-    const controlX = midX - (dy / length) * curvature
-    const controlY = midY + (dx / length) * curvature
-
-    return `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
+  // Get tiles with characters
+  getTilesWithCharacters(): GridTile[] {
+    return Array.from(this.storage.values()).filter((tile) => tile.character !== undefined)
   }
 
   // Character management methods
   placeCharacter(hex: Hex, characterId: string): void {
-    const entry = this.storage.get(Grid.key(hex))
-    if (entry) {
-      entry.character = characterId
-      entry.state = State.OCCUPIED_SELF
+    const tile = this.getTile(hex)
+    if (tile) {
+      tile.character = characterId
+      tile.state = State.OCCUPIED_SELF
     }
   }
 
   placeCharacterById(hexId: number, characterId: string): void {
-    const hex = this.getHexById(hexId)
-    this.placeCharacter(hex, characterId)
+    const tile = this.getTileById(hexId)
+    if (tile) {
+      tile.character = characterId
+      tile.state = State.OCCUPIED_SELF
+    }
   }
 
   removeCharacter(hex: Hex): void {
-    const entry = this.storage.get(Grid.key(hex))
-    if (entry) {
-      delete entry.character
-      entry.state = State.DEFAULT
+    const tile = this.getTile(hex)
+    if (tile) {
+      delete tile.character
+      tile.state = State.DEFAULT
     }
   }
 
   removeCharacterById(hexId: number): void {
-    const hex = this.getHexById(hexId)
-    this.removeCharacter(hex)
+    const tile = this.getTileById(hexId)
+    if (tile) {
+      delete tile.character
+      tile.state = State.DEFAULT
+    }
   }
 
   getCharacter(hex: Hex): string | undefined {
-    return this.storage.get(Grid.key(hex))?.character
+    return this.getTile(hex)?.character
   }
 
   getCharacterById(hexId: number): string | undefined {
-    const hex = this.getHexById(hexId)
-    return this.getCharacter(hex)
+    return this.getTileById(hexId)?.character
   }
 
   hasCharacter(hex: Hex): boolean {
-    return this.getCharacter(hex) !== undefined
+    return this.getTile(hex)?.character !== undefined
   }
 
   hasCharacterById(hexId: number): boolean {
-    return this.getCharacterById(hexId) !== undefined
+    return this.getTileById(hexId)?.character !== undefined
   }
 
   // Get all character placements as a Map for compatibility
@@ -221,23 +223,26 @@ export class Grid {
     return count
   }
 
-  // Get GridTile by hex
-  getTile(hex: Hex): GridTile | undefined {
-    return this.storage.get(Grid.key(hex))
-  }
+  // Calculate curved arrow path between two hex IDs
+  getArrowPath(startId: number, endId: number, layout: any): string {
+    const startHex = this.getHexById(startId)
+    const endHex = this.getHexById(endId)
 
-  // Get GridTile by hex ID
-  getTileById(hexId: number): GridTile | undefined {
-    return Array.from(this.storage.values()).find((tile) => tile.hex.getId() === hexId)
-  }
+    const start = layout.hexToPixel(startHex)
+    const end = layout.hexToPixel(endHex)
 
-  // Get all GridTiles
-  getAllTiles(): GridTile[] {
-    return Array.from(this.storage.values())
-  }
+    // Calculate control point for curve (offset perpendicular to line)
+    const midX = (start.x + end.x) / 2
+    const midY = (start.y + end.y) / 2
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+    const length = Math.sqrt(dx * dx + dy * dy)
+    const curvature = length * 0.3 // Adjust curve intensity
 
-  // Get tiles with characters
-  getTilesWithCharacters(): GridTile[] {
-    return Array.from(this.storage.values()).filter((tile) => tile.character !== undefined)
+    // Perpendicular offset for control point
+    const controlX = midX - (dy / length) * curvature
+    const controlY = midY + (dx / length) * curvature
+
+    return `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
   }
 }
