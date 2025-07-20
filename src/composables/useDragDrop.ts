@@ -4,6 +4,10 @@ import type { CharacterType } from '../types/character'
 // MIME type for character drag data
 const CHARACTER_MIME_TYPE = 'application/character'
 
+// Pre-load transparent drag image to avoid timing issues
+const transparentDragImage = new Image()
+transparentDragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs='
+
 // Drag state
 const isDragging = ref(false)
 const draggedCharacter = ref<CharacterType | null>(null)
@@ -12,7 +16,12 @@ const dragPreviewPosition = ref({ x: 0, y: 0 })
 
 export const useDragDrop = () => {
   // Start dragging a character
-  const startDrag = (event: DragEvent, character: CharacterType, characterId: string, imageUrl?: string) => {
+  const startDrag = (
+    event: DragEvent,
+    character: CharacterType,
+    characterId: string,
+    imageUrl?: string,
+  ) => {
     if (!event.dataTransfer) return
 
     isDragging.value = true
@@ -23,19 +32,20 @@ export const useDragDrop = () => {
     updateDragPosition(event.clientX, event.clientY)
 
     // Set drag data
-    event.dataTransfer.setData(CHARACTER_MIME_TYPE, JSON.stringify({
-      character,
-      characterId
-    }))
+    event.dataTransfer.setData(
+      CHARACTER_MIME_TYPE,
+      JSON.stringify({
+        character,
+        characterId,
+      }),
+    )
 
     // Set drag effect
     event.dataTransfer.effectAllowed = 'copy'
-    
-    // Hide the default drag image
-    const dragImage = new Image()
-    dragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs='
-    event.dataTransfer.setDragImage(dragImage, 0, 0)
-    
+
+    // Hide the default drag image using pre-loaded transparent image
+    event.dataTransfer.setDragImage(transparentDragImage, 0, 0)
+
     // Add visual feedback to original element
     if (event.target instanceof HTMLElement) {
       event.target.style.opacity = '0.5'
@@ -80,7 +90,7 @@ export const useDragDrop = () => {
     // Remove global event listeners
     document.removeEventListener('dragover', handleGlobalDragOver)
     document.removeEventListener('drag', handleGlobalDrag)
-    
+
     // Emit event to clear any hover states
     document.dispatchEvent(new CustomEvent('drag-ended'))
   }
@@ -94,10 +104,12 @@ export const useDragDrop = () => {
   }
 
   // Handle drop
-  const handleDrop = (event: DragEvent): { character: CharacterType; characterId: string } | null => {
+  const handleDrop = (
+    event: DragEvent,
+  ): { character: CharacterType; characterId: string } | null => {
     event.preventDefault()
     console.log('handleDrop called')
-    
+
     if (!event.dataTransfer) {
       console.log('No dataTransfer')
       return null
@@ -106,7 +118,7 @@ export const useDragDrop = () => {
     try {
       const dragData = event.dataTransfer.getData(CHARACTER_MIME_TYPE)
       console.log('Drag data:', dragData)
-      
+
       if (!dragData) {
         console.log('No drag data found')
         return null
@@ -132,7 +144,7 @@ export const useDragDrop = () => {
     draggedCharacter,
     draggedImageSrc,
     dragPreviewPosition,
-    
+
     // Actions
     startDrag,
     endDrag,
