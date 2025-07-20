@@ -24,8 +24,7 @@ const handleArrowClick = (startHexId: number, endHexId: number) => {
   console.log('Arrow clicked:', startHexId, '->', endHexId)
 }
 
-// Example: Place a character on hex 15 using store action
-gridStore.placeCharacterOnHex(15, '/src/assets/images/character/athalia.png')
+// Grid starts empty - no default character placement
 
 const characters = (
   Object.values(
@@ -70,14 +69,7 @@ const icons = Object.fromEntries(
               @character-click="handleCharacterClick"
             />
 
-            <!-- Arrow from hex 1 to hex 27 -->
-            <HexArrow
-              :start-hex-id="1"
-              :end-hex-id="27"
-              :hexes="gridStore.hexes"
-              :layout="gridStore.layout"
-              @arrow-click="handleArrowClick"
-            />
+            <!-- No default arrows - add them as needed -->
           </HexGrid>
         </div>
       </div>
@@ -91,6 +83,7 @@ const icons = Object.fromEntries(
           :characters="characters"
           :characterImages="characterImages"
           :icons="icons"
+          :isDraggable="true"
         />
       </div>
     </div>

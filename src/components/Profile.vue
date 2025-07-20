@@ -6,12 +6,13 @@ defineProps<{
   character: CharacterType
   characterImage: string
   icons: { [key: string]: string }
+  isDraggable?: boolean
 }>()
 </script>
 
 <template>
   <div class="profile">
-    <Character :character="character" :characterImage="characterImage" />
+    <Character :character="character" :characterImage="characterImage" :isDraggable="isDraggable" />
     <div class="info">
       <img :src="icons[`faction-${character.faction}`]" :alt="character.faction" class="icon" />
       <img :src="icons[`class-${character.class}`]" :alt="character.class" class="icon" />

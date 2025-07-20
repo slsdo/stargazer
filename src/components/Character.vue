@@ -1,13 +1,34 @@
 <script setup lang="ts">
 import type { CharacterType } from '../types/character'
+import { useDragDrop } from '../composables/useDragDrop'
+
 const props = defineProps<{
   character: CharacterType
   characterImage: string
+  isDraggable?: boolean
 }>()
+
+const { startDrag, endDrag } = useDragDrop()
+
+const handleDragStart = (event: DragEvent) => {
+  if (!props.isDraggable) return
+  startDrag(event, props.character, props.characterImage)
+}
+
+const handleDragEnd = (event: DragEvent) => {
+  if (!props.isDraggable) return
+  endDrag(event)
+}
 </script>
 
 <template>
-  <div class="character" :class="`level-${character.level}`">
+  <div 
+    class="character" 
+    :class="[`level-${character.level}`, { 'draggable': isDraggable }]"
+    :draggable="isDraggable"
+    @dragstart="handleDragStart"
+    @dragend="handleDragEnd"
+  >
     <img :src="characterImage" :alt="character.id" class="portrait" />
   </div>
 </template>
@@ -54,5 +75,18 @@ const props = defineProps<{
 
 .level-a {
   background: url('@/assets/images/icons/bg-a.png') center/cover;
+}
+
+.draggable {
+  cursor: grab;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.draggable:hover {
+  transform: scale(1.05);
+}
+
+.draggable:active {
+  cursor: grabbing;
 }
 </style>

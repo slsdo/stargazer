@@ -22,7 +22,9 @@ export const useGridStore = defineStore('grid', () => {
 
   // Actions
   const placeCharacterOnHex = (hexId: number, imageSrc: string) => {
+    console.log('Store: placing character on hex', hexId, imageSrc)
     characterPlacements.value.set(hexId, imageSrc)
+    console.log('Store: character placements now:', characterPlacements.value)
   }
 
   const removeCharacterFromHex = (hexId: number) => {

@@ -18,14 +18,14 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  outerRadius: 22,
-  innerRadius: 19,
+  outerRadius: 31,
+  innerRadius: 28,
   borderWidth: 3,
   innerBorderWidth: 2,
   backgroundColor: '#fff',
   borderColor: '#484848',
   overlayColor: '#fff',
-  overlayOpacity: 0.27,
+  overlayOpacity: 0,
   showOverlay: true,
 })
 

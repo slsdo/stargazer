@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import DragPreview from './components/DragPreview.vue'
 </script>
 
 <template>
@@ -15,6 +16,9 @@ import { RouterLink, RouterView } from 'vue-router'
   </header>
 
   <RouterView />
+  
+  <!-- Global drag preview -->
+  <DragPreview />
 </template>
 
 <style scoped>
