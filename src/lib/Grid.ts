@@ -62,7 +62,7 @@ function iniGrid(preset = DEFAULT_GRID): Hex[] {
 }
 
 export class Grid {
-  private storage: Map<string, { hex: Hex; state: State }>
+  private storage: Map<string, { hex: Hex; state: State; character?: string }>
 
   constructor() {
     this.storage = new Map()
@@ -139,5 +139,80 @@ export class Grid {
     const controlY = midY + (dx / length) * curvature
 
     return `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
+  }
+
+  // Character management methods
+  placeCharacter(hex: Hex, imageSrc: string): void {
+    const entry = this.storage.get(Grid.key(hex))
+    if (entry) {
+      entry.character = imageSrc
+    }
+  }
+
+  placeCharacterById(hexId: number, imageSrc: string): void {
+    const hex = this.getHexById(hexId)
+    if (hex) {
+      this.placeCharacter(hex, imageSrc)
+    }
+  }
+
+  removeCharacter(hex: Hex): void {
+    const entry = this.storage.get(Grid.key(hex))
+    if (entry) {
+      delete entry.character
+    }
+  }
+
+  removeCharacterById(hexId: number): void {
+    const hex = this.getHexById(hexId)
+    if (hex) {
+      this.removeCharacter(hex)
+    }
+  }
+
+  getCharacter(hex: Hex): string | undefined {
+    return this.storage.get(Grid.key(hex))?.character
+  }
+
+  getCharacterById(hexId: number): string | undefined {
+    const hex = this.getHexById(hexId)
+    return hex ? this.getCharacter(hex) : undefined
+  }
+
+  hasCharacter(hex: Hex): boolean {
+    return this.getCharacter(hex) !== undefined
+  }
+
+  hasCharacterById(hexId: number): boolean {
+    return this.getCharacterById(hexId) !== undefined
+  }
+
+  // Get all character placements as a Map for compatibility
+  getCharacterPlacements(): Map<number, string> {
+    const placements = new Map<number, string>()
+    for (const entry of this.storage.values()) {
+      if (entry.character) {
+        placements.set(entry.hex.getId(), entry.character)
+      }
+    }
+    return placements
+  }
+
+  // Clear all characters
+  clearAllCharacters(): void {
+    for (const entry of this.storage.values()) {
+      delete entry.character
+    }
+  }
+
+  // Get count of placed characters
+  getCharacterCount(): number {
+    let count = 0
+    for (const entry of this.storage.values()) {
+      if (entry.character) {
+        count++
+      }
+    }
+    return count
   }
 }

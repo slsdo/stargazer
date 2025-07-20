@@ -10,37 +10,48 @@ export const useGridStore = defineStore('grid', () => {
   const layout = new Layout(POINTY, { x: 40, y: 40 }, gridOrigin)
   const hexes = grid.keys()
 
-  // Reactive state
-  const characterPlacements = ref(new Map<number, string>())
+  // Reactive trigger for character updates
+  const characterUpdateTrigger = ref(0)
 
-  // Getters
+  // Getters that read from Grid instance
   const totalHexes = computed(() => hexes.length)
-  const charactersPlaced = computed(() => characterPlacements.value.size)
-  const placedCharactersList = computed(() => 
-    Array.from(characterPlacements.value.entries())
-  )
+  const charactersPlaced = computed(() => {
+    characterUpdateTrigger.value // Reactivity trigger
+    return grid.getCharacterCount()
+  })
+  const placedCharactersList = computed(() => {
+    characterUpdateTrigger.value // Reactivity trigger
+    return Array.from(grid.getCharacterPlacements().entries())
+  })
+  const characterPlacements = computed(() => {
+    characterUpdateTrigger.value // Reactivity trigger
+    return grid.getCharacterPlacements()
+  })
 
-  // Actions
+  // Actions that use Grid instance
   const placeCharacterOnHex = (hexId: number, imageSrc: string) => {
     console.log('Store: placing character on hex', hexId, imageSrc)
-    characterPlacements.value.set(hexId, imageSrc)
-    console.log('Store: character placements now:', characterPlacements.value)
+    grid.placeCharacterById(hexId, imageSrc)
+    characterUpdateTrigger.value++ // Trigger reactivity
+    console.log('Store: character placements now:', grid.getCharacterPlacements())
   }
 
   const removeCharacterFromHex = (hexId: number) => {
-    characterPlacements.value.delete(hexId)
+    grid.removeCharacterById(hexId)
+    characterUpdateTrigger.value++ // Trigger reactivity
   }
 
   const clearAllCharacters = () => {
-    characterPlacements.value.clear()
+    grid.clearAllCharacters()
+    characterUpdateTrigger.value++ // Trigger reactivity
   }
 
   const getCharacterOnHex = (hexId: number): string | undefined => {
-    return characterPlacements.value.get(hexId)
+    return grid.getCharacterById(hexId)
   }
 
   const isHexOccupied = (hexId: number): boolean => {
-    return characterPlacements.value.has(hexId)
+    return grid.hasCharacterById(hexId)
   }
 
   // Grid utility functions
@@ -65,7 +76,7 @@ export const useGridStore = defineStore('grid', () => {
     gridOrigin: readonly(gridOrigin),
     
     // Reactive state
-    characterPlacements: readonly(characterPlacements),
+    characterPlacements,
     
     // Getters
     totalHexes,
