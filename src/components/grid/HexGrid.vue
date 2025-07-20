@@ -48,7 +48,7 @@ const props = withDefaults(defineProps<Props>(), {
   coordinateColor: '#555',
   textRotation: 0,
   hexFillColor: '#fff',
-  hexStrokeColor: '#222',
+  hexStrokeColor: '#ccc',
 })
 
 const emit = defineEmits<{
@@ -124,16 +124,16 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
     if (character.sourceHexId !== undefined) {
       const sourceHexId = character.sourceHexId
       const targetHexId = hex.getId()
-      
+
       // Don't do anything if dropping on the same hex
       if (sourceHexId === targetHexId) {
         return
       }
-      
+
       // Move character from source to target hex
       gridStore.removeCharacterFromHex(sourceHexId)
       gridStore.placeCharacterOnHex(targetHexId, imageSrc)
-      
+
       console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
     } else {
       // This is a new character placement from the character selection
@@ -330,7 +330,6 @@ onUnmounted(() => {
 /* Regular hover (when not dragging) */
 .drop-target:not(.occupied):not(.drag-hover):hover polygon {
   fill: #f0f8f0;
-  stroke: #81c784;
   stroke-width: 3;
 }
 </style>
