@@ -4,6 +4,7 @@ import type { Hex } from '../../lib/Hex'
 import type { Layout } from '../../lib/Layout'
 import { useDragDrop } from '../../composables/useDragDrop'
 import { useGridStore } from '../../stores/grid'
+import { State } from '../../lib/Grid'
 
 interface Props {
   hexes: Hex[]
@@ -88,11 +89,26 @@ const textTransform = (hex: Hex) => {
 }
 
 const getHexFill = (hex: Hex) => {
-  return props.hexFillColor
+  const state = gridStore.grid.getState(hex)
+
+  switch (state) {
+    case State.AVAILABLE_SELF:
+      return '#f0f0f0'
+    case State.AVAILABLE_ENEMY:
+    case State.OCCUPIED_ENEMY:
+      return '#ffe8e8'
+    case State.BLOCKED:
+      return '#797772'
+    case State.BLOCKED_BREAKABLE:
+      return '#d9d5cd'
+    default:
+      return props.hexFillColor
+  }
 }
 
-const getHexStroke = (hex: Hex) => {
-  return props.hexStrokeColor
+const shouldShowHexId = (hex: Hex) => {
+  const state = gridStore.grid.getState(hex)
+  return state !== State.BLOCKED
 }
 
 // Mouse hover handling functions
@@ -206,11 +222,11 @@ onUnmounted(() => {
               .join(' ')
           "
           :fill="getHexFill(hex)"
-          :stroke="getHexStroke(hex)"
+          :stroke="hexStrokeColor"
           :stroke-width="strokeWidth"
         />
         <text
-          v-if="showHexIds"
+          v-if="showHexIds && shouldShowHexId(hex)"
           :x="layout.hexToPixel(hex).x"
           :y="layout.hexToPixel(hex).y + 6"
           text-anchor="middle"
@@ -245,11 +261,11 @@ onUnmounted(() => {
               .join(' ')
           "
           :fill="getHexFill(hex)"
-          :stroke="getHexStroke(hex)"
+          :stroke="hexStrokeColor"
           :stroke-width="strokeWidth"
         />
         <text
-          v-if="showHexIds"
+          v-if="showHexIds && shouldShowHexId(hex)"
           :x="layout.hexToPixel(hex).x"
           :y="layout.hexToPixel(hex).y + 6"
           text-anchor="middle"

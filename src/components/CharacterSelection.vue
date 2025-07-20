@@ -30,7 +30,7 @@ defineProps<{
   gap: 1.5rem;
   justify-content: center;
   padding: 1rem;
-  background-color: #f1ede4;
+  background-color: #f0f0f0;
   border-radius: 8px;
   max-height: 80vh;
   overflow-y: auto;

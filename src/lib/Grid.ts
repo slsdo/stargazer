@@ -47,8 +47,13 @@ const DEFAULT_GRID: GridPreset = {
 }
 
 const ARENA_1 = [
-  { type: State.AVAILABLE_SELF, hex: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] },
-  { type: State.AVAILABLE_ENEMY, hex: [12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] },
+  { type: State.AVAILABLE_SELF, hex: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 16] },
+  {
+    type: State.AVAILABLE_ENEMY,
+    hex: [30, 33, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
+  },
+  { type: State.BLOCKED, hex: [21] },
+  { type: State.BLOCKED_BREAKABLE, hex: [11] },
 ]
 
 function iniGrid(preset: GridPreset): Hex[] {
