@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   borderWidth: 3,
   innerBorderWidth: 2,
   backgroundColor: '#fff',
-  borderColor: '#484848',
+  borderColor: '#555',
   overlayColor: '#fff',
   overlayOpacity: 0,
   showOverlay: true,
@@ -42,23 +42,23 @@ const emit = defineEmits<{
 
 const { startDrag, endDrag } = useDragDrop()
 
-const getHexById = (id: number): Hex | undefined => {
-  return props.hexes.find((hex) => hex.getId() === id)
-}
-
-const getHexPosition = (hexId: number) => {
-  const hex = getHexById(hexId)
-  return hex ? props.layout.hexToPixel(hex) : { x: 0, y: 0 }
+const hexExists = (hexId: number): boolean => {
+  try {
+    gridStore.getHexById(hexId)
+    return true
+  } catch {
+    return false
+  }
 }
 </script>
 
 <template>
   <g v-for="[hexId, characterId] in characterPlacements" :key="hexId" class="character-placement">
-    <g v-if="getHexById(hexId)">
+    <g v-if="hexExists(hexId)">
       <!-- Background circle -->
       <circle
-        :cx="getHexPosition(hexId).x"
-        :cy="getHexPosition(hexId).y"
+        :cx="gridStore.getHexPosition(hexId).x"
+        :cy="gridStore.getHexPosition(hexId).y"
         :r="outerRadius"
         :fill="backgroundColor"
         :stroke="backgroundColor"
@@ -66,8 +66,8 @@ const getHexPosition = (hexId: number) => {
       />
       <!-- Inner border circle -->
       <circle
-        :cx="getHexPosition(hexId).x"
-        :cy="getHexPosition(hexId).y"
+        :cx="gridStore.getHexPosition(hexId).x"
+        :cy="gridStore.getHexPosition(hexId).y"
         :r="innerRadius"
         fill="none"
         :stroke="borderColor"
@@ -76,14 +76,14 @@ const getHexPosition = (hexId: number) => {
       <!-- Character image (clipped to circle) -->
       <defs>
         <clipPath :id="`clip-character-${hexId}`">
-          <circle :cx="getHexPosition(hexId).x" :cy="getHexPosition(hexId).y" :r="innerRadius" />
+          <circle :cx="gridStore.getHexPosition(hexId).x" :cy="gridStore.getHexPosition(hexId).y" :r="innerRadius" />
         </clipPath>
       </defs>
       <!-- Character image (clipped to circle) -->
       <image
         :href="characterImages[characterId]"
-        :x="getHexPosition(hexId).x - innerRadius"
-        :y="getHexPosition(hexId).y - innerRadius"
+        :x="gridStore.getHexPosition(hexId).x - innerRadius"
+        :y="gridStore.getHexPosition(hexId).y - innerRadius"
         :width="innerRadius * 2"
         :height="innerRadius * 2"
         :clip-path="`url(#clip-character-${hexId})`"
@@ -92,8 +92,8 @@ const getHexPosition = (hexId: number) => {
       <!-- Semi-transparent overlay -->
       <circle
         v-if="showOverlay"
-        :cx="getHexPosition(hexId).x"
-        :cy="getHexPosition(hexId).y"
+        :cx="gridStore.getHexPosition(hexId).x"
+        :cy="gridStore.getHexPosition(hexId).y"
         :r="innerRadius"
         :fill="overlayColor"
         :fill-opacity="overlayOpacity"

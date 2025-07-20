@@ -11,7 +11,12 @@ export enum State {
   BLOCKED_BREAKABLE = 6, // Blocked by breakable obstacle
 }
 
-const FLAT_GRID = {
+export interface GridPreset {
+  hex: number[][]
+  qOffset: number[]
+}
+
+const FLAT_GRID: GridPreset = {
   hex: [
     [44, 41],
     [45, 42, 39, 36, 32],
@@ -26,7 +31,7 @@ const FLAT_GRID = {
   qOffset: [1, -1, -2, -2, -3, -3, -3, -3, -2],
 }
 
-const DEFAULT_GRID = {
+const DEFAULT_GRID: GridPreset = {
   hex: [
     [43, 45],
     [35, 38, 40, 42, 44],
@@ -41,7 +46,12 @@ const DEFAULT_GRID = {
   qOffset: [2, 0, -1, -2, -3, -3, -4, -4, -3],
 }
 
-function iniGrid(preset = DEFAULT_GRID): Hex[] {
+const ARENA_1 = [
+  { type: State.AVAILABLE_SELF, hex: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] },
+  { type: State.AVAILABLE_ENEMY, hex: [12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] },
+]
+
+function iniGrid(preset: GridPreset): Hex[] {
   const centerRowIndex = Math.floor(preset.hex.length / 2) // Default=4
   const hexes: Hex[] = []
 
@@ -70,10 +80,16 @@ export interface GridTile {
 export class Grid {
   private storage: Map<string, GridTile>
 
-  constructor() {
+  constructor(layout = DEFAULT_GRID, map = ARENA_1) {
     this.storage = new Map()
-    iniGrid().forEach((hex) => {
+    iniGrid(layout).forEach((hex) => {
       this.storage.set(Grid.key(hex), { hex, state: State.DEFAULT })
+    })
+    map.forEach((mapState) => {
+      mapState.hex.forEach((hexId) => {
+        const hex = this.getHexById(hexId)
+        this.setState(hex, mapState.type)
+      })
     })
   }
 
@@ -81,7 +97,7 @@ export class Grid {
     return `${hex.q},${hex.r},${hex.s}`
   }
 
-  set(hex: Hex, state: State): void {
+  setState(hex: Hex, state: State): void {
     const entry = this.storage.get(Grid.key(hex))
     if (entry) {
       entry.state = state
@@ -116,18 +132,16 @@ export class Grid {
   }
 
   // Helper method to get hex by ID
-  getHexById(id: number): Hex | undefined {
-    return Array.from(this.storage.values()).find((entry) => entry.hex.getId() === id)?.hex
+  getHexById(id: number): Hex {
+    const hex = Array.from(this.storage.values()).find((entry) => entry.hex.getId() === id)?.hex
+    if (!hex) throw new Error(`Hex with ID ${id} not found`)
+    return hex
   }
 
   // Calculate curved arrow path between two hex IDs
   getArrowPath(startId: number, endId: number, layout: any): string {
     const startHex = this.getHexById(startId)
     const endHex = this.getHexById(endId)
-
-    if (!startHex || !endHex) {
-      return ''
-    }
 
     const start = layout.hexToPixel(startHex)
     const end = layout.hexToPixel(endHex)
@@ -158,9 +172,7 @@ export class Grid {
 
   placeCharacterById(hexId: number, characterId: string): void {
     const hex = this.getHexById(hexId)
-    if (hex) {
-      this.placeCharacter(hex, characterId)
-    }
+    this.placeCharacter(hex, characterId)
   }
 
   removeCharacter(hex: Hex): void {
@@ -173,9 +185,7 @@ export class Grid {
 
   removeCharacterById(hexId: number): void {
     const hex = this.getHexById(hexId)
-    if (hex) {
-      this.removeCharacter(hex)
-    }
+    this.removeCharacter(hex)
   }
 
   getCharacter(hex: Hex): string | undefined {
@@ -184,7 +194,7 @@ export class Grid {
 
   getCharacterById(hexId: number): string | undefined {
     const hex = this.getHexById(hexId)
-    return hex ? this.getCharacter(hex) : undefined
+    return this.getCharacter(hex)
   }
 
   hasCharacter(hex: Hex): boolean {

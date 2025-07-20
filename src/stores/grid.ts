@@ -65,8 +65,12 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   const getHexPosition = (hexId: number) => {
-    const hex = getHexById(hexId)
-    return hex ? layout.hexToPixel(hex) : { x: 0, y: 0 }
+    try {
+      const hex = getHexById(hexId)
+      return layout.hexToPixel(hex)
+    } catch {
+      return { x: 0, y: 0 }
+    }
   }
 
   // GridTile-specific methods
