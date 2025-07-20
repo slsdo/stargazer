@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
-import { Grid, type GridTile } from '../lib/Grid'
-import { Layout, POINTY } from '../lib/Layout'
-import type { Hex } from '../lib/Hex'
+import { Grid, type GridTile } from '../lib/grid'
+import { Layout, POINTY } from '../lib/layout'
+import type { Hex } from '../lib/hex'
 
 export const useGridStore = defineStore('grid', () => {
   // Core grid instances
@@ -55,12 +55,27 @@ export const useGridStore = defineStore('grid', () => {
     return grid.hasCharacterById(hexId)
   }
 
-  // Grid utility functions
-  const getArrowPath = (startHexId: number, endHexId: number): string => {
-    return grid.getArrowPath(startHexId, endHexId, layout)
+  const moveCharacter = (fromHexId: number, toHexId: number, characterId: string): boolean => {
+    // Don't move if dropping on the same hex
+    if (fromHexId === toHexId) {
+      return false
+    }
+
+    // Move character from source to target hex
+    grid.removeCharacterById(fromHexId)
+    grid.placeCharacterById(toHexId, characterId)
+    characterUpdateTrigger.value++ // Trigger reactivity
+    return true
   }
 
-  const getHexById = (id: number) => {
+  // Grid utility functions
+  const getArrowPath = (startHexId: number, endHexId: number): string => {
+    const startHex = grid.getHexById(startHexId)
+    const endHex = grid.getHexById(endHexId)
+    return layout.getArrowPath(startHex, endHex)
+  }
+
+  const getHexById = (id: number): Hex => {
     return grid.getHexById(id)
   }
 
@@ -74,11 +89,11 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   // GridTile-specific methods
-  const getTile = (hex: Hex): GridTile | undefined => {
+  const getTile = (hex: Hex): GridTile => {
     return grid.getTile(hex)
   }
 
-  const getTileById = (hexId: number): GridTile | undefined => {
+  const getTileById = (hexId: number): GridTile => {
     return grid.getTileById(hexId)
   }
 
@@ -112,6 +127,7 @@ export const useGridStore = defineStore('grid', () => {
     clearAllCharacters,
     getCharacterOnHex,
     isHexOccupied,
+    moveCharacter,
     getArrowPath,
     getHexById,
     getHexPosition,

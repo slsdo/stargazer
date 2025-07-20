@@ -1,60 +1,7 @@
-import { Hex } from './Hex'
-
-// Enum for grid tile states
-export enum State {
-  DEFAULT = 0,
-  AVAILABLE_SELF = 1, // Available for placement for self
-  AVAILABLE_ENEMY = 2, // Available for placement for enemy
-  OCCUPIED_SELF = 3, // Occupied by self unit
-  OCCUPIED_ENEMY = 4, // Occupied by enemy unit
-  BLOCKED = 5, // Blocked by obstacle
-  BLOCKED_BREAKABLE = 6, // Blocked by breakable obstacle
-}
-
-export interface GridPreset {
-  hex: number[][]
-  qOffset: number[]
-}
-
-const FLAT_GRID: GridPreset = {
-  hex: [
-    [44, 41],
-    [45, 42, 39, 36, 32],
-    [43, 40, 37, 33, 29, 25],
-    [38, 34, 30, 26, 22, 18],
-    [35, 31, 27, 23, 19, 15, 11],
-    [28, 24, 20, 16, 12, 8],
-    [21, 17, 13, 9, 6, 3],
-    [14, 10, 7, 4, 1],
-    [5, 2],
-  ],
-  qOffset: [1, -1, -2, -2, -3, -3, -3, -3, -2],
-}
-
-const DEFAULT_GRID: GridPreset = {
-  hex: [
-    [43, 45],
-    [35, 38, 40, 42, 44],
-    [28, 31, 34, 37, 39, 41],
-    [21, 24, 27, 30, 33, 36],
-    [14, 17, 20, 23, 26, 29, 32],
-    [10, 13, 16, 19, 22, 25],
-    [5, 7, 9, 12, 15, 18],
-    [2, 4, 6, 8, 11],
-    [1, 3],
-  ],
-  qOffset: [2, 0, -1, -2, -3, -3, -4, -4, -3],
-}
-
-const ARENA_1 = [
-  { type: State.AVAILABLE_SELF, hex: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 16] },
-  {
-    type: State.AVAILABLE_ENEMY,
-    hex: [30, 33, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
-  },
-  { type: State.BLOCKED, hex: [21] },
-  { type: State.BLOCKED_BREAKABLE, hex: [11] },
-]
+import { Hex } from './hex'
+import { DEFAULT_GRID, type GridPreset } from './gridPreset'
+import { ARENA_1 } from './arena/arena1'
+import { State } from './gridState'
 
 function iniGrid(preset: GridPreset): Hex[] {
   const centerRowIndex = Math.floor(preset.hex.length / 2) // Default=4
@@ -109,8 +56,8 @@ export class Grid {
     }
   }
 
-  getState(hex: Hex): State | undefined {
-    return this.getTile(hex)?.state
+  getState(hex: Hex): State {
+    return this.getTile(hex).state
   }
 
   keys(): Hex[] {
@@ -125,13 +72,17 @@ export class Grid {
   }
 
   // Get GridTile by hex
-  getTile(hex: Hex): GridTile | undefined {
-    return this.storage.get(Grid.key(hex))
+  getTile(hex: Hex): GridTile {
+    const tile = this.storage.get(Grid.key(hex))
+    if (!tile) throw new Error(`Tile with hex key ${Grid.key(hex)} not found`)
+    return tile
   }
 
   // Get GridTile by hex ID
-  getTileById(hexId: number): GridTile | undefined {
-    return Array.from(this.storage.values()).find((tile) => tile.hex.getId() === hexId)
+  getTileById(hexId: number): GridTile {
+    const tile = Array.from(this.storage.values()).find((tile) => tile.hex.getId() === hexId)
+    if (!tile) throw new Error(`Tile with hex ID ${hexId} not found`)
+    return tile
   }
 
   // Get all GridTiles
@@ -155,10 +106,8 @@ export class Grid {
 
   placeCharacterById(hexId: number, characterId: string): void {
     const tile = this.getTileById(hexId)
-    if (tile) {
-      tile.character = characterId
-      tile.state = State.OCCUPIED_SELF
-    }
+    tile.character = characterId
+    tile.state = State.OCCUPIED_SELF
   }
 
   removeCharacter(hex: Hex): void {
@@ -171,26 +120,24 @@ export class Grid {
 
   removeCharacterById(hexId: number): void {
     const tile = this.getTileById(hexId)
-    if (tile) {
-      delete tile.character
-      tile.state = State.DEFAULT
-    }
+    delete tile.character
+    tile.state = State.DEFAULT
   }
 
   getCharacter(hex: Hex): string | undefined {
-    return this.getTile(hex)?.character
+    return this.getTile(hex).character
   }
 
   getCharacterById(hexId: number): string | undefined {
-    return this.getTileById(hexId)?.character
+    return this.getTileById(hexId).character
   }
 
   hasCharacter(hex: Hex): boolean {
-    return this.getTile(hex)?.character !== undefined
+    return this.getTile(hex).character !== undefined
   }
 
   hasCharacterById(hexId: number): boolean {
-    return this.getTileById(hexId)?.character !== undefined
+    return this.getTileById(hexId).character !== undefined
   }
 
   // Get all character placements as a Map for compatibility
@@ -221,28 +168,5 @@ export class Grid {
       }
     }
     return count
-  }
-
-  // Calculate curved arrow path between two hex IDs
-  getArrowPath(startId: number, endId: number, layout: any): string {
-    const startHex = this.getHexById(startId)
-    const endHex = this.getHexById(endId)
-
-    const start = layout.hexToPixel(startHex)
-    const end = layout.hexToPixel(endHex)
-
-    // Calculate control point for curve (offset perpendicular to line)
-    const midX = (start.x + end.x) / 2
-    const midY = (start.y + end.y) / 2
-    const dx = end.x - start.x
-    const dy = end.y - start.y
-    const length = Math.sqrt(dx * dx + dy * dy)
-    const curvature = length * 0.3 // Adjust curve intensity
-
-    // Perpendicular offset for control point
-    const controlX = midX - (dy / length) * curvature
-    const controlY = midY + (dx / length) * curvature
-
-    return `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
   }
 }

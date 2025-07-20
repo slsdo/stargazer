@@ -1,4 +1,4 @@
-import { Hex } from './Hex'
+import { Hex } from './hex'
 
 const SQRT3 = Math.sqrt(3)
 
@@ -105,5 +105,25 @@ export class Layout {
       })
     }
     return corners
+  }
+
+  // Calculate curved arrow path between two hexes
+  getArrowPath(startHex: Hex, endHex: Hex): string {
+    const start = this.hexToPixel(startHex)
+    const end = this.hexToPixel(endHex)
+
+    // Calculate control point for curve (offset perpendicular to line)
+    const midX = (start.x + end.x) / 2
+    const midY = (start.y + end.y) / 2
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+    const length = Math.sqrt(dx * dx + dy * dy)
+    const curvature = length * 0.3 // Adjust curve intensity
+
+    // Perpendicular offset for control point
+    const controlX = midX - (dy / length) * curvature
+    const controlY = midY + (dx / length) * curvature
+
+    return `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
   }
 }

@@ -2,10 +2,9 @@
 import CharacterSelection from '../components/CharacterSelection.vue'
 import HexGrid from '../components/grid/HexGrid.vue'
 import CharacterPlacement from '../components/grid/CharacterPlacement.vue'
-import HexArrow from '../components/grid/HexArrow.vue'
 import DebugGrid from '../components/DebugGrid.vue'
 import type { CharacterType } from '../types/character'
-import type { Hex } from '../lib/Hex'
+import type { Hex } from '../lib/hex'
 import { useGridStore } from '../stores/grid'
 import { ref } from 'vue'
 

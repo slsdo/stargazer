@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useGridStore } from '../stores/grid'
-import { State } from '../lib/Grid'
+import { State } from '../lib/gridState'
 
 // Access Pinia grid store
 const gridStore = useGridStore()

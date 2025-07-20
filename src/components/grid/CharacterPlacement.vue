@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGridStore } from '../../stores/grid'
-import type { Hex } from '../../lib/Hex'
-import type { Layout } from '../../lib/Layout'
+import type { Hex } from '../../lib/hex'
+import type { Layout } from '../../lib/layout'
 import { useDragDrop } from '../../composables/useDragDrop'
 
 interface Props {

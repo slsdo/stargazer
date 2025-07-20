@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import type { Hex } from '../../lib/Hex'
-import type { Layout } from '../../lib/Layout'
+import type { Hex } from '../../lib/hex'
+import type { Layout } from '../../lib/layout'
 import { useDragDrop } from '../../composables/useDragDrop'
 import { useGridStore } from '../../stores/grid'
-import { State } from '../../lib/Grid'
+import { State } from '../../lib/gridState'
+import { getHexFillColor } from '../../utils/hexDisplay'
 
 interface Props {
   hexes: Hex[]
@@ -91,19 +92,7 @@ const textTransform = (hex: Hex) => {
 const getHexFill = (hex: Hex) => {
   const state = gridStore.grid.getState(hex)
 
-  switch (state) {
-    case State.AVAILABLE_SELF:
-      return '#f0f0f0'
-    case State.AVAILABLE_ENEMY:
-    case State.OCCUPIED_ENEMY:
-      return '#ffe8e8'
-    case State.BLOCKED:
-      return '#797772'
-    case State.BLOCKED_BREAKABLE:
-      return '#d9d5cd'
-    default:
-      return props.hexFillColor
-  }
+  return getHexFillColor(state) || props.hexFillColor
 }
 
 const shouldShowHexId = (hex: Hex) => {
@@ -154,16 +143,11 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       const sourceHexId = character.sourceHexId
       const targetHexId = hex.getId()
 
-      // Don't do anything if dropping on the same hex
-      if (sourceHexId === targetHexId) {
-        return
+      // Use store action for character movement with validation
+      const moved = gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
+      if (moved) {
+        console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
       }
-
-      // Move character from source to target hex
-      gridStore.removeCharacterFromHex(sourceHexId)
-      gridStore.placeCharacterOnHex(targetHexId, characterId)
-
-      console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
     } else {
       // This is a new character placement from the character selection
       gridStore.placeCharacterOnHex(hex.getId(), characterId)
