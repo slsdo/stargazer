@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useGridStore } from '../../stores/grid'
 import type { Hex } from '../../lib/Hex'
 import type { Layout } from '../../lib/Layout'
 import { useDragDrop } from '../../composables/useDragDrop'
@@ -31,6 +32,9 @@ const props = withDefaults(defineProps<Props>(), {
   showOverlay: true,
 })
 
+// Access Pinia grid store
+const gridStore = useGridStore()
+
 const emit = defineEmits<{
   characterClick: [hexId: number, characterId: string]
   characterMoved: [fromHexId: number, toHexId: number, characterId: string]
@@ -45,30 +49,6 @@ const getHexById = (id: number): Hex | undefined => {
 const getHexPosition = (hexId: number) => {
   const hex = getHexById(hexId)
   return hex ? props.layout.hexToPixel(hex) : { x: 0, y: 0 }
-}
-
-// Simple drag handler - try direct SVG dragging
-const handleCharacterDragStart = (event: DragEvent, hexId: number, characterId: string) => {
-  console.log('Character drag start:', hexId)
-  
-  // Create a mock character object for the drag system
-  const mockCharacter = {
-    id: `placed-${hexId}`,
-    type: 'placed',
-    level: '1',
-    faction: 'unknown',
-    class: 'unknown',
-    damage: '0',
-    season: 'current',
-    sourceHexId: hexId // Track where this character came from
-  }
-  
-  startDrag(event, mockCharacter, characterId, props.characterImages[characterId])
-}
-
-const handleCharacterDragEnd = (event: DragEvent) => {
-  console.log('Character drag end')
-  endDrag(event)
 }
 </script>
 
@@ -131,5 +111,4 @@ const handleCharacterDragEnd = (event: DragEvent) => {
 .character-placement image:hover {
   opacity: 0.8;
 }
-
 </style>

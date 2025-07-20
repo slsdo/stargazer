@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
-import { Grid } from '../lib/Grid'
+import { Grid, type GridTile } from '../lib/Grid'
 import { Layout, POINTY } from '../lib/Layout'
 import type { Hex } from '../lib/Hex'
 
@@ -69,21 +69,39 @@ export const useGridStore = defineStore('grid', () => {
     return hex ? layout.hexToPixel(hex) : { x: 0, y: 0 }
   }
 
+  // GridTile-specific methods
+  const getTile = (hex: Hex): GridTile | undefined => {
+    return grid.getTile(hex)
+  }
+
+  const getTileById = (hexId: number): GridTile | undefined => {
+    return grid.getTileById(hexId)
+  }
+
+  const getAllTiles = (): GridTile[] => {
+    return grid.getAllTiles()
+  }
+
+  const getTilesWithCharacters = (): GridTile[] => {
+    characterUpdateTrigger.value // Reactivity trigger
+    return grid.getTilesWithCharacters()
+  }
+
   return {
     // Core grid data (readonly)
     grid: readonly(grid),
     layout: readonly(layout),
     hexes: hexes as Hex[],
     gridOrigin: readonly(gridOrigin),
-    
+
     // Reactive state
     characterPlacements,
-    
+
     // Getters
     totalHexes,
     charactersPlaced,
     placedCharactersList,
-    
+
     // Actions
     placeCharacterOnHex,
     removeCharacterFromHex,
@@ -93,5 +111,11 @@ export const useGridStore = defineStore('grid', () => {
     getArrowPath,
     getHexById,
     getHexPosition,
+
+    // GridTile methods
+    getTile,
+    getTileById,
+    getAllTiles,
+    getTilesWithCharacters,
   }
 })

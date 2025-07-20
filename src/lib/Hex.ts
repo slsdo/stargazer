@@ -2,7 +2,7 @@ export class Hex {
   readonly q: number
   readonly r: number
   readonly s: number
-  private id: number
+  id: number
 
   constructor(q: number, r: number, s: number, id: number = -1) {
     if (q + r + s !== 0) {

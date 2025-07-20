@@ -7,9 +7,17 @@ import GridStats from '../components/GridStats.vue'
 import type { CharacterType } from '../types/character'
 import type { Hex } from '../lib/Hex'
 import { useGridStore } from '../stores/grid'
+import { ref } from 'vue'
 
 // Use Pinia grid store
 const gridStore = useGridStore()
+
+// Grid stats visibility toggle
+const debugGrid = ref(true)
+
+const toggleGridStats = () => {
+  debugGrid.value = !debugGrid.value
+}
 
 // Event handlers
 const handleHexClick = (hex: Hex) => {
@@ -59,6 +67,7 @@ const icons = Object.fromEntries(
             :center-x="gridStore.gridOrigin.x"
             :center-y="gridStore.gridOrigin.y"
             :text-rotation="30"
+            :show-coordinates="debugGrid"
             @hex-click="handleHexClick"
           >
             <!-- Character placements -->
@@ -75,7 +84,16 @@ const icons = Object.fromEntries(
         </div>
       </div>
 
-      <div class="section">
+      <!-- Grid Stats Toggle Button -->
+      <div class="stats-toggle-container">
+        <button @click="toggleGridStats" class="stats-toggle-btn">
+          <span class="toggle-icon">{{ debugGrid ? '▼' : '▶' }}</span>
+          {{ debugGrid ? 'Hide' : 'Show' }} Debug
+        </button>
+      </div>
+
+      <!-- Grid Stats Section -->
+      <div v-show="debugGrid" class="section">
         <GridStats />
       </div>
 
@@ -118,5 +136,44 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.stats-toggle-container {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.stats-toggle-btn {
+  background: #36958e;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stats-toggle-btn:hover {
+  background: #005a9e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.stats-toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-icon {
+  font-size: 0.9rem;
+  transition: transform 0.2s ease;
 }
 </style>

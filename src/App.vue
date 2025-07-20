@@ -6,7 +6,7 @@ import DragPreview from './components/DragPreview.vue'
 <template>
   <header>
     <nav>
-      <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="40" height="40" />
+      <img alt="logo" class="logo" src="@/assets/rowan.svg" />
 
       <ul class="menu">
         <li><RouterLink to="/">Home</RouterLink></li>
@@ -16,7 +16,7 @@ import DragPreview from './components/DragPreview.vue'
   </header>
 
   <RouterView />
-  
+
   <!-- Global drag preview -->
   <DragPreview />
 </template>
@@ -38,10 +38,7 @@ nav {
 }
 
 .logo {
-  height: 2.5em;
-  padding: 0.5em;
-  will-change: filter;
-  transition: filter 300ms;
+  height: 50px;
 }
 
 .menu {

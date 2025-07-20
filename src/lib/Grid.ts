@@ -61,8 +61,14 @@ function iniGrid(preset = DEFAULT_GRID): Hex[] {
   return hexes
 }
 
+export interface GridTile {
+  hex: Hex
+  state: State
+  character?: string
+}
+
 export class Grid {
-  private storage: Map<string, { hex: Hex; state: State; character?: string }>
+  private storage: Map<string, GridTile>
 
   constructor() {
     this.storage = new Map()
@@ -146,6 +152,7 @@ export class Grid {
     const entry = this.storage.get(Grid.key(hex))
     if (entry) {
       entry.character = characterId
+      entry.state = State.OCCUPIED_SELF
     }
   }
 
@@ -160,6 +167,7 @@ export class Grid {
     const entry = this.storage.get(Grid.key(hex))
     if (entry) {
       delete entry.character
+      entry.state = State.DEFAULT
     }
   }
 
@@ -202,6 +210,7 @@ export class Grid {
   clearAllCharacters(): void {
     for (const entry of this.storage.values()) {
       delete entry.character
+      entry.state = State.DEFAULT
     }
   }
 
@@ -214,5 +223,25 @@ export class Grid {
       }
     }
     return count
+  }
+
+  // Get GridTile by hex
+  getTile(hex: Hex): GridTile | undefined {
+    return this.storage.get(Grid.key(hex))
+  }
+
+  // Get GridTile by hex ID
+  getTileById(hexId: number): GridTile | undefined {
+    return Array.from(this.storage.values()).find((tile) => tile.hex.getId() === hexId)
+  }
+
+  // Get all GridTiles
+  getAllTiles(): GridTile[] {
+    return Array.from(this.storage.values())
+  }
+
+  // Get tiles with characters
+  getTilesWithCharacters(): GridTile[] {
+    return Array.from(this.storage.values()).filter((tile) => tile.character !== undefined)
   }
 }

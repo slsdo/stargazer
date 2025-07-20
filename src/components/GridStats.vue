@@ -1,52 +1,95 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useGridStore } from '../stores/grid'
+import { State } from '../lib/Grid'
 
 // Access Pinia grid store
 const gridStore = useGridStore()
 
-// Collapse/expand state
-const isCollapsed = ref(false)
-
-// Toggle function
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value
-}
+// Removed internal collapse state - now handled by parent component
 
 // Helper function to extract image name from path
 const getImageName = (imageSrc: string): string => {
   return imageSrc.split('/').pop()?.replace('.png', '') || 'Unknown'
 }
+
+// Helper function to format state names
+const getStateName = (state: State): string => {
+  switch (state) {
+    case State.DEFAULT:
+      return 'Default'
+    case State.AVAILABLE_SELF:
+      return 'Available (Self)'
+    case State.AVAILABLE_ENEMY:
+      return 'Available (Enemy)'
+    case State.OCCUPIED_SELF:
+      return 'Occupied (Self)'
+    case State.OCCUPIED_ENEMY:
+      return 'Occupied (Enemy)'
+    case State.BLOCKED:
+      return 'Blocked'
+    case State.BLOCKED_BREAKABLE:
+      return 'Blocked (Breakable)'
+    default:
+      return 'Unknown'
+  }
+}
+
+// Helper function to get state CSS class
+const getStateClass = (state: State): string => {
+  switch (state) {
+    case State.DEFAULT:
+      return 'state-default'
+    case State.AVAILABLE_SELF:
+      return 'state-available-self'
+    case State.AVAILABLE_ENEMY:
+      return 'state-available-enemy'
+    case State.OCCUPIED_SELF:
+      return 'state-occupied-self'
+    case State.OCCUPIED_ENEMY:
+      return 'state-occupied-enemy'
+    case State.BLOCKED:
+      return 'state-blocked'
+    case State.BLOCKED_BREAKABLE:
+      return 'state-blocked-breakable'
+    default:
+      return 'state-unknown'
+  }
+}
 </script>
 
 <template>
-  <div class="grid-stats" :class="{ 'collapsed': isCollapsed }">
-    <div class="stats-header">
-      <h3>Grid Statistics</h3>
-      <button @click="toggleCollapse" class="toggle-btn" :class="{ 'collapsed': isCollapsed }">
-        <span class="toggle-icon">{{ isCollapsed ? '▶' : '▼' }}</span>
-        {{ isCollapsed ? 'Show' : 'Hide' }}
-      </button>
-    </div>
-    
-    <div v-show="!isCollapsed" class="stats-content">
-      <p>Total Hexes: {{ gridStore.totalHexes }}</p>
-      <p>Characters Placed: {{ gridStore.charactersPlaced }}</p>
-      <p>Grid Origin: ({{ gridStore.gridOrigin.x }}, {{ gridStore.gridOrigin.y }})</p>
-      <p>Hex Size: {{ gridStore.layout.size.x }}×{{ gridStore.layout.size.y }}</p>
+  <div class="grid-stats">
+    <h3>Debug Grid</h3>
+    <p>
+      Total Hexes: {{ gridStore.totalHexes }}; Characters Placed: {{ gridStore.charactersPlaced }};
+      Grid Origin: ({{ gridStore.gridOrigin.x }}, {{ gridStore.gridOrigin.y }}); Hex Size:
+      {{ gridStore.layout.size.x }}×{{ gridStore.layout.size.y }}
+    </p>
 
-      <div v-if="gridStore.charactersPlaced > 0">
-        <h4>Placed Characters:</h4>
-        <ul>
-          <li v-for="[hexId, imageSrc] in gridStore.placedCharactersList" :key="hexId">
-            Hex {{ hexId }}: {{ getImageName(imageSrc) }}
-            <button @click="gridStore.removeCharacterFromHex(hexId)" class="remove-btn">
-              Remove
-            </button>
-          </li>
-        </ul>
-        <button @click="gridStore.clearAllCharacters()" class="clear-all-btn">Clear All</button>
-      </div>
+    <div v-if="gridStore.charactersPlaced > 0">
+      <ul>
+        <li
+          v-for="tile in gridStore.getTilesWithCharacters()"
+          :key="tile.hex.getId()"
+          class="character-tile"
+        >
+          <div class="tile-info">
+            <div class="tile-main">
+              <span class="hex-id">Hex {{ tile.hex.getId() }}</span>
+              <span class="character-name">{{ getImageName(tile.character!) }}</span>
+            </div>
+            <div class="tile-state">
+              <span class="state-label" :class="getStateClass(tile.state)">
+                {{ getStateName(tile.state) }}
+              </span>
+            </div>
+          </div>
+          <button @click="gridStore.removeCharacterFromHex(tile.hex.getId())" class="remove-btn">
+            Remove
+          </button>
+        </li>
+      </ul>
+      <button @click="gridStore.clearAllCharacters()" class="clear-all-btn">Clear All</button>
     </div>
   </div>
 </template>
@@ -56,7 +99,6 @@ const getImageName = (imageSrc: string): string => {
   padding: 1rem;
   background: #f0f0f0;
   border-radius: 8px;
-  margin: 1rem 0;
 }
 
 .stats-header {
@@ -145,6 +187,96 @@ const getImageName = (imageSrc: string): string => {
   border-radius: 4px;
 }
 
+.character-tile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: white;
+  margin: 0.5rem 0;
+  border-radius: 6px;
+  border-left: 4px solid #ddd;
+}
+
+.tile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.tile-main {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.hex-id {
+  font-weight: bold;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.character-name {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.tile-state {
+  display: flex;
+  align-items: center;
+}
+
+.state-label {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* State-specific colors */
+.state-default {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.state-available-self {
+  background: #d4edda;
+  color: #155724;
+}
+
+.state-available-enemy {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.state-occupied-self {
+  background: #cce7ff;
+  color: #004085;
+}
+
+.state-occupied-enemy {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.state-blocked {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.state-blocked-breakable {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.state-unknown {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
 .remove-btn {
   background: #ff6b6b;
   color: white;
@@ -160,7 +292,7 @@ const getImageName = (imageSrc: string): string => {
 }
 
 .clear-all-btn {
-  background: #ff9800;
+  background: #555;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -171,6 +303,6 @@ const getImageName = (imageSrc: string): string => {
 }
 
 .clear-all-btn:hover {
-  background: #f57c00;
+  background: #333;
 }
 </style>
