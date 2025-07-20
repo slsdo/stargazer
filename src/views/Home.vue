@@ -1,31 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import CharacterSelection from '../components/CharacterSelection.vue'
 import HexGrid from '../components/grid/HexGrid.vue'
 import CharacterPlacement from '../components/grid/CharacterPlacement.vue'
 import HexArrow from '../components/grid/HexArrow.vue'
+import GridStats from '../components/GridStats.vue'
 import type { CharacterType } from '../types/character'
 import type { Hex } from '../lib/Hex'
-import { Grid } from '../lib/Grid'
-import { Layout, POINTY } from '../lib/Layout'
+import { useGridStore } from '../stores/grid'
 
-const grid = new Grid()
-const gridOrigin = { x: 300, y: 300 }
-const layout = new Layout(POINTY, { x: 40, y: 40 }, gridOrigin)
-const hexes = grid.keys()
-
-// Character placement on hexes
-const characterPlacements = ref(new Map<number, string>())
-
-// Function to place character on hex
-const placeCharacterOnHex = (hexId: number, imageSrc: string) => {
-  characterPlacements.value.set(hexId, imageSrc)
-}
-
-// Function to remove character from hex
-const removeCharacterFromHex = (hexId: number) => {
-  characterPlacements.value.delete(hexId)
-}
+// Use Pinia grid store
+const gridStore = useGridStore()
 
 // Event handlers
 const handleHexClick = (hex: Hex) => {
@@ -40,8 +24,8 @@ const handleArrowClick = (startHexId: number, endHexId: number) => {
   console.log('Arrow clicked:', startHexId, '->', endHexId)
 }
 
-// Example: Place a character on hex 15
-placeCharacterOnHex(15, '/src/assets/images/character/athalia.png')
+// Example: Place a character on hex 15 using store action
+gridStore.placeCharacterOnHex(15, '/src/assets/images/character/athalia.png')
 
 const characters = (
   Object.values(
@@ -68,21 +52,21 @@ const icons = Object.fromEntries(
       <div class="section">
         <div id="map">
           <HexGrid
-            :hexes="hexes"
-            :layout="layout"
+            :hexes="gridStore.hexes"
+            :layout="gridStore.layout"
             :width="600"
             :height="600"
             :rotation="0"
-            :center-x="gridOrigin.x"
-            :center-y="gridOrigin.y"
+            :center-x="gridStore.gridOrigin.x"
+            :center-y="gridStore.gridOrigin.y"
             :text-rotation="30"
             @hex-click="handleHexClick"
           >
             <!-- Character placements -->
             <CharacterPlacement
-              :character-placements="characterPlacements"
-              :hexes="hexes"
-              :layout="layout"
+              :character-placements="gridStore.characterPlacements"
+              :hexes="gridStore.hexes"
+              :layout="gridStore.layout"
               @character-click="handleCharacterClick"
             />
 
@@ -90,12 +74,16 @@ const icons = Object.fromEntries(
             <HexArrow
               :start-hex-id="1"
               :end-hex-id="27"
-              :hexes="hexes"
-              :layout="layout"
+              :hexes="gridStore.hexes"
+              :layout="gridStore.layout"
               @arrow-click="handleArrowClick"
             />
           </HexGrid>
         </div>
+      </div>
+
+      <div class="section">
+        <GridStats />
       </div>
 
       <div class="section">
