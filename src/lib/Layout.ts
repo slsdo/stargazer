@@ -61,11 +61,6 @@ export class Layout {
     this.origin = origin
   }
 
-  resize(size: Point, origin: Point) {
-    this.size = size
-    this.origin = origin
-  }
-
   // Convert hex to pixel (center)
   hexToPixel(hex: Hex): Point {
     const M = this.orientation

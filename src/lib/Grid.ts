@@ -113,27 +113,8 @@ export class Grid {
     return this.storage.get(Grid.key(hex))?.state
   }
 
-  getHex(hex: Hex): Hex | undefined {
-    return this.storage.get(Grid.key(hex))?.hex
-  }
-
-  has(hex: Hex): boolean {
-    return this.storage.has(Grid.key(hex))
-  }
-
   keys(): Hex[] {
     return Array.from(this.storage.values()).map((entry) => entry.hex)
-  }
-
-  values(): State[] {
-    return Array.from(this.storage.values()).map((entry) => entry.state)
-  }
-
-  entries(): Array<{ hex: Hex; value: State }> {
-    return Array.from(this.storage.values()).map((entry) => ({
-      hex: entry.hex,
-      value: entry.state,
-    }))
   }
 
   // Helper method to get hex by ID
