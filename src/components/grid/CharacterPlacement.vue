@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Hex } from '../../lib/Hex'
 import type { Layout } from '../../lib/Layout'
+import { useDragDrop } from '../../composables/useDragDrop'
 
 interface Props {
   characterPlacements: Map<number, string>
@@ -31,7 +32,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   characterClick: [hexId: number, imageSrc: string]
+  characterMoved: [fromHexId: number, toHexId: number, imageSrc: string]
 }>()
+
+const { startDrag, endDrag } = useDragDrop()
 
 const getHexById = (id: number): Hex | undefined => {
   return props.hexes.find((hex) => hex.getId() === id)
@@ -40,6 +44,25 @@ const getHexById = (id: number): Hex | undefined => {
 const getHexPosition = (hexId: number) => {
   const hex = getHexById(hexId)
   return hex ? props.layout.hexToPixel(hex) : { x: 0, y: 0 }
+}
+
+// Simple drag handler - try direct SVG dragging
+const handleCharacterDragStart = (event: DragEvent, hexId: number, imageSrc: string) => {
+  console.log('Character drag start:', hexId)
+  
+  // Create a mock character object for the drag system
+  const mockCharacter = {
+    id: `placed-${hexId}`,
+    name: 'Placed Character',
+    sourceHexId: hexId // Track where this character came from
+  }
+  
+  startDrag(event, mockCharacter, imageSrc)
+}
+
+const handleCharacterDragEnd = (event: DragEvent) => {
+  console.log('Character drag end')
+  endDrag(event)
 }
 </script>
 
@@ -70,6 +93,7 @@ const getHexPosition = (hexId: number) => {
           <circle :cx="getHexPosition(hexId).x" :cy="getHexPosition(hexId).y" :r="innerRadius" />
         </clipPath>
       </defs>
+      <!-- Character image (clipped to circle) -->
       <image
         :href="imageSrc"
         :x="getHexPosition(hexId).x - innerRadius"
@@ -95,9 +119,11 @@ const getHexPosition = (hexId: number) => {
 <style scoped>
 .character-placement image {
   cursor: pointer;
+  pointer-events: all;
 }
 
 .character-placement image:hover {
   opacity: 0.8;
 }
+
 </style>

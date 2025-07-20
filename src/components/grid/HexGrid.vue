@@ -120,8 +120,25 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
     const { character, imageSrc } = dropResult
     console.log('Placing character on hex:', hex.getId(), character.id)
 
-    // Update grid store directly
-    gridStore.placeCharacterOnHex(hex.getId(), imageSrc)
+    // Check if this is a character being moved from another hex
+    if (character.sourceHexId !== undefined) {
+      const sourceHexId = character.sourceHexId
+      const targetHexId = hex.getId()
+      
+      // Don't do anything if dropping on the same hex
+      if (sourceHexId === targetHexId) {
+        return
+      }
+      
+      // Move character from source to target hex
+      gridStore.removeCharacterFromHex(sourceHexId)
+      gridStore.placeCharacterOnHex(targetHexId, imageSrc)
+      
+      console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
+    } else {
+      // This is a new character placement from the character selection
+      gridStore.placeCharacterOnHex(hex.getId(), imageSrc)
+    }
 
     // Emit event for any additional handling
     emit('characterDropped', hex, character, imageSrc)
