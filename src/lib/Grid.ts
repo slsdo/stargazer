@@ -11,10 +11,23 @@ export enum State {
   BLOCKED_BREAKABLE = 6, // Blocked by breakable obstacle
 }
 
-// Default map grid
+const FLAT_GRID = {
+  hex: [
+    [44, 41],
+    [45, 42, 39, 36, 32],
+    [43, 40, 37, 33, 29, 25],
+    [38, 34, 30, 26, 22, 18],
+    [35, 31, 27, 23, 19, 15, 11],
+    [28, 24, 20, 16, 12, 8],
+    [21, 17, 13, 9, 6, 3],
+    [14, 10, 7, 4, 1],
+    [5, 2],
+  ],
+  qOffset: [1, -1, -2, -2, -3, -3, -3, -3, -2],
+}
 
-function defaultGrid(): Hex[] {
-  const defaultMap = [
+const DEFAULT_GRID = {
+  hex: [
     [43, 45],
     [35, 38, 40, 42, 44],
     [28, 31, 34, 37, 39, 41],
@@ -24,16 +37,18 @@ function defaultGrid(): Hex[] {
     [5, 7, 9, 12, 15, 18],
     [2, 4, 6, 8, 11],
     [1, 3],
-  ]
-  const centerRowIndex = Math.floor(defaultMap.length / 2) // Default=4
-  // Offset pattern for q, to position the tiles
-  const qOffset = [2, 0, -1, -2, -3, -3, -4, -4, -3]
+  ],
+  qOffset: [2, 0, -1, -2, -3, -3, -4, -4, -3],
+}
+
+function iniGrid(preset = DEFAULT_GRID): Hex[] {
+  const centerRowIndex = Math.floor(preset.hex.length / 2) // Default=4
   const hexes: Hex[] = []
 
-  for (let rowIndex = 0; rowIndex < defaultMap.length; rowIndex++) {
-    const row = defaultMap[rowIndex]
+  for (let rowIndex = 0; rowIndex < preset.hex.length; rowIndex++) {
+    const row = preset.hex[rowIndex]
     const r = rowIndex - centerRowIndex
-    const offset = qOffset[rowIndex]
+    const offset = preset.qOffset[rowIndex]
 
     for (let i = 0; i < row.length; i++) {
       const q = offset + i
@@ -51,9 +66,9 @@ export class Grid {
 
   constructor() {
     this.storage = new Map()
-    for (const hex of defaultGrid()) {
+    iniGrid().forEach((hex) => {
       this.storage.set(Grid.key(hex), { hex, state: State.DEFAULT })
-    }
+    })
   }
 
   private static key(hex: Hex): string {
@@ -73,10 +88,6 @@ export class Grid {
 
   getHex(hex: Hex): Hex | undefined {
     return this.storage.get(Grid.key(hex))?.hex
-  }
-
-  delete(hex: Hex): void {
-    this.storage.delete(Grid.key(hex))
   }
 
   has(hex: Hex): boolean {
@@ -103,10 +114,30 @@ export class Grid {
     return Array.from(this.storage.values()).find((entry) => entry.hex.getId() === id)?.hex
   }
 
-  // Helper method to get all hexes sorted by ID
-  getHexesSortedById(): Hex[] {
-    return Array.from(this.storage.values())
-      .map((entry) => entry.hex)
-      .sort((a, b) => a.getId() - b.getId())
+  // Calculate curved arrow path between two hex IDs
+  getArrowPath(startId: number, endId: number, layout: any): string {
+    const startHex = this.getHexById(startId)
+    const endHex = this.getHexById(endId)
+
+    if (!startHex || !endHex) {
+      return ''
+    }
+
+    const start = layout.hexToPixel(startHex)
+    const end = layout.hexToPixel(endHex)
+
+    // Calculate control point for curve (offset perpendicular to line)
+    const midX = (start.x + end.x) / 2
+    const midY = (start.y + end.y) / 2
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+    const length = Math.sqrt(dx * dx + dy * dy)
+    const curvature = length * 0.3 // Adjust curve intensity
+
+    // Perpendicular offset for control point
+    const controlX = midX - (dy / length) * curvature
+    const controlY = midY + (dx / length) * curvature
+
+    return `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
   }
 }

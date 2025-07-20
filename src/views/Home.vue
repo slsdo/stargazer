@@ -1,20 +1,47 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import CharacterSelection from '../components/CharacterSelection.vue'
-import Test from '../components/Test.vue'
+import HexGrid from '../components/grid/HexGrid.vue'
+import CharacterPlacement from '../components/grid/CharacterPlacement.vue'
+import HexArrow from '../components/grid/HexArrow.vue'
 import type { CharacterType } from '../types/character'
-import { Grid, State } from '../lib/Grid'
-import { Layout } from '../lib/Layout'
+import type { Hex } from '../lib/Hex'
+import { Grid } from '../lib/Grid'
+import { Layout, POINTY } from '../lib/Layout'
 
 const grid = new Grid()
-const layout = new Layout({ size: { x: 32, y: 32 }, origin: { x: 250, y: 250 } })
+const gridOrigin = { x: 300, y: 300 }
+const layout = new Layout(POINTY, { x: 40, y: 40 }, gridOrigin)
 const hexes = grid.keys()
-const isIsometric = ref(false)
-const skewX = ref(-30) // -3
-const skewY = ref(0) // 1
-const scaleX = ref(1) // .95
-const scaleY = ref(0.8602) // .65
-const rotate = ref(0) // 0
+
+// Character placement on hexes
+const characterPlacements = ref(new Map<number, string>())
+
+// Function to place character on hex
+const placeCharacterOnHex = (hexId: number, imageSrc: string) => {
+  characterPlacements.value.set(hexId, imageSrc)
+}
+
+// Function to remove character from hex
+const removeCharacterFromHex = (hexId: number) => {
+  characterPlacements.value.delete(hexId)
+}
+
+// Event handlers
+const handleHexClick = (hex: Hex) => {
+  console.log('Hex clicked:', hex.getId())
+}
+
+const handleCharacterClick = (hexId: number, imageSrc: string) => {
+  console.log('Character clicked:', hexId, imageSrc)
+}
+
+const handleArrowClick = (startHexId: number, endHexId: number) => {
+  console.log('Arrow clicked:', startHexId, '->', endHexId)
+}
+
+// Example: Place a character on hex 15
+placeCharacterOnHex(15, '/src/assets/images/character/athalia.png')
 
 const characters = (
   Object.values(
@@ -38,83 +65,36 @@ const icons = Object.fromEntries(
 <template>
   <main>
     <div class="content">
-      <div class="grid">
-        <h1>AFKJ Grid</h1>
-        <div class="section">
-          <p>Edit</p>
-        </div>
-      </div>
-
       <div class="section">
-        <button @click="isIsometric = !isIsometric" style="margin-bottom: 1em">
-          {{ isIsometric ? 'Standard View' : 'Isometric View' }}
-        </button>
-        <div v-if="isIsometric" style="margin-bottom: 1em">
-          <label
-            >skewX: {{ skewX }}
-            <input type="range" min="-60" max="60" v-model.number="skewX" />
-          </label>
-          <label style="margin-left: 2em"
-            >skewY: {{ skewY }}
-            <input type="range" min="-60" max="60" v-model.number="skewY" />
-          </label>
-          <label style="margin-left: 2em"
-            >scaleX: {{ scaleX }}
-            <input type="range" min="0.2" max="2" step="0.01" v-model.number="scaleX" />
-          </label>
-          <label style="margin-left: 2em"
-            >scaleY: {{ scaleY }}
-            <input type="range" min="0.2" max="2" step="0.01" v-model.number="scaleY" />
-          </label>
-          <label style="margin-left: 2em"
-            >Rotate: {{ rotate }}
-            <input type="range" min="-180" max="180" v-model.number="rotate" />
-          </label>
-        </div>
         <div id="map">
-          <svg :width="700" :height="500" class="">
-            <g
-              :transform="
-                isIsometric
-                  ? `rotate(${rotate},250,250) skewX(${skewX}) skewY(${skewY}) scale(${scaleX},${scaleY})`
-                  : ''
-              "
-            >
-              <g v-for="hex in hexes" :key="hex.getId()">
-                <polygon
-                  :points="
-                    layout
-                      .polygonCorners(hex)
-                      .map((p) => `${p.x},${p.y}`)
-                      .join(' ')
-                  "
-                  :fill="'#fff'"
-                  :stroke="'#222'"
-                  stroke-width="2"
-                />
-                <text
-                  :x="layout.hexToPixel(hex).x"
-                  :y="layout.hexToPixel(hex).y + 6"
-                  text-anchor="middle"
-                  font-size="18"
-                  fill="#222"
-                  font-family="monospace"
-                >
-                  {{ hex.getId() }}
-                </text>
-                <text
-                  :x="layout.hexToPixel(hex).x"
-                  :y="layout.hexToPixel(hex).y + 18"
-                  text-anchor="middle"
-                  font-size="8"
-                  fill="#555"
-                  font-family="monospace"
-                >
-                  ({{ hex.q }},{{ hex.r }},{{ hex.s }})
-                </text>
-              </g>
-            </g>
-          </svg>
+          <HexGrid
+            :hexes="hexes"
+            :layout="layout"
+            :width="600"
+            :height="600"
+            :rotation="0"
+            :center-x="gridOrigin.x"
+            :center-y="gridOrigin.y"
+            :text-rotation="30"
+            @hex-click="handleHexClick"
+          >
+            <!-- Character placements -->
+            <CharacterPlacement
+              :character-placements="characterPlacements"
+              :hexes="hexes"
+              :layout="layout"
+              @character-click="handleCharacterClick"
+            />
+
+            <!-- Arrow from hex 1 to hex 27 -->
+            <HexArrow
+              :start-hex-id="1"
+              :end-hex-id="27"
+              :hexes="hexes"
+              :layout="layout"
+              @arrow-click="handleArrowClick"
+            />
+          </HexGrid>
         </div>
       </div>
 
@@ -146,13 +126,15 @@ main {
 
 .section {
   padding: 2em;
-  margin: 2rem 0;
+  margin: 0 0 2rem;
   color: #484848;
   background-color: #f8f5ec;
   border-radius: 8px;
 }
 
-.svgGrid {
-  border: 1px solid #000;
+#map {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
