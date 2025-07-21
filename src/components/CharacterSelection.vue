@@ -18,6 +18,10 @@ const setTeam = (team: 'Ally' | 'Enemy') => {
   selectedTeam.value = team
 }
 
+const clearAll = () => {
+  gridStore.clearAllCharacters()
+}
+
 const isCharacterPlaced = (characterId: string): boolean => {
   // Get all tiles with characters
   const tilesWithCharacters = gridStore.getTilesWithCharacters()
@@ -66,12 +70,20 @@ const removeCharacterFromGrid = (characterId: string) => {
 <template>
   <div class="character-selection">
     <!-- Team Toggle with Availability -->
-    <div class="team-toggle">
-      <button @click="setTeam('Ally')" :class="['team-btn', { active: selectedTeam === 'Ally' }]">
-        Ally ({{ gridStore.availableAlly }}/5)
-      </button>
-      <button @click="setTeam('Enemy')" :class="['team-btn', { active: selectedTeam === 'Enemy' }]">
-        Enemy ({{ gridStore.availableEnemy }}/5)
+    <div class="controls-row">
+      <div class="team-toggle">
+        <button @click="setTeam('Ally')" :class="['team-btn', { active: selectedTeam === 'Ally' }]">
+          Ally ({{ gridStore.availableAlly }}/5)
+        </button>
+        <button @click="setTeam('Enemy')" :class="['team-btn', { active: selectedTeam === 'Enemy' }]">
+          Enemy ({{ gridStore.availableEnemy }}/5)
+        </button>
+      </div>
+      <button 
+        @click="clearAll" 
+        class="clear-all-btn"
+      >
+        Clear All
       </button>
     </div>
 
@@ -95,6 +107,13 @@ const removeCharacterFromGrid = (characterId: string) => {
 .character-selection {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+}
+
+.controls-row {
+  display: flex;
+  justify-content: left;
+  align-items: center;
   gap: 1rem;
 }
 
@@ -130,6 +149,23 @@ const removeCharacterFromGrid = (characterId: string) => {
 .team-btn.active {
   background: #36958e;
   color: white;
+}
+
+.clear-all-btn {
+  background: #c05b4d;
+  color: white;
+  border: 2px solid #c05b4d;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.clear-all-btn:hover {
+  background: #c82333;
+  border-color: #c82333;
 }
 
 .characters {

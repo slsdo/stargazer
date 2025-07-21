@@ -56,7 +56,6 @@ const getImageName = (imageSrc: string): string => {
           </button>
         </li>
       </ul>
-      <button @click="gridStore.clearAllCharacters()" class="clear-all-btn">Clear All</button>
     </div>
   </div>
 </template>
@@ -270,20 +269,5 @@ const getImageName = (imageSrc: string): string => {
 
 .remove-btn:hover {
   background: #ff5252;
-}
-
-.clear-all-btn {
-  background: #555;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 1rem;
-  width: 100%;
-}
-
-.clear-all-btn:hover {
-  background: #333;
 }
 </style>

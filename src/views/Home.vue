@@ -16,7 +16,7 @@ const gridStore = useGridStore()
 
 // Tab state management
 const activeTab = ref('characters')
-const debugGrid = ref(true)
+const showDebug = ref(false)
 
 // Map management
 const availableMaps = getMapNames()
@@ -27,15 +27,12 @@ const showMapDropdown = ref(false)
 const showArrows = ref(true)
 const showHexIds = ref(true)
 
-const toggleGridDisplay = () => {
-  showArrows.value = !showArrows.value
-  showHexIds.value = !showHexIds.value
-}
 
 const setActiveTab = (tab: string) => {
   activeTab.value = tab
   showMapDropdown.value = false // Close dropdown when switching tabs
 }
+
 
 const toggleMapDropdown = () => {
   showMapDropdown.value = !showMapDropdown.value
@@ -107,7 +104,8 @@ const icons = loadAssetsDict(
   <main>
     <div class="content">
       <div class="section">
-        <div id="map">
+        <div class="grid-container">
+          <div id="map">
           <svg
             v-if="showArrows"
             width="600"
@@ -151,7 +149,7 @@ const icons = loadAssetsDict(
             :center-y="gridStore.gridOrigin.y"
             :text-rotation="30"
             :show-hex-ids="showHexIds"
-            :show-coordinates="activeTab === 'debug'"
+            :show-coordinates="showDebug"
             @hex-click="handleHexClick"
           >
             <!-- Character placements -->
@@ -164,10 +162,24 @@ const icons = loadAssetsDict(
               @character-click="handleCharacterClick"
             />
           </GridTiles>
+          </div>
+
+          <!-- Debug Panel -->
+          <div v-if="showDebug" class="debug-panel">
+            <DebugGrid />
+          </div>
         </div>
 
         <!-- Grid Display Toggle -->
         <div class="grid-controls">
+          <label class="grid-toggle-btn">
+            <input
+              type="checkbox"
+              v-model="showDebug"
+              class="grid-toggle-checkbox"
+            />
+            <span class="grid-toggle-text">Debug View</span>
+          </label>
           <label class="grid-toggle-btn">
             <input
               type="checkbox"
@@ -204,12 +216,6 @@ const icons = loadAssetsDict(
               </button>
             </div>
           </div>
-          <button
-            @click="setActiveTab('debug')"
-            :class="['tab-btn', { active: activeTab === 'debug' }]"
-          >
-            Debug
-          </button>
         </div>
 
         <!-- Tab Content -->
@@ -222,11 +228,6 @@ const icons = loadAssetsDict(
               :icons="icons"
               :isDraggable="true"
             />
-          </div>
-
-          <!-- Debug Tab -->
-          <div v-show="activeTab === 'debug'" class="tab-panel">
-            <DebugGrid />
           </div>
         </div>
       </div>
@@ -257,6 +258,13 @@ main {
   border-radius: 8px;
 }
 
+.grid-container {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
 #map {
   display: flex;
   justify-content: center;
@@ -264,9 +272,20 @@ main {
   position: relative;
 }
 
+.debug-panel {
+  background: #fff;
+  border: 2px solid #d4cfc0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 500px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
 .grid-controls {
   display: flex;
   justify-content: flex-end;
+  gap: 1rem;
   margin-top: 1rem;
 }
 
