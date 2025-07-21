@@ -355,7 +355,7 @@ onUnmounted(() => {
 
 /* Occupied tiles - red border on event layer */
 .grid-event-layer.drop-target.occupied polygon {
-  stroke: #c05b4d;
+  stroke: #999;
   stroke-width: 3;
 }
 
