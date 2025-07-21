@@ -26,7 +26,8 @@ const handleHexClick = (hex: Hex) => {
 }
 
 const handleCharacterClick = (hexId: number, characterId: string) => {
-  console.log('Character clicked:', hexId, characterId)
+  console.log('Character clicked on grid:', hexId, characterId, '- removing from grid')
+  gridStore.removeCharacterFromHex(hexId)
 }
 
 const handleArrowClick = (startHexId: number, endHexId: number) => {

@@ -9,11 +9,21 @@ defineProps<{
   isDraggable?: boolean
   isPlaced?: boolean
 }>()
+
+const emit = defineEmits<{
+  characterClick: [character: CharacterType]
+}>()
 </script>
 
 <template>
   <div class="profile">
-    <Character :character="character" :characterImage="characterImage" :isDraggable="isDraggable" :isPlaced="isPlaced" />
+    <Character 
+      :character="character" 
+      :characterImage="characterImage" 
+      :isDraggable="isDraggable" 
+      :isPlaced="isPlaced" 
+      @character-click="$emit('characterClick', $event)"
+    />
     <div class="info">
       <img :src="icons[`faction-${character.faction}`]" :alt="character.faction" class="icon" />
       <img :src="icons[`class-${character.class}`]" :alt="character.class" class="icon" />

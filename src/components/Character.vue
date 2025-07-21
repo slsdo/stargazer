@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CharacterType } from '../types/character'
 import { useDragDrop } from '../composables/useDragDrop'
+import { ref } from 'vue'
 
 const props = defineProps<{
   character: CharacterType
@@ -9,7 +10,16 @@ const props = defineProps<{
   isPlaced?: boolean
 }>()
 
+const emit = defineEmits<{
+  characterClick: [character: CharacterType]
+}>()
+
 const { startDrag, endDrag } = useDragDrop()
+
+// Click detection variables
+const isMouseDown = ref(false)
+const startTime = ref(0)
+const CLICK_THRESHOLD = 200 // ms
 
 const handleDragStart = (event: DragEvent) => {
   if (!props.isDraggable) return
@@ -20,6 +30,25 @@ const handleDragEnd = (event: DragEvent) => {
   if (!props.isDraggable) return
   endDrag(event)
 }
+
+const handleMouseDown = (event: MouseEvent) => {
+  isMouseDown.value = true
+  startTime.value = Date.now()
+}
+
+const handleMouseUp = (event: MouseEvent) => {
+  if (!isMouseDown.value) return
+
+  const endTime = Date.now()
+  const clickDuration = endTime - startTime.value
+
+  // Only emit click if it was a short press (not a drag)
+  if (clickDuration < CLICK_THRESHOLD) {
+    emit('characterClick', props.character)
+  }
+
+  isMouseDown.value = false
+}
 </script>
 
 <template>
@@ -29,6 +58,8 @@ const handleDragEnd = (event: DragEvent) => {
     :draggable="isDraggable"
     @dragstart="handleDragStart"
     @dragend="handleDragEnd"
+    @mousedown="handleMouseDown"
+    @mouseup="handleMouseUp"
   >
     <img :src="characterImage" :alt="character.id" class="portrait" />
   </div>
@@ -94,6 +125,6 @@ const handleDragEnd = (event: DragEvent) => {
 }
 
 .character.placed {
-  box-shadow: 0 0 0 5px #36958e;
+  box-shadow: 0 0 0 5px #c05b4d;
 }
 </style>

@@ -27,6 +27,40 @@ const isCharacterPlaced = (characterId: string): boolean => {
     (tile) => tile.character === characterId && tile.team === selectedTeam.value,
   )
 }
+
+const handleCharacterClick = (character: CharacterType) => {
+  console.log('Character clicked:', character.id, 'team:', selectedTeam.value)
+
+  // Check if character is already placed for current team
+  if (isCharacterPlaced(character.id)) {
+    console.log('Character already placed for team', selectedTeam.value, '- removing from grid')
+    removeCharacterFromGrid(character.id)
+    return
+  }
+
+  // Attempt to auto-place the character
+  const success = gridStore.autoPlaceCharacter(character.id, selectedTeam.value)
+  if (success) {
+    console.log('Character', character.id, 'successfully auto-placed')
+  } else {
+    console.log('Failed to auto-place character', character.id)
+  }
+}
+
+const removeCharacterFromGrid = (characterId: string) => {
+  // Find the hex where this character is placed for the current team
+  const tilesWithCharacters = gridStore.getTilesWithCharacters()
+  const characterTile = tilesWithCharacters.find(
+    (tile) => tile.character === characterId && tile.team === selectedTeam.value,
+  )
+
+  if (characterTile) {
+    console.log('Removing character', characterId, 'from hex', characterTile.hex.getId())
+    gridStore.removeCharacterFromHex(characterTile.hex.getId())
+  } else {
+    console.log('Character', characterId, 'not found on grid for team', selectedTeam.value)
+  }
+}
 </script>
 
 <template>
@@ -51,6 +85,7 @@ const isCharacterPlaced = (characterId: string): boolean => {
         :icons="icons"
         :isDraggable="isDraggable"
         :isPlaced="isCharacterPlaced(character.id)"
+        @character-click="handleCharacterClick"
       />
     </div>
   </div>

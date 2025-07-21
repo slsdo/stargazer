@@ -137,6 +137,34 @@ export const useGridStore = defineStore('grid', () => {
     return grid.getTilesWithCharacters()
   }
 
+  const autoPlaceCharacter = (characterId: string, team: 'Self' | 'Enemy'): boolean => {
+    // Check if character can be placed
+    if (!canPlaceCharacter(characterId, team)) {
+      console.log('Store: cannot place character - team restrictions or duplicate')
+      return false
+    }
+
+    // Get all tiles that can accept this team
+    const availableTiles = getAllTiles().filter(tile => 
+      canPlaceCharacterOnTile(tile.hex.getId(), team) && !tile.character
+    )
+
+    if (availableTiles.length === 0) {
+      console.log('Store: no available tiles for team', team)
+      return false
+    }
+
+    // Sort by hex ID descending (largest first) and pick randomly from available tiles
+    availableTiles.sort((a, b) => b.hex.getId() - a.hex.getId())
+    
+    // Find a random tile to place the character
+    const randomIndex = Math.floor(Math.random() * availableTiles.length)
+    const selectedTile = availableTiles[randomIndex]
+    
+    console.log('Store: auto-placing character', characterId, 'on hex', selectedTile.hex.getId(), 'team:', team)
+    return placeCharacterOnHex(selectedTile.hex.getId(), characterId, team)
+  }
+
   return {
     // Core grid data (readonly)
     grid: readonly(grid),
@@ -172,5 +200,6 @@ export const useGridStore = defineStore('grid', () => {
     getTile,
     getAllTiles,
     getTilesWithCharacters,
+    autoPlaceCharacter,
   }
 })

@@ -87,7 +87,6 @@ const hexExists = (hexId: number): boolean => {
         :width="innerRadius * 2"
         :height="innerRadius * 2"
         :clip-path="`url(#clip-grid-character-${hexId})`"
-        @click="$emit('characterClick', hexId, characterId)"
       />
       <!-- Semi-transparent overlay -->
       <circle
@@ -97,6 +96,7 @@ const hexExists = (hexId: number): boolean => {
         :r="innerRadius"
         :fill="overlayColor"
         :fill-opacity="overlayOpacity"
+        style="pointer-events: none;"
       />
     </g>
   </g>
@@ -104,11 +104,6 @@ const hexExists = (hexId: number): boolean => {
 
 <style scoped>
 .grid-characters image {
-  cursor: pointer;
-  pointer-events: all;
-}
-
-.grid-characters image:hover {
-  opacity: 0.8;
+  pointer-events: none;
 }
 </style>
