@@ -146,7 +146,11 @@ export class Layout {
     const distanceFromCenter = Math.abs(relativeX)
     const curveFactor = Math.min(distanceFromCenter / maxDistance, 1) // 0 to 1
     const baseCurvature = length * 0.15 // Base curve amount
-    const curvature = baseCurvature + (baseCurvature * curveFactor) // Scale curve by position
+    
+    // Apply different curvature multipliers for enemy arrows (invertCurve = true)
+    // Enemy arrows curve 1.5x more than ally arrows to prevent overlap
+    const curvatureMultiplier = invertCurve ? 1.5 : 1.0
+    const curvature = (baseCurvature + (baseCurvature * curveFactor)) * curvatureMultiplier // Scale curve by position and type
     
     // Curve direction: negative for left side, positive for right side
     let curveDirection = relativeX < 0 ? -1 : 1
