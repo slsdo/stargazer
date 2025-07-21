@@ -29,12 +29,28 @@ export const useGridStore = defineStore('grid', () => {
     return grid.getCharacterPlacements()
   })
 
+  // Team availability getters
+  const availableSelf = computed(() => {
+    characterUpdateTrigger.value // Reactivity trigger
+    return grid.getAvailableSelf()
+  })
+  
+  const availableEnemy = computed(() => {
+    characterUpdateTrigger.value // Reactivity trigger
+    return grid.getAvailableEnemy()
+  })
+
   // Actions that use Grid instance
-  const placeCharacterOnHex = (hexId: number, characterId: string) => {
-    console.log('Store: placing character on hex', hexId, characterId)
-    grid.placeCharacterById(hexId, characterId)
-    characterUpdateTrigger.value++ // Trigger reactivity
-    console.log('Store: character placements now:', grid.getCharacterPlacements())
+  const placeCharacterOnHex = (hexId: number, characterId: string, team: 'Self' | 'Enemy' = 'Self'): boolean => {
+    console.log('Store: placing character on hex', hexId, characterId, 'team:', team)
+    const success = grid.placeCharacterById(hexId, characterId, team)
+    if (success) {
+      characterUpdateTrigger.value++ // Trigger reactivity
+      console.log('Store: character placements now:', grid.getCharacterPlacements())
+    } else {
+      console.log('Store: placement failed - team restrictions or duplicate character')
+    }
+    return success
   }
 
   const removeCharacterFromHex = (hexId: number) => {
@@ -55,17 +71,32 @@ export const useGridStore = defineStore('grid', () => {
     return grid.hasCharacterById(hexId)
   }
 
+  const canPlaceCharacter = (characterId: string, team: 'Self' | 'Enemy'): boolean => {
+    return grid.canPlaceCharacter(characterId, team)
+  }
+
+  const canPlaceCharacterOnTile = (hexId: number, team: 'Self' | 'Enemy'): boolean => {
+    return grid.canPlaceCharacterOnTile(hexId, team)
+  }
+
+  const getCharacterTeam = (hexId: number): 'Self' | 'Enemy' | undefined => {
+    return grid.getCharacterTeamById(hexId)
+  }
+
   const moveCharacter = (fromHexId: number, toHexId: number, characterId: string): boolean => {
     // Don't move if dropping on the same hex
     if (fromHexId === toHexId) {
       return false
     }
 
+    // Get the team from the source hex
+    const team = grid.getCharacterTeamById(fromHexId) || 'Self'
+    
     // Move character from source to target hex
     grid.removeCharacterById(fromHexId)
-    grid.placeCharacterById(toHexId, characterId)
+    const success = grid.placeCharacterById(toHexId, characterId, team)
     characterUpdateTrigger.value++ // Trigger reactivity
-    return true
+    return success
   }
 
   // Grid utility functions
@@ -120,6 +151,8 @@ export const useGridStore = defineStore('grid', () => {
     totalHexes,
     charactersPlaced,
     placedCharactersList,
+    availableSelf,
+    availableEnemy,
 
     // Actions
     placeCharacterOnHex,
@@ -127,6 +160,9 @@ export const useGridStore = defineStore('grid', () => {
     clearAllCharacters,
     getCharacterOnHex,
     isHexOccupied,
+    canPlaceCharacter,
+    canPlaceCharacterOnTile,
+    getCharacterTeam,
     moveCharacter,
     getArrowPath,
     getHexById,

@@ -58,7 +58,7 @@ const emit = defineEmits<{
   characterDropped: [hex: Hex, character: any, characterId: string]
 }>()
 
-const { handleDragOver, handleDrop, hasCharacterData } = useDragDrop()
+const { handleDragOver, handleDrop, hasCharacterData, draggedCharacter } = useDragDrop()
 const gridStore = useGridStore()
 
 // Track which hex is currently being hovered during drag
@@ -136,7 +136,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
 
   if (dropResult) {
     const { character, characterId } = dropResult
-    console.log('Placing character on hex:', hex.getId(), character.id)
+    console.log('Placing character on hex:', hex.getId(), character.id, 'team:', character.team)
 
     // Check if this is a character being moved from another hex
     if (character.sourceHexId !== undefined) {
@@ -150,7 +150,20 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       }
     } else {
       // This is a new character placement from the character selection
-      gridStore.placeCharacterOnHex(hex.getId(), characterId)
+      const team = character.team || 'Self'
+      const hexId = hex.getId()
+      
+      // Check if tile allows this team
+      if (!gridStore.canPlaceCharacterOnTile(hexId, team)) {
+        console.log(`Failed to place character - tile ${hexId} does not allow ${team} team`)
+        return
+      }
+      
+      const success = gridStore.placeCharacterOnHex(hexId, characterId, team)
+      if (!success) {
+        console.log('Failed to place character - team restrictions or duplicate')
+        return
+      }
     }
 
     // Emit event for any additional handling
@@ -161,11 +174,23 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
 }
 
 const getHexDropClass = (hex: Hex) => {
+  const hexId = hex.getId()
+  const isOccupied = gridStore.isHexOccupied(hexId)
+  const isDragHover = dragHoveredHex.value === hexId
+  
+  // Check if this tile can accept the currently dragged character's team
+  let validDropZone = true
+  if (isDragHover && draggedCharacter.value) {
+    const team = draggedCharacter.value.team || 'Self'
+    validDropZone = gridStore.canPlaceCharacterOnTile(hexId, team)
+  }
+  
   return {
     'drop-target': true,
-    occupied: gridStore.isHexOccupied(hex.getId()),
-    'drag-hover': dragHoveredHex.value === hex.getId(),
-    hover: hoveredHex.value === hex.getId(),
+    occupied: isOccupied,
+    'drag-hover': isDragHover,
+    'invalid-drop': isDragHover && !validDropZone,
+    hover: hoveredHex.value === hexId,
   }
 }
 
@@ -335,15 +360,23 @@ onUnmounted(() => {
 }
 
 /* Drag hover states - highest priority with !important */
-.hex-event-layer.drop-target.drag-hover:not(.occupied) polygon {
+.hex-event-layer.drop-target.drag-hover:not(.occupied):not(.invalid-drop) polygon {
   fill: rgba(232, 245, 232, 0.3) !important;
   stroke: #4caf50 !important;
   stroke-width: 3 !important;
   filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.4));
 }
 
-.hex-event-layer.drop-target.drag-hover.occupied polygon {
+.hex-event-layer.drop-target.drag-hover.occupied:not(.invalid-drop) polygon {
   fill: rgba(255, 232, 232, 0.3) !important;
+  stroke: #ff9800 !important;
+  stroke-width: 3 !important;
+  filter: drop-shadow(0 0 8px rgba(255, 152, 0, 0.4));
+}
+
+/* Invalid drop zone styling */
+.hex-event-layer.drop-target.drag-hover.invalid-drop polygon {
+  fill: rgba(255, 193, 193, 0.3) !important;
   stroke: #f44336 !important;
   stroke-width: 3 !important;
   filter: drop-shadow(0 0 8px rgba(244, 67, 54, 0.4));

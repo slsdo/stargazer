@@ -27,10 +27,14 @@ export interface GridTile {
   hex: Hex
   state: State
   character?: string
+  team?: 'Self' | 'Enemy'
 }
 
 export class Grid {
   private storage: Map<string, GridTile>
+  private selfTeamCharacters: Set<string> = new Set()
+  private enemyTeamCharacters: Set<string> = new Set()
+  private readonly MAX_TEAM_SIZE = 5
 
   constructor(layout = DEFAULT_GRID, map = ARENA_1) {
     this.storage = new Map()
@@ -95,33 +99,121 @@ export class Grid {
     return Array.from(this.storage.values()).filter((tile) => tile.character !== undefined)
   }
 
-  // Character management methods
-  placeCharacter(hex: Hex, characterId: string): void {
-    const tile = this.getTile(hex)
-    if (tile) {
-      tile.character = characterId
-      tile.state = State.OCCUPIED_SELF
+  // Team availability methods
+  getAvailableSelf(): number {
+    return this.MAX_TEAM_SIZE - this.selfTeamCharacters.size
+  }
+
+  getAvailableEnemy(): number {
+    return this.MAX_TEAM_SIZE - this.enemyTeamCharacters.size
+  }
+
+  canPlaceCharacter(characterId: string, team: 'Self' | 'Enemy'): boolean {
+    // Check if team has space
+    if (team === 'Self' && this.getAvailableSelf() <= 0) return false
+    if (team === 'Enemy' && this.getAvailableEnemy() <= 0) return false
+    
+    // Check if character is already on the same team
+    if (team === 'Self' && this.selfTeamCharacters.has(characterId)) return false
+    if (team === 'Enemy' && this.enemyTeamCharacters.has(characterId)) return false
+    
+    return true
+  }
+
+  canPlaceCharacterOnTile(hexId: number, team: 'Self' | 'Enemy'): boolean {
+    const tile = this.getTileById(hexId)
+    const state = tile.state
+    
+    if (team === 'Self') {
+      return state === State.AVAILABLE_SELF || state === State.OCCUPIED_SELF
+    } else {
+      return state === State.AVAILABLE_ENEMY || state === State.OCCUPIED_ENEMY
     }
   }
 
-  placeCharacterById(hexId: number, characterId: string): void {
+  // Character management methods
+  placeCharacter(hex: Hex, characterId: string, team: 'Self' | 'Enemy' = 'Self'): boolean {
+    const hexId = hex.getId()
+    return this.placeCharacterById(hexId, characterId, team)
+  }
+
+  placeCharacterById(hexId: number, characterId: string, team: 'Self' | 'Enemy' = 'Self'): boolean {
+    // Check if tile allows this team
+    if (!this.canPlaceCharacterOnTile(hexId, team)) return false
+    
+    // Check if character can be placed (team size and duplicate restrictions)
+    if (!this.canPlaceCharacter(characterId, team)) return false
+    
     const tile = this.getTileById(hexId)
+    
+    // If there's already a character on this tile, remove it first
+    if (tile.character) {
+      const existingCharacterId = tile.character
+      const existingTeam = tile.team
+      
+      // Remove from team tracking
+      if (existingTeam === 'Self') {
+        this.selfTeamCharacters.delete(existingCharacterId)
+      } else if (existingTeam === 'Enemy') {
+        this.enemyTeamCharacters.delete(existingCharacterId)
+      }
+    }
+    
+    // Place the new character
     tile.character = characterId
-    tile.state = State.OCCUPIED_SELF
+    tile.team = team
+    tile.state = team === 'Self' ? State.OCCUPIED_SELF : State.OCCUPIED_ENEMY
+    
+    // Add to team tracking
+    if (team === 'Self') {
+      this.selfTeamCharacters.add(characterId)
+    } else {
+      this.enemyTeamCharacters.add(characterId)
+    }
+    
+    return true
+  }
+
+  // Helper method to get original tile state (before character placement)
+  private getOriginalTileState(hexId: number): State {
+    // Check the arena configuration to see what this tile's original state should be
+    const tile = this.getTileById(hexId)
+    const currentState = tile.state
+    
+    // If it's occupied, determine what it should be when empty
+    if (currentState === State.OCCUPIED_SELF) {
+      return State.AVAILABLE_SELF
+    } else if (currentState === State.OCCUPIED_ENEMY) {
+      return State.AVAILABLE_ENEMY
+    }
+    
+    // For other states, return as is
+    return currentState
   }
 
   removeCharacter(hex: Hex): void {
-    const tile = this.getTile(hex)
-    if (tile) {
-      delete tile.character
-      tile.state = State.DEFAULT
-    }
+    const hexId = hex.getId()
+    this.removeCharacterById(hexId)
   }
 
   removeCharacterById(hexId: number): void {
     const tile = this.getTileById(hexId)
-    delete tile.character
-    tile.state = State.DEFAULT
+    if (tile.character) {
+      const characterId = tile.character
+      const team = tile.team
+      
+      delete tile.character
+      delete tile.team
+      
+      // Restore original tile state
+      tile.state = this.getOriginalTileState(hexId)
+      
+      if (team === 'Self') {
+        this.selfTeamCharacters.delete(characterId)
+      } else if (team === 'Enemy') {
+        this.enemyTeamCharacters.delete(characterId)
+      }
+    }
   }
 
   getCharacter(hex: Hex): string | undefined {
@@ -154,9 +246,24 @@ export class Grid {
   // Clear all characters
   clearAllCharacters(): void {
     for (const entry of this.storage.values()) {
-      delete entry.character
-      entry.state = State.DEFAULT
+      if (entry.character) {
+        delete entry.character
+        delete entry.team
+        // Restore original tile state
+        entry.state = this.getOriginalTileState(entry.hex.getId())
+      }
     }
+    this.selfTeamCharacters.clear()
+    this.enemyTeamCharacters.clear()
+  }
+
+  // Get team of a character
+  getCharacterTeam(hex: Hex): 'Self' | 'Enemy' | undefined {
+    return this.getTile(hex).team
+  }
+
+  getCharacterTeamById(hexId: number): 'Self' | 'Enemy' | undefined {
+    return this.getTileById(hexId).team
   }
 
   // Get count of placed characters
