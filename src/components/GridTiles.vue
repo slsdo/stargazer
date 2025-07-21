@@ -355,14 +355,14 @@ onUnmounted(() => {
 
 /* Occupied tiles - red border on event layer */
 .grid-event-layer.drop-target.occupied polygon {
-  stroke: #f44336;
+  stroke: #c05b4d;
   stroke-width: 3;
 }
 
 /* Drag hover states - highest priority with !important */
 .grid-event-layer.drop-target.drag-hover:not(.occupied):not(.invalid-drop) polygon {
   fill: rgba(232, 245, 232, 0.3) !important;
-  stroke: #4caf50 !important;
+  stroke: #36958e !important;
   stroke-width: 3 !important;
   filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.4));
 }
@@ -377,7 +377,7 @@ onUnmounted(() => {
 /* Invalid drop zone styling */
 .grid-event-layer.drop-target.drag-hover.invalid-drop polygon {
   fill: rgba(255, 193, 193, 0.3) !important;
-  stroke: #f44336 !important;
+  stroke: #c05b4d !important;
   stroke-width: 3 !important;
   filter: drop-shadow(0 0 8px rgba(244, 67, 54, 0.4));
 }
@@ -385,7 +385,7 @@ onUnmounted(() => {
 /* Regular hover (when not dragging) */
 .grid-event-layer.drop-target:not(.occupied):not(.drag-hover).hover polygon {
   fill: rgba(240, 248, 240, 0.3);
-  stroke: #4caf50;
+  stroke: #36958e;
   stroke-width: 3;
 }
 

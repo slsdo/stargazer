@@ -94,6 +94,6 @@ const handleDragEnd = (event: DragEvent) => {
 }
 
 .character.placed {
-  box-shadow: 0 0 0 5px #4caf50;
+  box-shadow: 0 0 0 5px #36958e;
 }
 </style>

@@ -14,8 +14,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
 
-  color: var(--color-text);
-  background: var(--color-background);
+  color: #333;
+  background-color: #20232a;
   line-height: 1.6;
   font-family: sans-serif;
   font-size: 15px;
