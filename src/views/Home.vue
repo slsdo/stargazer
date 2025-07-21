@@ -23,6 +23,15 @@ const availableMaps = getMapNames()
 const selectedMap = ref('arena1')
 const showMapDropdown = ref(false)
 
+// Grid display toggles
+const showArrows = ref(true)
+const showHexIds = ref(true)
+
+const toggleGridDisplay = () => {
+  showArrows.value = !showArrows.value
+  showHexIds.value = !showHexIds.value
+}
+
 const setActiveTab = (tab: string) => {
   activeTab.value = tab
   showMapDropdown.value = false // Close dropdown when switching tabs
@@ -99,7 +108,12 @@ const icons = loadAssetsDict(
     <div class="content">
       <div class="section">
         <div id="map">
-          <svg width="600" height="600" style="position: absolute; pointer-events: none">
+          <svg
+            v-if="showArrows"
+            width="600"
+            height="600"
+            style="position: absolute; pointer-events: none"
+          >
             <!-- Arrows from ally characters to closest enemies (rendered on top of everything) -->
             <g class="arrows-layer" style="pointer-events: auto">
               <!-- Ally to Enemy arrows (teal) -->
@@ -136,6 +150,7 @@ const icons = loadAssetsDict(
             :center-x="gridStore.gridOrigin.x"
             :center-y="gridStore.gridOrigin.y"
             :text-rotation="30"
+            :show-hex-ids="showHexIds"
             :show-coordinates="activeTab === 'debug'"
             @hex-click="handleHexClick"
           >
@@ -149,6 +164,19 @@ const icons = loadAssetsDict(
               @character-click="handleCharacterClick"
             />
           </GridTiles>
+        </div>
+
+        <!-- Grid Display Toggle -->
+        <div class="grid-controls">
+          <label class="grid-toggle-btn">
+            <input
+              type="checkbox"
+              v-model="showArrows"
+              @change="showHexIds = showArrows"
+              class="grid-toggle-checkbox"
+            />
+            <span class="grid-toggle-text">Show Details</span>
+          </label>
         </div>
       </div>
 
@@ -234,6 +262,45 @@ main {
   justify-content: center;
   align-items: center;
   position: relative;
+}
+
+.grid-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.grid-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #666;
+  user-select: none;
+  background: #f8f5ec;
+  border: 2px solid #d4cfc0;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.grid-toggle-checkbox {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+  accent-color: #36958e;
+  margin: 0;
+}
+
+.grid-toggle-text {
+  font-weight: 600;
+}
+
+.grid-toggle-btn:hover {
+  background: #f0ebe0;
+  border-color: #36958e;
+  color: #36958e;
 }
 
 .tab-container {
