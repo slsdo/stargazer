@@ -31,8 +31,10 @@ export interface GridTile {
 
 export class Grid {
   private storage: Map<string, GridTile>
-  private selfTeamCharacters: Set<string> = new Set()
-  private enemyTeamCharacters: Set<string> = new Set()
+  private teamCharacters: Map<'Self' | 'Enemy', Set<string>> = new Map([
+    ['Self', new Set()],
+    ['Enemy', new Set()],
+  ])
   private readonly MAX_TEAM_SIZE = 5
 
   constructor(layout = DEFAULT_GRID, map = ARENA_1) {
@@ -106,34 +108,32 @@ export class Grid {
 
   // Team availability methods
   getAvailableSelf(): number {
-    return this.MAX_TEAM_SIZE - this.selfTeamCharacters.size
+    return this.getAvailableForTeam('Self')
   }
 
   getAvailableEnemy(): number {
-    return this.MAX_TEAM_SIZE - this.enemyTeamCharacters.size
+    return this.getAvailableForTeam('Enemy')
+  }
+
+  private getAvailableForTeam(team: 'Self' | 'Enemy'): number {
+    return this.MAX_TEAM_SIZE - (this.teamCharacters.get(team)?.size || 0)
   }
 
   canPlaceCharacter(characterId: string, team: 'Self' | 'Enemy'): boolean {
     // Check if team has space
-    if (team === 'Self' && this.getAvailableSelf() <= 0) return false
-    if (team === 'Enemy' && this.getAvailableEnemy() <= 0) return false
+    if (this.getAvailableForTeam(team) <= 0) return false
 
     // Check if character is already on the same team
-    if (team === 'Self' && this.selfTeamCharacters.has(characterId)) return false
-    if (team === 'Enemy' && this.enemyTeamCharacters.has(characterId)) return false
-
-    return true
+    return !this.teamCharacters.get(team)?.has(characterId)
   }
 
   canPlaceCharacterOnTile(hexOrId: Hex | number, team: 'Self' | 'Enemy'): boolean {
     const tile = this.getTile(hexOrId)
     const state = tile.state
+    const availableState = team === 'Self' ? State.AVAILABLE_SELF : State.AVAILABLE_ENEMY
+    const occupiedState = team === 'Self' ? State.OCCUPIED_SELF : State.OCCUPIED_ENEMY
 
-    if (team === 'Self') {
-      return state === State.AVAILABLE_SELF || state === State.OCCUPIED_SELF
-    } else {
-      return state === State.AVAILABLE_ENEMY || state === State.OCCUPIED_ENEMY
-    }
+    return state === availableState || state === occupiedState
   }
 
   /**
@@ -154,28 +154,11 @@ export class Grid {
 
     // If there's already a character on this tile, remove it first
     if (tile.character) {
-      const existingCharacterId = tile.character
-      const existingTeam = tile.team
-
-      // Remove from team tracking
-      if (existingTeam === 'Self') {
-        this.selfTeamCharacters.delete(existingCharacterId)
-      } else if (existingTeam === 'Enemy') {
-        this.enemyTeamCharacters.delete(existingCharacterId)
-      }
+      this.removeCharacterFromTeam(tile.character, tile.team)
     }
 
     // Place the new character
-    tile.character = characterId
-    tile.team = team
-    tile.state = team === 'Self' ? State.OCCUPIED_SELF : State.OCCUPIED_ENEMY
-
-    // Add to team tracking
-    if (team === 'Self') {
-      this.selfTeamCharacters.add(characterId)
-    } else {
-      this.enemyTeamCharacters.add(characterId)
-    }
+    this.setCharacterOnTile(tile, characterId, team)
 
     return true
   }
@@ -206,17 +189,8 @@ export class Grid {
       const characterId = tile.character
       const team = tile.team
 
-      delete tile.character
-      delete tile.team
-
-      // Restore original tile state
-      tile.state = this.getOriginalTileState(hexOrId)
-
-      if (team === 'Self') {
-        this.selfTeamCharacters.delete(characterId)
-      } else if (team === 'Enemy') {
-        this.enemyTeamCharacters.delete(characterId)
-      }
+      this.removeCharacterFromTeam(characterId, team)
+      this.clearCharacterFromTile(tile, hexOrId)
     }
   }
 
@@ -249,14 +223,11 @@ export class Grid {
   clearAllCharacters(): void {
     for (const entry of this.storage.values()) {
       if (entry.character) {
-        delete entry.character
-        delete entry.team
-        // Restore original tile state
-        entry.state = this.getOriginalTileState(entry.hex.getId())
+        this.clearCharacterFromTile(entry, entry.hex.getId())
       }
     }
-    this.selfTeamCharacters.clear()
-    this.enemyTeamCharacters.clear()
+    this.teamCharacters.get('Self')?.clear()
+    this.teamCharacters.get('Enemy')?.clear()
   }
 
   /**
@@ -275,5 +246,25 @@ export class Grid {
       }
     }
     return count
+  }
+
+  // Consolidated character operation methods
+  private removeCharacterFromTeam(characterId: string, team: 'Self' | 'Enemy' | undefined): void {
+    if (team) {
+      this.teamCharacters.get(team)?.delete(characterId)
+    }
+  }
+
+  private setCharacterOnTile(tile: GridTile, characterId: string, team: 'Self' | 'Enemy'): void {
+    tile.character = characterId
+    tile.team = team
+    tile.state = team === 'Self' ? State.OCCUPIED_SELF : State.OCCUPIED_ENEMY
+    this.teamCharacters.get(team)?.add(characterId)
+  }
+
+  private clearCharacterFromTile(tile: GridTile, hexOrId: Hex | number): void {
+    delete tile.character
+    delete tile.team
+    tile.state = this.getOriginalTileState(hexOrId)
   }
 }

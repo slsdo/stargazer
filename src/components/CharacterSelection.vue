@@ -17,6 +17,16 @@ const gridStore = useGridStore()
 const setTeam = (team: 'Self' | 'Enemy') => {
   selectedTeam.value = team
 }
+
+const isCharacterPlaced = (characterId: string): boolean => {
+  // Get all tiles with characters
+  const tilesWithCharacters = gridStore.getTilesWithCharacters()
+
+  // Check if this character is placed for the current selected team
+  return tilesWithCharacters.some(
+    (tile) => tile.character === characterId && tile.team === selectedTeam.value,
+  )
+}
 </script>
 
 <template>
@@ -40,6 +50,7 @@ const setTeam = (team: 'Self' | 'Enemy') => {
         :characterImage="characterImages[character.id]"
         :icons="icons"
         :isDraggable="isDraggable"
+        :isPlaced="isCharacterPlaced(character.id)"
       />
     </div>
   </div>

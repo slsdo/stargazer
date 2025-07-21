@@ -7,12 +7,13 @@ defineProps<{
   characterImage: string
   icons: { [key: string]: string }
   isDraggable?: boolean
+  isPlaced?: boolean
 }>()
 </script>
 
 <template>
   <div class="profile">
-    <Character :character="character" :characterImage="characterImage" :isDraggable="isDraggable" />
+    <Character :character="character" :characterImage="characterImage" :isDraggable="isDraggable" :isPlaced="isPlaced" />
     <div class="info">
       <img :src="icons[`faction-${character.faction}`]" :alt="character.faction" class="icon" />
       <img :src="icons[`class-${character.class}`]" :alt="character.class" class="icon" />

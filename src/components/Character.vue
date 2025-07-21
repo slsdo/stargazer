@@ -6,6 +6,7 @@ const props = defineProps<{
   character: CharacterType
   characterImage: string
   isDraggable?: boolean
+  isPlaced?: boolean
 }>()
 
 const { startDrag, endDrag } = useDragDrop()
@@ -24,7 +25,7 @@ const handleDragEnd = (event: DragEvent) => {
 <template>
   <div
     class="character"
-    :class="[`level-${character.level}`, { draggable: isDraggable }]"
+    :class="[`level-${character.level}`, { draggable: isDraggable, placed: isPlaced }]"
     :draggable="isDraggable"
     @dragstart="handleDragStart"
     @dragend="handleDragEnd"
@@ -90,5 +91,9 @@ const handleDragEnd = (event: DragEvent) => {
 
 .draggable:active {
   cursor: grabbing;
+}
+
+.character.placed {
+  box-shadow: 0 0 0 5px #4caf50;
 }
 </style>
