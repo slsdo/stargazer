@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { Grid, type GridTile } from '../lib/grid'
 import { Layout, POINTY } from '../lib/layout'
+import { State } from '../lib/constants'
 import type { Hex } from '../lib/hex'
 
 export const useGridStore = defineStore('grid', () => {
@@ -165,6 +166,24 @@ export const useGridStore = defineStore('grid', () => {
     return placeCharacterOnHex(selectedTile.hex.getId(), characterId, team)
   }
 
+  const handleHexClick = (hex: Hex): boolean => {
+    const hexId = hex.getId()
+    console.log('Store: hex clicked:', hexId)
+    
+    // Get the tile to check its state
+    const tile = getTile(hex)
+    
+    // Check if the hex is occupied by a character
+    if (tile.state === State.OCCUPIED_SELF || tile.state === State.OCCUPIED_ENEMY) {
+      console.log('Store: hex', hexId, 'is occupied - removing character')
+      removeCharacterFromHex(hexId)
+      return true // Character was removed
+    } else {
+      console.log('Store: hex', hexId, 'is not occupied, state:', tile.state)
+      return false // No action taken
+    }
+  }
+
   return {
     // Core grid data (readonly)
     grid: readonly(grid),
@@ -201,5 +220,6 @@ export const useGridStore = defineStore('grid', () => {
     getAllTiles,
     getTilesWithCharacters,
     autoPlaceCharacter,
+    handleHexClick,
   }
 })

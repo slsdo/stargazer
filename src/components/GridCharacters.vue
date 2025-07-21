@@ -20,12 +20,12 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  outerRadius: 31,
-  innerRadius: 28,
+  outerRadius: 30,
+  innerRadius: 30,
   borderWidth: 3,
-  innerBorderWidth: 2,
-  backgroundColor: '#fff',
-  borderColor: '#555',
+  innerBorderWidth: 3,
+  backgroundColor: '#a78fc5',
+  borderColor: '#777',
   overlayColor: '#fff',
   overlayOpacity: 0,
   showOverlay: true,
@@ -96,7 +96,7 @@ const hexExists = (hexId: number): boolean => {
         :r="innerRadius"
         :fill="overlayColor"
         :fill-opacity="overlayOpacity"
-        style="pointer-events: none;"
+        style="pointer-events: none"
       />
     </g>
   </g>

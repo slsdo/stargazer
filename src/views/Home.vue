@@ -22,7 +22,7 @@ const setActiveTab = (tab: string) => {
 
 // Event handlers
 const handleHexClick = (hex: Hex) => {
-  console.log('Hex clicked:', hex.getId())
+  gridStore.handleHexClick(hex)
 }
 
 const handleCharacterClick = (hexId: number, characterId: string) => {
