@@ -17,11 +17,11 @@ const emit = defineEmits<{
 
 <template>
   <div class="profile">
-    <Character 
-      :character="character" 
-      :characterImage="characterImage" 
-      :isDraggable="isDraggable" 
-      :isPlaced="isPlaced" 
+    <Character
+      :character="character"
+      :characterImage="characterImage"
+      :isDraggable="isDraggable"
+      :isPlaced="isPlaced"
       @character-click="$emit('characterClick', $event)"
     />
     <div class="info">
@@ -57,11 +57,6 @@ const emit = defineEmits<{
 @media (max-width: 480px) {
   .characters {
     gap: 0.5rem;
-  }
-
-  .profile img {
-    width: 70px;
-    height: 70px;
   }
 }
 </style>

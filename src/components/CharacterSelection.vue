@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Profile from './Profile.vue'
+import SelectionProfile from './SelectionProfile.vue'
 import type { CharacterType } from '../types/character'
 import { ref } from 'vue'
 import { useGridStore } from '../stores/grid'
@@ -77,7 +77,7 @@ const removeCharacterFromGrid = (characterId: string) => {
 
     <!-- Characters Grid -->
     <div class="characters">
-      <Profile
+      <SelectionProfile
         v-for="character in characters"
         :key="character.id"
         :character="{ ...character, team: selectedTeam }"

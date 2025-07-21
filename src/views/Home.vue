@@ -6,7 +6,8 @@ import DebugGrid from '../components/DebugGrid.vue'
 import type { CharacterType } from '../types/character'
 import type { Hex } from '../lib/hex'
 import { useGridStore } from '../stores/grid'
-import { ref } from 'vue'
+import { getMapNames } from '../lib/maps'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { loadAssetsDict } from '../utils/assetLoader'
 
 // Use Pinia grid store
@@ -16,9 +17,44 @@ const gridStore = useGridStore()
 const activeTab = ref('characters')
 const debugGrid = ref(true)
 
+// Map management
+const availableMaps = getMapNames()
+const selectedMap = ref('arena1')
+const showMapDropdown = ref(false)
+
 const setActiveTab = (tab: string) => {
   activeTab.value = tab
+  showMapDropdown.value = false // Close dropdown when switching tabs
 }
+
+const toggleMapDropdown = () => {
+  showMapDropdown.value = !showMapDropdown.value
+}
+
+const handleMapChange = (mapKey: string) => {
+  console.log('Switching to map:', mapKey)
+  const success = gridStore.switchMap(mapKey)
+  if (success) {
+    selectedMap.value = mapKey
+  }
+  showMapDropdown.value = false // Close dropdown after selection
+}
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event: MouseEvent) => {
+  const dropdown = document.querySelector('.tab-dropdown')
+  if (dropdown && !dropdown.contains(event.target as Node)) {
+    showMapDropdown.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 // Event handlers
 const handleHexClick = (hex: Hex) => {
@@ -98,6 +134,21 @@ const icons = loadAssetsDict(
           >
             Characters
           </button>
+          <div class="tab-dropdown">
+            <button @click="toggleMapDropdown" class="tab-btn dropdown-btn">
+              Map: {{ availableMaps.find((m) => m.key === selectedMap)?.name || 'Arena 1' }} ▼
+            </button>
+            <div v-if="showMapDropdown" class="dropdown-content">
+              <button
+                v-for="map in availableMaps"
+                :key="map.key"
+                @click="handleMapChange(map.key)"
+                :class="['dropdown-item', { selected: selectedMap === map.key }]"
+              >
+                {{ map.name }}
+              </button>
+            </div>
+          </div>
           <button
             @click="setActiveTab('debug')"
             :class="['tab-btn', { active: activeTab === 'debug' }]"
@@ -167,7 +218,7 @@ main {
   background: #e8e4d9;
   border-radius: 8px 8px 0 0;
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
   border: 2px solid #d4cfc0;
   border-bottom: none;
 }
@@ -219,5 +270,59 @@ main {
 .tab-panel {
   padding: 2rem;
   color: #484848;
+}
+
+.tab-dropdown {
+  position: relative;
+  display: inline-block;
+  overflow: visible;
+}
+
+.dropdown-btn {
+  border-right: 1px solid #d4cfc0;
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #f8f5ec;
+  border: 2px solid #d4cfc0;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  z-index: 9999;
+  max-height: 400px;
+  overflow-y: auto;
+  min-width: 120px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  width: 100%;
+  background: transparent;
+  color: #666;
+  border: none;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-align: center;
+  border-bottom: 1px solid #e8e4d9;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: #f0ebe0;
+  color: #36958e;
+}
+
+.dropdown-item.selected {
+  background: #36958e;
+  color: white;
 }
 </style>

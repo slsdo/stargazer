@@ -93,10 +93,10 @@ const handleMouseUp = (event: MouseEvent) => {
 }
 
 .portrait {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   object-fit: cover;
-  border: 2px solid #484848;
+  border: 2px solid #fff;
   border-radius: 50%;
   z-index: 1;
 }

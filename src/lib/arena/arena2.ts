@@ -1,7 +1,7 @@
 import { State } from '../constants'
 
 export const ARENA_2 = {
-  name: 'Arena 2',
+  name: 'Arena II',
   grid: [
     { type: State.AVAILABLE_SELF, hex: [1, 2, 3, 4, 5, 6, 7, 8, 10] },
     {
