@@ -1,11 +1,14 @@
 import { State } from '../constants'
 
-export const ARENA_1 = [
-  { type: State.AVAILABLE_SELF, hex: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 16] },
-  {
-    type: State.AVAILABLE_ENEMY,
-    hex: [30, 33, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
-  },
-  { type: State.BLOCKED, hex: [] },
-  { type: State.BLOCKED_BREAKABLE, hex: [] },
-]
+export const ARENA_1 = {
+  name: 'Arena 1',
+  grid: [
+    { type: State.AVAILABLE_SELF, hex: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 16] },
+    {
+      type: State.AVAILABLE_ENEMY,
+      hex: [30, 33, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
+    },
+    { type: State.BLOCKED, hex: [] },
+    { type: State.BLOCKED_BREAKABLE, hex: [] },
+  ],
+}

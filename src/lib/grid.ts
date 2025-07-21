@@ -42,7 +42,7 @@ export class Grid {
     iniGrid(layout).forEach((hex) => {
       this.storage.set(Grid.key(hex), { hex, state: State.DEFAULT })
     })
-    map.forEach((mapState) => {
+    map.grid.forEach((mapState) => {
       mapState.hex.forEach((hexId) => {
         const hex = this.getHexById(hexId)
         this.setState(hex, mapState.type)
