@@ -2,17 +2,20 @@
 import { useGridStore } from '../stores/grid'
 import type { Hex } from '../lib/hex'
 import type { Layout } from '../lib/layout'
+import type { CharacterType } from '../types/character'
 
 interface Props {
   characterPlacements: Map<number, string>
   hexes: Hex[]
   layout: Layout
   characterImages: { [key: string]: string }
+  characters: CharacterType[]
   outerRadius?: number
   innerRadius?: number
   borderWidth?: number
   innerBorderWidth?: number
   backgroundColor?: string
+  backgroundOpacity?: number
   borderColor?: string
   overlayColor?: string
   overlayOpacity?: number
@@ -24,7 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
   innerRadius: 30,
   borderWidth: 3,
   innerBorderWidth: 3,
-  backgroundColor: '#a78fc5',
+  backgroundColor: '#fff',
+  backgroundOpacity: 0.7,
   borderColor: '#777',
   overlayColor: '#fff',
   overlayOpacity: 0,
@@ -46,6 +50,16 @@ const hexExists = (hexId: number): boolean => {
     return false
   }
 }
+
+const getCharacterLevel = (characterId: string): 's' | 'a' => {
+  const character = props.characters.find((c) => c.id === characterId)
+  return (character?.level as 's' | 'a') || 'a'
+}
+
+const getBackgroundColor = (characterId: string): string => {
+  const level = getCharacterLevel(characterId)
+  return level === 's' ? '#facd7e' : '#a78fc5'
+}
 </script>
 
 <template>
@@ -56,8 +70,9 @@ const hexExists = (hexId: number): boolean => {
         :cx="gridStore.getHexPosition(hexId).x"
         :cy="gridStore.getHexPosition(hexId).y"
         :r="outerRadius"
-        :fill="backgroundColor"
-        :stroke="backgroundColor"
+        :fill="getBackgroundColor(characterId)"
+        :fill-opacity="backgroundOpacity"
+        :stroke="getBackgroundColor(characterId)"
         :stroke-width="borderWidth"
       />
       <!-- Inner border circle -->

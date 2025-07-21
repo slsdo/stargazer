@@ -6,6 +6,6 @@ export const ARENA_1 = [
     type: State.AVAILABLE_ENEMY,
     hex: [30, 33, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
   },
-  { type: State.BLOCKED, hex: [21] },
-  { type: State.BLOCKED_BREAKABLE, hex: [11] },
+  { type: State.BLOCKED, hex: [] },
+  { type: State.BLOCKED_BREAKABLE, hex: [] },
 ]

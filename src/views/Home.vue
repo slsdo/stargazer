@@ -80,6 +80,7 @@ const icons = loadAssetsDict(
               :hexes="gridStore.hexes"
               :layout="gridStore.layout"
               :character-images="characterImages"
+              :characters="characters"
               @character-click="handleCharacterClick"
             />
 

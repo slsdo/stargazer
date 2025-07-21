@@ -29,7 +29,7 @@ const STATE_FORMATS: Record<State, StateFormat> = {
   [State.OCCUPIED_SELF]: {
     name: 'Occupied (Self)',
     cssClass: 'state-occupied-self',
-    fillColor: '#e8f5e8',
+    fillColor: '#fff',
     strokeColor: '#36958e',
   },
   [State.OCCUPIED_ENEMY]: {
