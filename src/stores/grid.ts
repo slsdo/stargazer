@@ -125,10 +125,11 @@ export const useGridStore = defineStore('grid', () => {
     startHexId: number,
     endHexId: number,
     characterRadius: number = 30,
+    invertCurve: boolean = false,
   ): string => {
     const startHex = grid.value.getHexById(startHexId)
     const endHex = grid.value.getHexById(endHexId)
-    return layout.getArrowPath(startHex, endHex, characterRadius)
+    return layout.getArrowPath(startHex, endHex, characterRadius, invertCurve)
   }
 
   const getHexById = (id: number): Hex => {

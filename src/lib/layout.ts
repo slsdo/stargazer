@@ -108,7 +108,7 @@ export class Layout {
   }
 
   // Calculate curved arrow path between two hexes
-  getArrowPath(startHex: Hex, endHex: Hex, characterRadius: number = 0): string {
+  getArrowPath(startHex: Hex, endHex: Hex, characterRadius: number = 0, invertCurve: boolean = false): string {
     const startCenter = this.hexToPixel(startHex)
     const endCenter = this.hexToPixel(endHex)
 
@@ -149,7 +149,12 @@ export class Layout {
     const curvature = baseCurvature + (baseCurvature * curveFactor) // Scale curve by position
     
     // Curve direction: negative for left side, positive for right side
-    const curveDirection = relativeX < 0 ? -1 : 1
+    let curveDirection = relativeX < 0 ? -1 : 1
+    
+    // Invert curve direction if requested (for enemy-to-ally arrows)
+    if (invertCurve) {
+      curveDirection *= -1
+    }
     
     // Perpendicular offset for control point
     const controlX = midX - (dirY) * curvature * curveDirection

@@ -9,6 +9,7 @@ interface Props {
   strokeWidth?: number
   arrowheadSize?: number
   characterRadius?: number
+  invertCurve?: boolean
   id?: string
 }
 
@@ -17,6 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
   strokeWidth: 3,
   arrowheadSize: 10,
   characterRadius: 30,
+  invertCurve: false,
   id: '',
 })
 
@@ -31,7 +33,7 @@ const markerId = computed(() =>
 )
 
 const pathData = computed(() => {
-  return gridStore.getArrowPath(props.startHexId, props.endHexId, props.characterRadius)
+  return gridStore.getArrowPath(props.startHexId, props.endHexId, props.characterRadius, props.invertCurve)
 })
 </script>
 

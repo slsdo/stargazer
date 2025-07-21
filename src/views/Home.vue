@@ -122,6 +122,7 @@ const icons = loadAssetsDict(
                 :color="'#dc3545'"
                 :stroke-width="3"
                 :arrowhead-size="6"
+                :invert-curve="true"
                 @arrow-click="handleArrowClick"
               />
             </g>
