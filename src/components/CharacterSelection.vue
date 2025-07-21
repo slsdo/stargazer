@@ -23,16 +23,10 @@ const setTeam = (team: 'Self' | 'Enemy') => {
   <div class="character-selection">
     <!-- Team Toggle with Availability -->
     <div class="team-toggle">
-      <button
-        @click="setTeam('Self')"
-        :class="['team-btn', { active: selectedTeam === 'Self' }]"
-      >
+      <button @click="setTeam('Self')" :class="['team-btn', { active: selectedTeam === 'Self' }]">
         Self ({{ gridStore.availableSelf }}/5)
       </button>
-      <button
-        @click="setTeam('Enemy')"
-        :class="['team-btn', { active: selectedTeam === 'Enemy' }]"
-      >
+      <button @click="setTeam('Enemy')" :class="['team-btn', { active: selectedTeam === 'Enemy' }]">
         Enemy ({{ gridStore.availableEnemy }}/5)
       </button>
     </div>

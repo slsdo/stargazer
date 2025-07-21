@@ -1,0 +1,64 @@
+import { State } from '../lib/constants'
+
+interface StateFormat {
+  name: string
+  cssClass: string
+  fillColor: string
+  strokeColor: string
+}
+
+const STATE_FORMATS: Record<State, StateFormat> = {
+  [State.DEFAULT]: {
+    name: 'Default',
+    cssClass: 'state-default',
+    fillColor: '#f0f0f0',
+    strokeColor: '#ccc',
+  },
+  [State.AVAILABLE_SELF]: {
+    name: 'Available (Self)',
+    cssClass: 'state-available-self',
+    fillColor: '#fff',
+    strokeColor: '#4CAF50',
+  },
+  [State.AVAILABLE_ENEMY]: {
+    name: 'Available (Enemy)',
+    cssClass: 'state-available-enemy',
+    fillColor: '#ffe8e8',
+    strokeColor: '#f44336',
+  },
+  [State.OCCUPIED_SELF]: {
+    name: 'Occupied (Self)',
+    cssClass: 'state-occupied-self',
+    fillColor: '#e8f5e8',
+    strokeColor: '#4CAF50',
+  },
+  [State.OCCUPIED_ENEMY]: {
+    name: 'Occupied (Enemy)',
+    cssClass: 'state-occupied-enemy',
+    fillColor: '#ffe8e8',
+    strokeColor: '#f44336',
+  },
+  [State.BLOCKED]: {
+    name: 'Blocked',
+    cssClass: 'state-blocked',
+    fillColor: '#6d6b67',
+    strokeColor: '#000',
+  },
+  [State.BLOCKED_BREAKABLE]: {
+    name: 'Blocked (Breakable)',
+    cssClass: 'state-blocked-breakable',
+    fillColor: '#d9d5cd',
+    strokeColor: '#000',
+  },
+}
+
+export const getStateFormat = (state: State): StateFormat =>
+  STATE_FORMATS[state] || STATE_FORMATS[State.DEFAULT]
+
+export const getStateName = (state: State): string => getStateFormat(state).name
+
+export const getStateClass = (state: State): string => getStateFormat(state).cssClass
+
+export const getHexFillColor = (state: State): string => getStateFormat(state).fillColor
+
+export const getHexStrokeColor = (state: State): string => getStateFormat(state).strokeColor

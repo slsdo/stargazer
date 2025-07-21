@@ -22,9 +22,9 @@ const handleDragEnd = (event: DragEvent) => {
 </script>
 
 <template>
-  <div 
-    class="character" 
-    :class="[`level-${character.level}`, { 'draggable': isDraggable }]"
+  <div
+    class="character"
+    :class="[`level-${character.level}`, { draggable: isDraggable }]"
     :draggable="isDraggable"
     @dragstart="handleDragStart"
     @dragend="handleDragEnd"
@@ -79,7 +79,9 @@ const handleDragEnd = (event: DragEvent) => {
 
 .draggable {
   cursor: grab;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .draggable:hover {

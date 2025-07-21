@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useGridStore } from '../stores/grid'
-import { State } from '../lib/gridState'
+import { getStateName, getStateClass } from '../utils/stateFormatting'
+import { extractFileName } from '../utils/assetLoader'
 
 // Access Pinia grid store
 const gridStore = useGridStore()
@@ -9,51 +10,7 @@ const gridStore = useGridStore()
 
 // Helper function to extract image name from path
 const getImageName = (imageSrc: string): string => {
-  return imageSrc.split('/').pop()?.replace('.png', '') || 'Unknown'
-}
-
-// Helper function to format state names
-const getStateName = (state: State): string => {
-  switch (state) {
-    case State.DEFAULT:
-      return 'Default'
-    case State.AVAILABLE_SELF:
-      return 'Available (Self)'
-    case State.AVAILABLE_ENEMY:
-      return 'Available (Enemy)'
-    case State.OCCUPIED_SELF:
-      return 'Occupied (Self)'
-    case State.OCCUPIED_ENEMY:
-      return 'Occupied (Enemy)'
-    case State.BLOCKED:
-      return 'Blocked'
-    case State.BLOCKED_BREAKABLE:
-      return 'Blocked (Breakable)'
-    default:
-      return 'Unknown'
-  }
-}
-
-// Helper function to get state CSS class
-const getStateClass = (state: State): string => {
-  switch (state) {
-    case State.DEFAULT:
-      return 'state-default'
-    case State.AVAILABLE_SELF:
-      return 'state-available-self'
-    case State.AVAILABLE_ENEMY:
-      return 'state-available-enemy'
-    case State.OCCUPIED_SELF:
-      return 'state-occupied-self'
-    case State.OCCUPIED_ENEMY:
-      return 'state-occupied-enemy'
-    case State.BLOCKED:
-      return 'state-blocked'
-    case State.BLOCKED_BREAKABLE:
-      return 'state-blocked-breakable'
-    default:
-      return 'state-unknown'
-  }
+  return extractFileName(imageSrc)
 }
 </script>
 

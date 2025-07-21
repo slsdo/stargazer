@@ -34,16 +34,20 @@ export const useGridStore = defineStore('grid', () => {
     characterUpdateTrigger.value // Reactivity trigger
     return grid.getAvailableSelf()
   })
-  
+
   const availableEnemy = computed(() => {
     characterUpdateTrigger.value // Reactivity trigger
     return grid.getAvailableEnemy()
   })
 
   // Actions that use Grid instance
-  const placeCharacterOnHex = (hexId: number, characterId: string, team: 'Self' | 'Enemy' = 'Self'): boolean => {
+  const placeCharacterOnHex = (
+    hexId: number,
+    characterId: string,
+    team: 'Self' | 'Enemy' = 'Self',
+  ): boolean => {
     console.log('Store: placing character on hex', hexId, characterId, 'team:', team)
-    const success = grid.placeCharacterById(hexId, characterId, team)
+    const success = grid.placeCharacter(hexId, characterId, team)
     if (success) {
       characterUpdateTrigger.value++ // Trigger reactivity
       console.log('Store: character placements now:', grid.getCharacterPlacements())
@@ -54,7 +58,7 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   const removeCharacterFromHex = (hexId: number) => {
-    grid.removeCharacterById(hexId)
+    grid.removeCharacter(hexId)
     characterUpdateTrigger.value++ // Trigger reactivity
   }
 
@@ -64,11 +68,11 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   const getCharacterOnHex = (hexId: number): string | undefined => {
-    return grid.getCharacterById(hexId)
+    return grid.getCharacter(hexId)
   }
 
   const isHexOccupied = (hexId: number): boolean => {
-    return grid.hasCharacterById(hexId)
+    return grid.hasCharacter(hexId)
   }
 
   const canPlaceCharacter = (characterId: string, team: 'Self' | 'Enemy'): boolean => {
@@ -80,7 +84,7 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   const getCharacterTeam = (hexId: number): 'Self' | 'Enemy' | undefined => {
-    return grid.getCharacterTeamById(hexId)
+    return grid.getCharacterTeam(hexId)
   }
 
   const moveCharacter = (fromHexId: number, toHexId: number, characterId: string): boolean => {
@@ -90,11 +94,11 @@ export const useGridStore = defineStore('grid', () => {
     }
 
     // Get the team from the source hex
-    const team = grid.getCharacterTeamById(fromHexId) || 'Self'
-    
+    const team = grid.getCharacterTeam(fromHexId) || 'Self'
+
     // Move character from source to target hex
-    grid.removeCharacterById(fromHexId)
-    const success = grid.placeCharacterById(toHexId, characterId, team)
+    grid.removeCharacter(fromHexId)
+    const success = grid.placeCharacter(toHexId, characterId, team)
     characterUpdateTrigger.value++ // Trigger reactivity
     return success
   }
@@ -120,12 +124,8 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   // GridTile-specific methods
-  const getTile = (hex: Hex): GridTile => {
-    return grid.getTile(hex)
-  }
-
-  const getTileById = (hexId: number): GridTile => {
-    return grid.getTileById(hexId)
+  const getTile = (hexOrId: Hex | number): GridTile => {
+    return grid.getTile(hexOrId)
   }
 
   const getAllTiles = (): GridTile[] => {
@@ -170,7 +170,6 @@ export const useGridStore = defineStore('grid', () => {
 
     // GridTile methods
     getTile,
-    getTileById,
     getAllTiles,
     getTilesWithCharacters,
   }

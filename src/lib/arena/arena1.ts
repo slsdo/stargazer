@@ -1,4 +1,4 @@
-import { State } from '../gridState'
+import { State } from '../constants'
 
 export const ARENA_1 = [
   { type: State.AVAILABLE_SELF, hex: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 16] },

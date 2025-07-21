@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { useGridStore } from '../../stores/grid'
-import type { Hex } from '../../lib/hex'
-import type { Layout } from '../../lib/layout'
-import { useDragDrop } from '../../composables/useDragDrop'
+import { useGridStore } from '../stores/grid'
+import type { Hex } from '../lib/hex'
+import type { Layout } from '../lib/layout'
 
 interface Props {
   characterPlacements: Map<number, string>
@@ -37,10 +36,7 @@ const gridStore = useGridStore()
 
 const emit = defineEmits<{
   characterClick: [hexId: number, characterId: string]
-  characterMoved: [fromHexId: number, toHexId: number, characterId: string]
 }>()
-
-const { startDrag, endDrag } = useDragDrop()
 
 const hexExists = (hexId: number): boolean => {
   try {
@@ -53,7 +49,7 @@ const hexExists = (hexId: number): boolean => {
 </script>
 
 <template>
-  <g v-for="[hexId, characterId] in characterPlacements" :key="hexId" class="character-placement">
+  <g v-for="[hexId, characterId] in characterPlacements" :key="hexId" class="grid-characters">
     <g v-if="hexExists(hexId)">
       <!-- Background circle -->
       <circle
@@ -75,8 +71,12 @@ const hexExists = (hexId: number): boolean => {
       />
       <!-- Character image (clipped to circle) -->
       <defs>
-        <clipPath :id="`clip-character-${hexId}`">
-          <circle :cx="gridStore.getHexPosition(hexId).x" :cy="gridStore.getHexPosition(hexId).y" :r="innerRadius" />
+        <clipPath :id="`clip-grid-character-${hexId}`">
+          <circle
+            :cx="gridStore.getHexPosition(hexId).x"
+            :cy="gridStore.getHexPosition(hexId).y"
+            :r="innerRadius"
+          />
         </clipPath>
       </defs>
       <!-- Character image (clipped to circle) -->
@@ -86,7 +86,7 @@ const hexExists = (hexId: number): boolean => {
         :y="gridStore.getHexPosition(hexId).y - innerRadius"
         :width="innerRadius * 2"
         :height="innerRadius * 2"
-        :clip-path="`url(#clip-character-${hexId})`"
+        :clip-path="`url(#clip-grid-character-${hexId})`"
         @click="$emit('characterClick', hexId, characterId)"
       />
       <!-- Semi-transparent overlay -->
@@ -103,12 +103,12 @@ const hexExists = (hexId: number): boolean => {
 </template>
 
 <style scoped>
-.character-placement image {
+.grid-characters image {
   cursor: pointer;
   pointer-events: all;
 }
 
-.character-placement image:hover {
+.grid-characters image:hover {
   opacity: 0.8;
 }
 </style>

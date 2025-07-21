@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import CharacterSelection from '../components/CharacterSelection.vue'
-import HexGrid from '../components/grid/HexGrid.vue'
-import CharacterPlacement from '../components/grid/CharacterPlacement.vue'
+import GridTiles from '../components/GridTiles.vue'
+import GridCharacters from '../components/GridCharacters.vue'
 import DebugGrid from '../components/DebugGrid.vue'
 import type { CharacterType } from '../types/character'
 import type { Hex } from '../lib/hex'
 import { useGridStore } from '../stores/grid'
 import { ref } from 'vue'
+import { loadAssetsDict } from '../utils/assetLoader'
 
 // Use Pinia grid store
 const gridStore = useGridStore()
@@ -40,16 +41,18 @@ const characters = (
   ) as CharacterType[]
 ).sort((a, b) => a.faction.localeCompare(b.faction))
 
-const characterImages = Object.fromEntries(
-  Object.entries(
-    import.meta.glob('../assets/images/character/*.png', { eager: true, import: 'default' }),
-  ).map(([path, src]) => [(path.split('/').pop() ?? '').replace('.png', ''), src as string]),
+const characterImages = loadAssetsDict(
+  import.meta.glob('../assets/images/character/*.png', {
+    eager: true,
+    import: 'default',
+  }) as Record<string, string>,
 )
 
-const icons = Object.fromEntries(
-  Object.entries(
-    import.meta.glob('../assets/images/icons/*.png', { eager: true, import: 'default' }),
-  ).map(([path, src]) => [(path.split('/').pop() ?? '').replace('.png', ''), src as string]),
+const icons = loadAssetsDict(
+  import.meta.glob('../assets/images/icons/*.png', { eager: true, import: 'default' }) as Record<
+    string,
+    string
+  >,
 )
 </script>
 
@@ -58,7 +61,7 @@ const icons = Object.fromEntries(
     <div class="content">
       <div class="section">
         <div id="map">
-          <HexGrid
+          <GridTiles
             :hexes="gridStore.hexes"
             :layout="gridStore.layout"
             :width="600"
@@ -71,7 +74,7 @@ const icons = Object.fromEntries(
             @hex-click="handleHexClick"
           >
             <!-- Character placements -->
-            <CharacterPlacement
+            <GridCharacters
               :character-placements="gridStore.characterPlacements"
               :hexes="gridStore.hexes"
               :layout="gridStore.layout"
@@ -80,7 +83,7 @@ const icons = Object.fromEntries(
             />
 
             <!-- No default arrows - add them as needed -->
-          </HexGrid>
+          </GridTiles>
         </div>
       </div>
 

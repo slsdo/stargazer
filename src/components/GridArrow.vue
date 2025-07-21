@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useGridStore } from '../../stores/grid'
+import { useGridStore } from '../stores/grid'
 
 interface Props {
   startHexId: number
@@ -34,7 +34,7 @@ const pathData = computed(() => {
 </script>
 
 <template>
-  <g class="hex-arrow">
+  <g class="grid-arrow">
     <defs>
       <marker
         :id="markerId"
@@ -63,11 +63,11 @@ const pathData = computed(() => {
 </template>
 
 <style scoped>
-.hex-arrow path {
+.grid-arrow path {
   cursor: pointer;
 }
 
-.hex-arrow path:hover {
+.grid-arrow path:hover {
   stroke-opacity: 0.8;
 }
 </style>

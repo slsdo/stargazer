@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import type { Hex } from '../../lib/hex'
-import type { Layout } from '../../lib/layout'
-import { useDragDrop } from '../../composables/useDragDrop'
-import { useGridStore } from '../../stores/grid'
-import { State } from '../../lib/gridState'
-import { getHexFillColor } from '../../utils/hexDisplay'
+import type { Hex } from '../lib/hex'
+import type { Layout } from '../lib/layout'
+import { useDragDrop } from '../composables/useDragDrop'
+import { useGridStore } from '../stores/grid'
+import { State } from '../lib/constants'
+import { getHexFillColor } from '../utils/stateFormatting'
 
 interface Props {
   hexes: Hex[]
@@ -152,13 +152,13 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       // This is a new character placement from the character selection
       const team = character.team || 'Self'
       const hexId = hex.getId()
-      
+
       // Check if tile allows this team
       if (!gridStore.canPlaceCharacterOnTile(hexId, team)) {
         console.log(`Failed to place character - tile ${hexId} does not allow ${team} team`)
         return
       }
-      
+
       const success = gridStore.placeCharacterOnHex(hexId, characterId, team)
       if (!success) {
         console.log('Failed to place character - team restrictions or duplicate')
@@ -177,14 +177,14 @@ const getHexDropClass = (hex: Hex) => {
   const hexId = hex.getId()
   const isOccupied = gridStore.isHexOccupied(hexId)
   const isDragHover = dragHoveredHex.value === hexId
-  
+
   // Check if this tile can accept the currently dragged character's team
   let validDropZone = true
   if (isDragHover && draggedCharacter.value) {
     const team = draggedCharacter.value.team || 'Self'
     validDropZone = gridStore.canPlaceCharacterOnTile(hexId, team)
   }
-  
+
   return {
     'drop-target': true,
     occupied: isOccupied,
@@ -216,13 +216,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <svg :width="width" :height="height" class="hex-grid">
+  <svg :width="width" :height="height" class="grid-tiles">
     <defs>
       <slot name="defs" />
     </defs>
     <g :transform="gridTransform">
       <!-- Regular hexes (render first, behind elevated hexes) -->
-      <g v-for="hex in regularHexes" :key="hex.getId()" class="hex-tile">
+      <g v-for="hex in regularHexes" :key="hex.getId()" class="grid-tile">
         <polygon
           :points="
             layout
@@ -261,7 +261,7 @@ onUnmounted(() => {
       </g>
 
       <!-- Elevated hexes (render above regular hexes, but below character components) -->
-      <g v-for="hex in elevatedHexes" :key="`elevated-${hex.getId()}`" class="hex-tile">
+      <g v-for="hex in elevatedHexes" :key="`elevated-${hex.getId()}`" class="grid-tile">
         <polygon
           :points="
             layout
@@ -306,7 +306,7 @@ onUnmounted(() => {
       <g
         v-for="hex in hexes"
         :key="`event-${hex.getId()}`"
-        class="hex-event-layer"
+        class="grid-event-layer"
         :class="getHexDropClass(hex)"
       >
         <polygon
@@ -332,21 +332,21 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.hex-grid {
+.grid-tiles {
   max-width: 100%;
   height: auto;
 }
 
-.hex-tile {
+.grid-tile {
   cursor: pointer;
 }
 
-.hex-event-layer {
+.grid-event-layer {
   cursor: pointer;
   pointer-events: all;
 }
 
-.hex-event-layer polygon {
+.grid-event-layer polygon {
   transition:
     fill 0.2s ease,
     stroke 0.2s ease,
@@ -354,20 +354,20 @@ onUnmounted(() => {
 }
 
 /* Occupied tiles - red border on event layer */
-.hex-event-layer.drop-target.occupied polygon {
+.grid-event-layer.drop-target.occupied polygon {
   stroke: #f44336;
   stroke-width: 3;
 }
 
 /* Drag hover states - highest priority with !important */
-.hex-event-layer.drop-target.drag-hover:not(.occupied):not(.invalid-drop) polygon {
+.grid-event-layer.drop-target.drag-hover:not(.occupied):not(.invalid-drop) polygon {
   fill: rgba(232, 245, 232, 0.3) !important;
   stroke: #4caf50 !important;
   stroke-width: 3 !important;
   filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.4));
 }
 
-.hex-event-layer.drop-target.drag-hover.occupied:not(.invalid-drop) polygon {
+.grid-event-layer.drop-target.drag-hover.occupied:not(.invalid-drop) polygon {
   fill: rgba(255, 232, 232, 0.3) !important;
   stroke: #ff9800 !important;
   stroke-width: 3 !important;
@@ -375,7 +375,7 @@ onUnmounted(() => {
 }
 
 /* Invalid drop zone styling */
-.hex-event-layer.drop-target.drag-hover.invalid-drop polygon {
+.grid-event-layer.drop-target.drag-hover.invalid-drop polygon {
   fill: rgba(255, 193, 193, 0.3) !important;
   stroke: #f44336 !important;
   stroke-width: 3 !important;
@@ -383,14 +383,14 @@ onUnmounted(() => {
 }
 
 /* Regular hover (when not dragging) */
-.hex-event-layer.drop-target:not(.occupied):not(.drag-hover).hover polygon {
+.grid-event-layer.drop-target:not(.occupied):not(.drag-hover).hover polygon {
   fill: rgba(240, 248, 240, 0.3);
   stroke: #4caf50;
   stroke-width: 3;
 }
 
-/* Visual hex tiles remain clean without interaction styling */
-.hex-tile.hover polygon {
+/* Visual grid tiles remain clean without interaction styling */
+.grid-tile.hover polygon {
   fill-opacity: 0.8;
 }
 </style>
