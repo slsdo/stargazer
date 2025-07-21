@@ -25,7 +25,7 @@ import DragPreview from './components/DragPreview.vue'
 header {
   background-color: #282c34;
   border-bottom: 3px solid #f7d87c;
-  padding: 1rem 0;
+  padding: 0.2rem 0 0.5rem;
 }
 
 nav {
@@ -38,7 +38,7 @@ nav {
 }
 
 .logo {
-  height: 50px;
+  height: 70px;
 }
 
 .menu {
@@ -50,12 +50,16 @@ nav {
 .menu a {
   color: #ddd;
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
 .menu a:hover {
   color: #36958e;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 480px) {

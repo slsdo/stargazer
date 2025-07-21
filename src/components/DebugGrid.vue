@@ -39,6 +39,16 @@ const getImageName = (imageSrc: string): string => {
               <span class="state-label" :class="getStateClass(tile.state)">
                 {{ getStateName(tile.state) }}
               </span>
+              <!-- Show closest enemy info for Ally characters -->
+              <span v-if="tile.team === 'Ally' && gridStore.closestEnemyMap.has(tile.hex.getId())" class="closest-enemy">
+                → Enemy at Hex {{ gridStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} 
+                (distance: {{ gridStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
+              </span>
+              <!-- Show closest ally info for Enemy characters -->
+              <span v-if="tile.team === 'Enemy' && gridStore.closestAllyMap.has(tile.hex.getId())" class="closest-ally">
+                → Ally at Hex {{ gridStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} 
+                (distance: {{ gridStore.closestAllyMap.get(tile.hex.getId())?.distance }})
+              </span>
             </div>
           </div>
           <button @click="gridStore.removeCharacterFromHex(tile.hex.getId())" class="remove-btn">
@@ -182,6 +192,8 @@ const getImageName = (imageSrc: string): string => {
 .tile-state {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .state-label {
@@ -199,7 +211,7 @@ const getImageName = (imageSrc: string): string => {
   color: #495057;
 }
 
-.state-available-self {
+.state-available-ally {
   background: #d4edda;
   color: #155724;
 }
@@ -209,7 +221,7 @@ const getImageName = (imageSrc: string): string => {
   color: #856404;
 }
 
-.state-occupied-self {
+.state-occupied-ally {
   background: #cce7ff;
   color: #004085;
 }
@@ -232,6 +244,18 @@ const getImageName = (imageSrc: string): string => {
 .state-unknown {
   background: #f8f9fa;
   color: #6c757d;
+}
+
+.closest-enemy {
+  font-size: 0.75rem;
+  color: #dc3545;
+  font-style: italic;
+}
+
+.closest-ally {
+  font-size: 0.75rem;
+  color: #36958e;
+  font-style: italic;
 }
 
 .remove-btn {

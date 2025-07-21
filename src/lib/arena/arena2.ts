@@ -3,7 +3,7 @@ import { State } from '../constants'
 export const ARENA_2 = {
   name: 'Arena II',
   grid: [
-    { type: State.AVAILABLE_SELF, hex: [1, 2, 3, 4, 5, 6, 7, 8, 10] },
+    { type: State.AVAILABLE_ALLY, hex: [1, 2, 3, 4, 5, 6, 7, 8, 10] },
     {
       type: State.AVAILABLE_ENEMY,
       hex: [33, 36, 38, 39, 40, 41, 42, 43, 44, 45],

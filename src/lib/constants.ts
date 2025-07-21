@@ -1,9 +1,9 @@
 // Grid tile states
 export enum State {
   DEFAULT = 0,
-  AVAILABLE_SELF = 1, // Available for placement for self
+  AVAILABLE_ALLY = 1, // Available for placement for ally
   AVAILABLE_ENEMY = 2, // Available for placement for enemy
-  OCCUPIED_SELF = 3, // Occupied by self unit
+  OCCUPIED_ALLY = 3, // Occupied by ally unit
   OCCUPIED_ENEMY = 4, // Occupied by enemy unit
   BLOCKED = 5, // Blocked by obstacle
   BLOCKED_BREAKABLE = 6, // Blocked by breakable obstacle
@@ -15,7 +15,7 @@ export interface GridPreset {
   qOffset: number[]
 }
 
-export const DEFAULT_GRID: GridPreset = {
+export const FULL_GRID: GridPreset = {
   hex: [
     [43, 45],
     [35, 38, 40, 42, 44],
@@ -30,7 +30,7 @@ export const DEFAULT_GRID: GridPreset = {
   qOffset: [2, 0, -1, -2, -3, -3, -4, -4, -3],
 }
 
-export const FLAT_GRID: GridPreset = {
+export const FULL_GRID_FLAT: GridPreset = {
   hex: [
     [44, 41],
     [45, 42, 39, 36, 32],

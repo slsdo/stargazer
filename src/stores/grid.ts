@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { Grid, type GridTile } from '../lib/grid'
 import { Layout, POINTY } from '../lib/layout'
-import { State, DEFAULT_GRID } from '../lib/constants'
+import { State, FULL_GRID } from '../lib/constants'
 import { getMapByKey, type MapConfig } from '../lib/maps'
 import type { Hex } from '../lib/hex'
 
@@ -12,7 +12,7 @@ export const useGridStore = defineStore('grid', () => {
   const gridOrigin = { x: 300, y: 300 }
   const layout = new Layout(POINTY, { x: 40, y: 40 }, gridOrigin)
   const currentMap = ref('arena1')
-  
+
   // Computed hexes that updates when grid changes
   const hexes = computed(() => grid.value.keys())
 
@@ -35,9 +35,9 @@ export const useGridStore = defineStore('grid', () => {
   })
 
   // Team availability getters
-  const availableSelf = computed(() => {
+  const availableAlly = computed(() => {
     characterUpdateTrigger.value // Reactivity trigger
-    return grid.value.getAvailableSelf()
+    return grid.value.getAvailableAlly()
   })
 
   const availableEnemy = computed(() => {
@@ -45,11 +45,23 @@ export const useGridStore = defineStore('grid', () => {
     return grid.value.getAvailableEnemy()
   })
 
+  // Compute closest enemy map using Grid method
+  const closestEnemyMap = computed(() => {
+    characterUpdateTrigger.value // Reactivity trigger
+    return grid.value.getClosestEnemyMap()
+  })
+
+  // Compute closest ally map using Grid method
+  const closestAllyMap = computed(() => {
+    characterUpdateTrigger.value // Reactivity trigger
+    return grid.value.getClosestAllyMap()
+  })
+
   // Actions that use Grid instance
   const placeCharacterOnHex = (
     hexId: number,
     characterId: string,
-    team: 'Self' | 'Enemy' = 'Self',
+    team: 'Ally' | 'Enemy' = 'Ally',
   ): boolean => {
     console.log('Store: placing character on hex', hexId, characterId, 'team:', team)
     const success = grid.value.placeCharacter(hexId, characterId, team)
@@ -80,15 +92,15 @@ export const useGridStore = defineStore('grid', () => {
     return grid.value.hasCharacter(hexId)
   }
 
-  const canPlaceCharacter = (characterId: string, team: 'Self' | 'Enemy'): boolean => {
+  const canPlaceCharacter = (characterId: string, team: 'Ally' | 'Enemy'): boolean => {
     return grid.value.canPlaceCharacter(characterId, team)
   }
 
-  const canPlaceCharacterOnTile = (hexId: number, team: 'Self' | 'Enemy'): boolean => {
+  const canPlaceCharacterOnTile = (hexId: number, team: 'Ally' | 'Enemy'): boolean => {
     return grid.value.canPlaceCharacterOnTile(hexId, team)
   }
 
-  const getCharacterTeam = (hexId: number): 'Self' | 'Enemy' | undefined => {
+  const getCharacterTeam = (hexId: number): 'Ally' | 'Enemy' | undefined => {
     return grid.value.getCharacterTeam(hexId)
   }
 
@@ -99,7 +111,7 @@ export const useGridStore = defineStore('grid', () => {
     }
 
     // Get the team from the source hex
-    const team = grid.value.getCharacterTeam(fromHexId) || 'Self'
+    const team = grid.value.getCharacterTeam(fromHexId) || 'Ally'
 
     // Move character from source to target hex
     grid.value.removeCharacter(fromHexId)
@@ -109,10 +121,14 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   // Grid utility functions
-  const getArrowPath = (startHexId: number, endHexId: number): string => {
+  const getArrowPath = (
+    startHexId: number,
+    endHexId: number,
+    characterRadius: number = 30,
+  ): string => {
     const startHex = grid.value.getHexById(startHexId)
     const endHex = grid.value.getHexById(endHexId)
-    return layout.getArrowPath(startHex, endHex)
+    return layout.getArrowPath(startHex, endHex, characterRadius)
   }
 
   const getHexById = (id: number): Hex => {
@@ -142,7 +158,7 @@ export const useGridStore = defineStore('grid', () => {
     return grid.value.getTilesWithCharacters()
   }
 
-  const autoPlaceCharacter = (characterId: string, team: 'Self' | 'Enemy'): boolean => {
+  const autoPlaceCharacter = (characterId: string, team: 'Ally' | 'Enemy'): boolean => {
     // Check if character can be placed
     if (!canPlaceCharacter(characterId, team)) {
       console.log('Store: cannot place character - team restrictions or duplicate')
@@ -150,8 +166,8 @@ export const useGridStore = defineStore('grid', () => {
     }
 
     // Get all tiles that can accept this team
-    const availableTiles = getAllTiles().filter(tile => 
-      canPlaceCharacterOnTile(tile.hex.getId(), team) && !tile.character
+    const availableTiles = getAllTiles().filter(
+      (tile) => canPlaceCharacterOnTile(tile.hex.getId(), team) && !tile.character,
     )
 
     if (availableTiles.length === 0) {
@@ -161,24 +177,31 @@ export const useGridStore = defineStore('grid', () => {
 
     // Sort by hex ID descending (largest first) and pick randomly from available tiles
     availableTiles.sort((a, b) => b.hex.getId() - a.hex.getId())
-    
+
     // Find a random tile to place the character
     const randomIndex = Math.floor(Math.random() * availableTiles.length)
     const selectedTile = availableTiles[randomIndex]
-    
-    console.log('Store: auto-placing character', characterId, 'on hex', selectedTile.hex.getId(), 'team:', team)
+
+    console.log(
+      'Store: auto-placing character',
+      characterId,
+      'on hex',
+      selectedTile.hex.getId(),
+      'team:',
+      team,
+    )
     return placeCharacterOnHex(selectedTile.hex.getId(), characterId, team)
   }
 
   const handleHexClick = (hex: Hex): boolean => {
     const hexId = hex.getId()
     console.log('Store: hex clicked:', hexId)
-    
+
     // Get the tile to check its state
     const tile = getTile(hex)
-    
+
     // Check if the hex is occupied by a character
-    if (tile.state === State.OCCUPIED_SELF || tile.state === State.OCCUPIED_ENEMY) {
+    if (tile.state === State.OCCUPIED_ALLY || tile.state === State.OCCUPIED_ENEMY) {
       console.log('Store: hex', hexId, 'is occupied - removing character')
       removeCharacterFromHex(hexId)
       return true // Character was removed
@@ -196,14 +219,14 @@ export const useGridStore = defineStore('grid', () => {
     }
 
     console.log('Store: switching to map:', mapConfig.name)
-    
+
     // Create new grid with the selected map
-    grid.value = new Grid(DEFAULT_GRID, mapConfig)
+    grid.value = new Grid(FULL_GRID, mapConfig)
     currentMap.value = mapKey
-    
+
     // Trigger reactivity
     characterUpdateTrigger.value++
-    
+
     return true
   }
 
@@ -222,8 +245,10 @@ export const useGridStore = defineStore('grid', () => {
     totalHexes,
     charactersPlaced,
     placedCharactersList,
-    availableSelf,
+    availableAlly,
     availableEnemy,
+    closestEnemyMap,
+    closestAllyMap,
 
     // Actions
     placeCharacterOnHex,

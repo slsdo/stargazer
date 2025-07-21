@@ -11,10 +11,10 @@ defineProps<{
   isDraggable?: boolean
 }>()
 
-const selectedTeam = ref<'Self' | 'Enemy'>('Self')
+const selectedTeam = ref<'Ally' | 'Enemy'>('Ally')
 const gridStore = useGridStore()
 
-const setTeam = (team: 'Self' | 'Enemy') => {
+const setTeam = (team: 'Ally' | 'Enemy') => {
   selectedTeam.value = team
 }
 
@@ -67,8 +67,8 @@ const removeCharacterFromGrid = (characterId: string) => {
   <div class="character-selection">
     <!-- Team Toggle with Availability -->
     <div class="team-toggle">
-      <button @click="setTeam('Self')" :class="['team-btn', { active: selectedTeam === 'Self' }]">
-        Self ({{ gridStore.availableSelf }}/5)
+      <button @click="setTeam('Ally')" :class="['team-btn', { active: selectedTeam === 'Ally' }]">
+        Ally ({{ gridStore.availableAlly }}/5)
       </button>
       <button @click="setTeam('Enemy')" :class="['team-btn', { active: selectedTeam === 'Enemy' }]">
         Enemy ({{ gridStore.availableEnemy }}/5)
@@ -106,6 +106,7 @@ const removeCharacterFromGrid = (characterId: string) => {
   border-radius: 8px;
   padding: 4px;
   border: 2px solid #d4cfc0;
+  width: fit-content;
 }
 
 .team-btn {
@@ -118,7 +119,7 @@ const removeCharacterFromGrid = (characterId: string) => {
   font-weight: 600;
   transition: all 0.2s ease;
   border-radius: 6px;
-  flex: 1;
+  width: 160px;
 }
 
 .team-btn:hover {

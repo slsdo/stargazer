@@ -14,9 +14,9 @@ const STATE_FORMATS: Record<State, StateFormat> = {
     fillColor: '#f0f0f0',
     strokeColor: '#ccc',
   },
-  [State.AVAILABLE_SELF]: {
-    name: 'Available (Self)',
-    cssClass: 'state-available-self',
+  [State.AVAILABLE_ALLY]: {
+    name: 'Available (Ally)',
+    cssClass: 'state-available-ally',
     fillColor: '#fff',
     strokeColor: '#36958e',
   },
@@ -26,9 +26,9 @@ const STATE_FORMATS: Record<State, StateFormat> = {
     fillColor: '#ffe8e8',
     strokeColor: '#c05b4d',
   },
-  [State.OCCUPIED_SELF]: {
-    name: 'Occupied (Self)',
-    cssClass: 'state-occupied-self',
+  [State.OCCUPIED_ALLY]: {
+    name: 'Occupied (Ally)',
+    cssClass: 'state-occupied-ally',
     fillColor: '#fff',
     strokeColor: '#36958e',
   },

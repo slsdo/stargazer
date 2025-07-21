@@ -8,6 +8,7 @@ interface Props {
   color?: string
   strokeWidth?: number
   arrowheadSize?: number
+  characterRadius?: number
   id?: string
 }
 
@@ -15,6 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   color: '#ff6b6b',
   strokeWidth: 3,
   arrowheadSize: 10,
+  characterRadius: 30,
   id: '',
 })
 
@@ -29,7 +31,7 @@ const markerId = computed(() =>
 )
 
 const pathData = computed(() => {
-  return gridStore.getArrowPath(props.startHexId, props.endHexId)
+  return gridStore.getArrowPath(props.startHexId, props.endHexId, props.characterRadius)
 })
 </script>
 
@@ -50,6 +52,17 @@ const pathData = computed(() => {
         />
       </marker>
     </defs>
+    <!-- White shadow path for better visibility -->
+    <path
+      v-if="pathData"
+      :d="pathData"
+      stroke="white"
+      :stroke-width="strokeWidth + 4"
+      fill="none"
+      opacity="0.8"
+      stroke-linecap="round"
+    />
+    <!-- Main arrow path -->
     <path
       v-if="pathData"
       :d="pathData"

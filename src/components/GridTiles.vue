@@ -150,7 +150,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       }
     } else {
       // This is a new character placement from the character selection
-      const team = character.team || 'Self'
+      const team = character.team || 'Ally'
       const hexId = hex.getId()
 
       // Check if tile allows this team
@@ -181,7 +181,7 @@ const getHexDropClass = (hex: Hex) => {
   // Check if this tile can accept the currently dragged character's team
   let validDropZone = true
   if (isDragHover && draggedCharacter.value) {
-    const team = draggedCharacter.value.team || 'Self'
+    const team = draggedCharacter.value.team || 'Ally'
     validDropZone = gridStore.canPlaceCharacterOnTile(hexId, team)
   }
 

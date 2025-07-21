@@ -108,21 +108,52 @@ export class Layout {
   }
 
   // Calculate curved arrow path between two hexes
-  getArrowPath(startHex: Hex, endHex: Hex): string {
-    const start = this.hexToPixel(startHex)
-    const end = this.hexToPixel(endHex)
+  getArrowPath(startHex: Hex, endHex: Hex, characterRadius: number = 0): string {
+    const startCenter = this.hexToPixel(startHex)
+    const endCenter = this.hexToPixel(endHex)
+
+    // Calculate direction vector
+    const dx = endCenter.x - startCenter.x
+    const dy = endCenter.y - startCenter.y
+    const length = Math.sqrt(dx * dx + dy * dy)
+    
+    // Normalize direction vector
+    const dirX = dx / length
+    const dirY = dy / length
+    
+    // Calculate start and end points at edge of circles
+    const start = {
+      x: startCenter.x + dirX * characterRadius,
+      y: startCenter.y + dirY * characterRadius
+    }
+    const end = {
+      x: endCenter.x - dirX * characterRadius,
+      y: endCenter.y - dirY * characterRadius
+    }
 
     // Calculate control point for curve (offset perpendicular to line)
     const midX = (start.x + end.x) / 2
     const midY = (start.y + end.y) / 2
-    const dx = end.x - start.x
-    const dy = end.y - start.y
-    const length = Math.sqrt(dx * dx + dy * dy)
-    const curvature = length * 0.3 // Adjust curve intensity
-
+    
+    // Determine curve direction based on average X position relative to grid center
+    const avgX = (startCenter.x + endCenter.x) / 2
+    const gridCenterX = this.origin.x
+    const relativeX = avgX - gridCenterX
+    
+    // Calculate curve intensity based on distance from center
+    // Arrows closer to center have less curve, arrows at edges have more
+    const maxDistance = 200 // Approximate half-width of the grid
+    const distanceFromCenter = Math.abs(relativeX)
+    const curveFactor = Math.min(distanceFromCenter / maxDistance, 1) // 0 to 1
+    const baseCurvature = length * 0.15 // Base curve amount
+    const curvature = baseCurvature + (baseCurvature * curveFactor) // Scale curve by position
+    
+    // Curve direction: negative for left side, positive for right side
+    const curveDirection = relativeX < 0 ? -1 : 1
+    
     // Perpendicular offset for control point
-    const controlX = midX - (dy / length) * curvature
-    const controlY = midY + (dx / length) * curvature
+    const controlX = midX - (dirY) * curvature * curveDirection
+    const controlY = midY + (dirX) * curvature * curveDirection
 
     return `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
   }

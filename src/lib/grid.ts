@@ -1,6 +1,6 @@
 import { Hex } from './hex'
 import { ARENA_1 } from './arena/arena1'
-import { State, DEFAULT_GRID, type GridPreset } from './constants'
+import { State, FULL_GRID, type GridPreset } from './constants'
 
 function iniGrid(preset: GridPreset): Hex[] {
   const centerRowIndex = Math.floor(preset.hex.length / 2) // Default=4
@@ -26,18 +26,18 @@ export interface GridTile {
   hex: Hex
   state: State
   character?: string
-  team?: 'Self' | 'Enemy'
+  team?: 'Ally' | 'Enemy'
 }
 
 export class Grid {
   private storage: Map<string, GridTile>
-  private teamCharacters: Map<'Self' | 'Enemy', Set<string>> = new Map([
-    ['Self', new Set()],
+  private teamCharacters: Map<'Ally' | 'Enemy', Set<string>> = new Map([
+    ['Ally', new Set()],
     ['Enemy', new Set()],
   ])
   private readonly MAX_TEAM_SIZE = 5
 
-  constructor(layout = DEFAULT_GRID, map = ARENA_1) {
+  constructor(layout = FULL_GRID, map = ARENA_1) {
     this.storage = new Map()
     iniGrid(layout).forEach((hex) => {
       this.storage.set(Grid.key(hex), { hex, state: State.DEFAULT })
@@ -107,19 +107,19 @@ export class Grid {
   }
 
   // Team availability methods
-  getAvailableSelf(): number {
-    return this.getAvailableForTeam('Self')
+  getAvailableAlly(): number {
+    return this.getAvailableForTeam('Ally')
   }
 
   getAvailableEnemy(): number {
     return this.getAvailableForTeam('Enemy')
   }
 
-  private getAvailableForTeam(team: 'Self' | 'Enemy'): number {
+  private getAvailableForTeam(team: 'Ally' | 'Enemy'): number {
     return this.MAX_TEAM_SIZE - (this.teamCharacters.get(team)?.size || 0)
   }
 
-  canPlaceCharacter(characterId: string, team: 'Self' | 'Enemy'): boolean {
+  canPlaceCharacter(characterId: string, team: 'Ally' | 'Enemy'): boolean {
     // Check if team has space
     if (this.getAvailableForTeam(team) <= 0) return false
 
@@ -127,11 +127,11 @@ export class Grid {
     return !this.teamCharacters.get(team)?.has(characterId)
   }
 
-  canPlaceCharacterOnTile(hexOrId: Hex | number, team: 'Self' | 'Enemy'): boolean {
+  canPlaceCharacterOnTile(hexOrId: Hex | number, team: 'Ally' | 'Enemy'): boolean {
     const tile = this.getTile(hexOrId)
     const state = tile.state
-    const availableState = team === 'Self' ? State.AVAILABLE_SELF : State.AVAILABLE_ENEMY
-    const occupiedState = team === 'Self' ? State.OCCUPIED_SELF : State.OCCUPIED_ENEMY
+    const availableState = team === 'Ally' ? State.AVAILABLE_ALLY : State.AVAILABLE_ENEMY
+    const occupiedState = team === 'Ally' ? State.OCCUPIED_ALLY : State.OCCUPIED_ENEMY
 
     return state === availableState || state === occupiedState
   }
@@ -142,7 +142,7 @@ export class Grid {
   placeCharacter(
     hexOrId: Hex | number,
     characterId: string,
-    team: 'Self' | 'Enemy' = 'Self',
+    team: 'Ally' | 'Enemy' = 'Ally',
   ): boolean {
     // Check if tile allows this team
     if (!this.canPlaceCharacterOnTile(hexOrId, team)) return false
@@ -170,8 +170,8 @@ export class Grid {
     const currentState = tile.state
 
     // If it's occupied, determine what it should be when empty
-    if (currentState === State.OCCUPIED_SELF) {
-      return State.AVAILABLE_SELF
+    if (currentState === State.OCCUPIED_ALLY) {
+      return State.AVAILABLE_ALLY
     } else if (currentState === State.OCCUPIED_ENEMY) {
       return State.AVAILABLE_ENEMY
     }
@@ -226,14 +226,14 @@ export class Grid {
         this.clearCharacterFromTile(entry, entry.hex.getId())
       }
     }
-    this.teamCharacters.get('Self')?.clear()
+    this.teamCharacters.get('Ally')?.clear()
     this.teamCharacters.get('Enemy')?.clear()
   }
 
   /**
    * Get team of a character on a hex tile
    */
-  getCharacterTeam(hexOrId: Hex | number): 'Self' | 'Enemy' | undefined {
+  getCharacterTeam(hexOrId: Hex | number): 'Ally' | 'Enemy' | undefined {
     return this.getTile(hexOrId).team
   }
 
@@ -248,17 +248,100 @@ export class Grid {
     return count
   }
 
+  /**
+   * Find the closest target from a source tile among a list of target tiles
+   * Tie-breaking: if multiple targets at same distance, choose the one with lowest hex ID
+   */
+  private findClosestTarget(
+    sourceTile: GridTile,
+    targetTiles: GridTile[],
+  ): { hexId: number; distance: number } | null {
+    let closest: { hexId: number; distance: number } | null = null
+
+    for (const targetTile of targetTiles) {
+      const distance = sourceTile.hex.distance(targetTile.hex)
+
+      // Update if this target is closer, or same distance with lower hex ID
+      if (
+        !closest ||
+        distance < closest.distance ||
+        (distance === closest.distance && targetTile.hex.getId() < closest.hexId)
+      ) {
+        closest = {
+          hexId: targetTile.hex.getId(),
+          distance: distance,
+        }
+      }
+    }
+
+    return closest
+  }
+
+  /**
+   * Calculate closest enemy for each ally character
+   * Returns a map of ally hex IDs to their closest enemy info
+   */
+  getClosestEnemyMap(): Map<number, { enemyHexId: number; distance: number }> {
+    const result = new Map<number, { enemyHexId: number; distance: number }>()
+
+    // Get all tiles with characters
+    const tilesWithCharacters = this.getTilesWithCharacters()
+    const allyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Ally')
+    const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Enemy')
+
+    // For each ally character, find closest enemy
+    for (const allyTile of allyTiles) {
+      const closestEnemy = this.findClosestTarget(allyTile, enemyTiles)
+
+      if (closestEnemy) {
+        result.set(allyTile.hex.getId(), {
+          enemyHexId: closestEnemy.hexId,
+          distance: closestEnemy.distance,
+        })
+      }
+    }
+
+    return result
+  }
+
+  /**
+   * Calculate closest ally character for each enemy
+   * Returns a map of enemy hex IDs to their closest ally character info
+   */
+  getClosestAllyMap(): Map<number, { allyHexId: number; distance: number }> {
+    const result = new Map<number, { allyHexId: number; distance: number }>()
+
+    // Get all tiles with characters
+    const tilesWithCharacters = this.getTilesWithCharacters()
+    const allyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Ally')
+    const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Enemy')
+
+    // For each enemy character, find closest ally character
+    for (const enemyTile of enemyTiles) {
+      const closestAlly = this.findClosestTarget(enemyTile, allyTiles)
+
+      if (closestAlly) {
+        result.set(enemyTile.hex.getId(), {
+          allyHexId: closestAlly.hexId,
+          distance: closestAlly.distance,
+        })
+      }
+    }
+
+    return result
+  }
+
   // Consolidated character operation methods
-  private removeCharacterFromTeam(characterId: string, team: 'Self' | 'Enemy' | undefined): void {
+  private removeCharacterFromTeam(characterId: string, team: 'Ally' | 'Enemy' | undefined): void {
     if (team) {
       this.teamCharacters.get(team)?.delete(characterId)
     }
   }
 
-  private setCharacterOnTile(tile: GridTile, characterId: string, team: 'Self' | 'Enemy'): void {
+  private setCharacterOnTile(tile: GridTile, characterId: string, team: 'Ally' | 'Enemy'): void {
     tile.character = characterId
     tile.team = team
-    tile.state = team === 'Self' ? State.OCCUPIED_SELF : State.OCCUPIED_ENEMY
+    tile.state = team === 'Ally' ? State.OCCUPIED_ALLY : State.OCCUPIED_ENEMY
     this.teamCharacters.get(team)?.add(characterId)
   }
 

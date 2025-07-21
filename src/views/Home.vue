@@ -2,6 +2,7 @@
 import CharacterSelection from '../components/CharacterSelection.vue'
 import GridTiles from '../components/GridTiles.vue'
 import GridCharacters from '../components/GridCharacters.vue'
+import GridArrow from '../components/GridArrow.vue'
 import DebugGrid from '../components/DebugGrid.vue'
 import type { CharacterType } from '../types/character'
 import type { Hex } from '../lib/hex'
@@ -98,6 +99,33 @@ const icons = loadAssetsDict(
     <div class="content">
       <div class="section">
         <div id="map">
+          <svg width="600" height="600" style="position: absolute; pointer-events: none">
+            <!-- Arrows from ally characters to closest enemies (rendered on top of everything) -->
+            <g class="arrows-layer" style="pointer-events: auto">
+              <!-- Ally to Enemy arrows (teal) -->
+              <GridArrow
+                v-for="[allyHexId, enemyInfo] in gridStore.closestEnemyMap"
+                :key="`arrow-ally-${allyHexId}-${enemyInfo.enemyHexId}`"
+                :start-hex-id="allyHexId"
+                :end-hex-id="enemyInfo.enemyHexId"
+                :color="'#36958e'"
+                :stroke-width="3"
+                :arrowhead-size="6"
+                @arrow-click="handleArrowClick"
+              />
+              <!-- Enemy to Ally arrows (red) -->
+              <GridArrow
+                v-for="[enemyHexId, allyInfo] in gridStore.closestAllyMap"
+                :key="`arrow-enemy-${enemyHexId}-${allyInfo.allyHexId}`"
+                :start-hex-id="enemyHexId"
+                :end-hex-id="allyInfo.allyHexId"
+                :color="'#dc3545'"
+                :stroke-width="3"
+                :arrowhead-size="6"
+                @arrow-click="handleArrowClick"
+              />
+            </g>
+          </svg>
           <GridTiles
             :hexes="gridStore.hexes"
             :layout="gridStore.layout"
@@ -119,8 +147,6 @@ const icons = loadAssetsDict(
               :characters="characters"
               @character-click="handleCharacterClick"
             />
-
-            <!-- No default arrows - add them as needed -->
           </GridTiles>
         </div>
       </div>
@@ -206,6 +232,7 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .tab-container {

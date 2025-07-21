@@ -7,5 +7,5 @@ export interface CharacterType {
   damage: string
   season: string
   sourceHexId?: number // Optional property for tracking drag source
-  team?: 'Self' | 'Enemy' // Team assignment for placement
+  team?: 'Ally' | 'Enemy' // Team assignment for placement
 }
