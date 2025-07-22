@@ -151,18 +151,30 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       }
     } else {
       // This is a new character placement from the character selection
-      const team = character.team || Team.ALLY
       const hexId = hex.getId()
+      const tile = gridStore.getTile(hexId)
+      const state = tile.state
 
-      // Check if tile allows this team
-      if (!gridStore.canPlaceCharacterOnTile(hexId, team)) {
-        console.log(`Failed to place character - tile ${hexId} does not allow ${team} team`)
+      // Determine the team based on tile state
+      let team: Team
+      if (state === State.AVAILABLE_ALLY || state === State.OCCUPIED_ALLY) {
+        team = Team.ALLY
+      } else if (state === State.AVAILABLE_ENEMY || state === State.OCCUPIED_ENEMY) {
+        team = Team.ENEMY
+      } else {
+        console.log(`Cannot drop character on tile ${hexId} - invalid state: ${state}`)
+        return
+      }
+
+      // Check if the team has space for this character
+      if (!gridStore.canPlaceCharacter(characterId, team)) {
+        console.log(`Failed to place character - team ${team} is full or character already on team`)
         return
       }
 
       const success = gridStore.placeCharacterOnHex(hexId, characterId, team)
       if (!success) {
-        console.log('Failed to place character - team restrictions or duplicate')
+        console.log('Failed to place character')
         return
       }
     }
@@ -179,11 +191,26 @@ const getHexDropClass = (hex: Hex) => {
   const isOccupied = gridStore.isHexOccupied(hexId)
   const isDragHover = dragHoveredHex.value === hexId
 
-  // Check if this tile can accept the currently dragged character's team
-  let validDropZone = true
+  // Check if this tile can accept a character based on new logic
+  let validDropZone = false
   if (isDragHover && draggedCharacter.value) {
-    const team = draggedCharacter.value.team || Team.ALLY
-    validDropZone = gridStore.canPlaceCharacterOnTile(hexId, team)
+    const tile = gridStore.getTile(hexId)
+    const state = tile.state
+
+    // Tile is valid if it's available for either team or occupied by either team
+    if (
+      state === State.AVAILABLE_ALLY ||
+      state === State.OCCUPIED_ALLY ||
+      state === State.AVAILABLE_ENEMY ||
+      state === State.OCCUPIED_ENEMY
+    ) {
+      // Determine which team this tile belongs to
+      const tileTeam =
+        state === State.AVAILABLE_ALLY || state === State.OCCUPIED_ALLY ? Team.ALLY : Team.ENEMY
+
+      // Check if the team has space for this character
+      validDropZone = gridStore.canPlaceCharacter(draggedCharacter.value.id, tileTeam)
+    }
   }
 
   return {
