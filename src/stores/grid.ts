@@ -20,7 +20,7 @@ export const useGridStore = defineStore('grid', () => {
 
   // Reactive trigger for character updates
   const characterUpdateTrigger = ref(0)
-  
+
   // Artifact tracking
   const allyArtifact = ref<string | null>(null)
   const enemyArtifact = ref<string | null>(null)
@@ -36,7 +36,7 @@ export const useGridStore = defineStore('grid', () => {
       availableAlly: grid.value.getAvailableAlly(),
       availableEnemy: grid.value.getAvailableEnemy(),
       closestEnemyMap: grid.value.getClosestEnemyMap(),
-      closestAllyMap: grid.value.getClosestAllyMap()
+      closestAllyMap: grid.value.getClosestAllyMap(),
     }
   })
 
@@ -228,7 +228,7 @@ export const useGridStore = defineStore('grid', () => {
   // Artifact management functions
   const placeArtifact = (artifactId: string, team: Team): boolean => {
     console.log('Store: placing artifact', artifactId, 'for team:', team)
-    
+
     if (team === Team.ALLY) {
       allyArtifact.value = artifactId
       console.log('Store: ally artifact set to:', artifactId)
@@ -236,7 +236,7 @@ export const useGridStore = defineStore('grid', () => {
       enemyArtifact.value = artifactId
       console.log('Store: enemy artifact set to:', artifactId)
     }
-    
+
     return true
   }
 

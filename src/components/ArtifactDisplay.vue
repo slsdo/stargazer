@@ -19,29 +19,21 @@ const handleArtifactClick = (team: Team) => {
 <template>
   <div class="artifact-displays">
     <!-- Ally Artifact (bottom left) -->
-    <div 
-      v-if="allyArtifact" 
+    <div
+      v-if="allyArtifact"
       class="artifact-display ally-artifact"
       @click="handleArtifactClick(Team.ALLY)"
     >
-      <img
-        :src="artifactImages[allyArtifact]"
-        :alt="allyArtifact"
-        class="artifact-portrait"
-      />
+      <img :src="artifactImages[allyArtifact]" :alt="allyArtifact" class="artifact-portrait" />
     </div>
 
     <!-- Enemy Artifact (top right) -->
-    <div 
-      v-if="enemyArtifact" 
+    <div
+      v-if="enemyArtifact"
       class="artifact-display enemy-artifact"
       @click="handleArtifactClick(Team.ENEMY)"
     >
-      <img
-        :src="artifactImages[enemyArtifact]"
-        :alt="enemyArtifact"
-        class="artifact-portrait"
-      />
+      <img :src="artifactImages[enemyArtifact]" :alt="enemyArtifact" class="artifact-portrait" />
     </div>
   </div>
 </template>
@@ -67,7 +59,7 @@ const handleArtifactClick = (team: Team) => {
   justify-content: center;
   overflow: hidden;
   border: 2px solid var(--color-bg-white);
-  box-shadow: 0 0 0 4px #999;
+  box-shadow: 0 0 0 3px #999;
   cursor: pointer;
   pointer-events: auto;
 }

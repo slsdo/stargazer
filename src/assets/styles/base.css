@@ -1,13 +1,41 @@
+/* Universal box-sizing - safe and useful for all elements */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/* Reset margins and padding selectively */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ol,
+ul,
+li,
+figure,
+figcaption,
+blockquote,
+dl,
+dd {
   margin: 0;
   padding: 0;
 }
 
-/* Reset font-weight only for elements that should be normal, not buttons */
-p, div, span, section, article, aside, header, footer, nav, main {
+/* Reset font-weight only for elements that should be normal, not buttons or their children */
+p,
+div,
+section,
+article,
+aside,
+header,
+footer,
+nav,
+main {
   font-weight: normal;
 }
 

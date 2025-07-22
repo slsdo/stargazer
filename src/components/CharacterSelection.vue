@@ -103,7 +103,6 @@ const removeCharacterFromGrid = (characterId: string) => {
 </template>
 
 <style scoped>
-
 .character-selection {
   display: flex;
   flex-direction: column;

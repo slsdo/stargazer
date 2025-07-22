@@ -56,6 +56,7 @@ const pathData = computed(() => {
         <polygon
           :points="`0 0, ${arrowheadSize} ${arrowheadSize * 0.35}, 0 ${arrowheadSize * 0.7}`"
           :fill="color"
+          opacity="0.8"
         />
       </marker>
     </defs>
@@ -76,6 +77,7 @@ const pathData = computed(() => {
       :stroke="color"
       :stroke-width="strokeWidth"
       fill="none"
+      opacity="0.8"
       :marker-end="`url(#${markerId})`"
       @click="$emit('arrowClick', startHexId, endHexId)"
     />

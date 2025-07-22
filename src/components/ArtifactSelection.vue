@@ -24,8 +24,9 @@ const handleArtifactClick = (artifact: ArtifactType) => {
   console.log('Artifact clicked:', artifact.id, 'for team:', selectedTeam.value)
 
   // Check if this artifact is already placed for the selected team
-  const isAlreadyPlaced = (selectedTeam.value === Team.ALLY && gridStore.allyArtifact === artifact.id) ||
-                         (selectedTeam.value === Team.ENEMY && gridStore.enemyArtifact === artifact.id)
+  const isAlreadyPlaced =
+    (selectedTeam.value === Team.ALLY && gridStore.allyArtifact === artifact.id) ||
+    (selectedTeam.value === Team.ENEMY && gridStore.enemyArtifact === artifact.id)
 
   if (isAlreadyPlaced) {
     // Remove the artifact if it's already placed
@@ -75,7 +76,6 @@ const isArtifactPlaced = (artifactId: string): boolean => {
 </template>
 
 <style scoped>
-
 .artifact-selection {
   display: flex;
   flex-direction: column;

@@ -13,7 +13,6 @@ const handleClick = () => {
 </template>
 
 <style scoped>
-
 .clear-all-btn {
   background: var(--color-danger);
   color: white;

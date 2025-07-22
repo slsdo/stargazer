@@ -69,11 +69,7 @@ const handleClick = () => {
 }
 
 .season-0 {
-  background: linear-gradient(135deg, #8e44ad, #3498db);
-}
-
-.season-1 {
-  background: linear-gradient(135deg, #e74c3c, #f39c12);
+  background: #fff;
 }
 
 .artifact.placed {

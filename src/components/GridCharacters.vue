@@ -24,12 +24,12 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   outerRadius: 30,
-  innerRadius: 30,
+  innerRadius: 27,
   borderWidth: 3,
   innerBorderWidth: 3,
   backgroundColor: '#fff',
   backgroundOpacity: 0.7,
-  borderColor: '#777',
+  borderColor: '#fff',
   overlayColor: '#fff',
   overlayOpacity: 0,
   showOverlay: true,
@@ -65,6 +65,16 @@ const getBackgroundColor = (characterId: string): string => {
 <template>
   <g v-for="[hexId, characterId] in characterPlacements" :key="hexId" class="grid-characters">
     <g v-if="hexExists(hexId)">
+      <!-- Clipping mask for character image -->
+      <defs>
+        <clipPath :id="`clip-grid-character-${hexId}`">
+          <circle
+            :cx="gridStore.getHexPosition(hexId).x"
+            :cy="gridStore.getHexPosition(hexId).y"
+            :r="innerRadius"
+          />
+        </clipPath>
+      </defs>
       <!-- Background circle -->
       <circle
         :cx="gridStore.getHexPosition(hexId).x"
@@ -75,7 +85,16 @@ const getBackgroundColor = (characterId: string): string => {
         :stroke="getBackgroundColor(characterId)"
         :stroke-width="borderWidth"
       />
-      <!-- Inner border circle -->
+      <!-- Character image (clipped to inner circle) -->
+      <image
+        :href="characterImages[characterId]"
+        :x="gridStore.getHexPosition(hexId).x - outerRadius"
+        :y="gridStore.getHexPosition(hexId).y - outerRadius"
+        :width="outerRadius * 2"
+        :height="outerRadius * 2"
+        :clip-path="`url(#clip-grid-character-${hexId})`"
+      />
+      <!-- Inner border circle (drawn on top) -->
       <circle
         :cx="gridStore.getHexPosition(hexId).x"
         :cy="gridStore.getHexPosition(hexId).y"
@@ -83,25 +102,6 @@ const getBackgroundColor = (characterId: string): string => {
         fill="none"
         :stroke="borderColor"
         :stroke-width="innerBorderWidth"
-      />
-      <!-- Character image (clipped to circle) -->
-      <defs>
-        <clipPath :id="`clip-grid-character-${hexId}`">
-          <circle
-            :cx="gridStore.getHexPosition(hexId).x"
-            :cy="gridStore.getHexPosition(hexId).y"
-            :r="innerRadius"
-          />
-        </clipPath>
-      </defs>
-      <!-- Character image (clipped to circle) -->
-      <image
-        :href="characterImages[characterId]"
-        :x="gridStore.getHexPosition(hexId).x - innerRadius"
-        :y="gridStore.getHexPosition(hexId).y - innerRadius"
-        :width="innerRadius * 2"
-        :height="innerRadius * 2"
-        :clip-path="`url(#clip-grid-character-${hexId})`"
       />
       <!-- Semi-transparent overlay -->
       <circle
