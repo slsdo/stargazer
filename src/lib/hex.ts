@@ -26,6 +26,10 @@ export class Hex {
     return this.q === other.q && this.r === other.r && this.s === other.s
   }
 
+  toString(): string {
+    return `${this.q},${this.r},${this.s}`
+  }
+
   add(other: Hex): Hex {
     return new Hex(this.q + other.q, this.r + other.r, this.s + other.s)
   }

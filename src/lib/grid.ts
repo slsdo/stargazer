@@ -1,6 +1,7 @@
 import { Hex } from './hex'
 import { ARENA_1 } from './arena/arena1'
 import { State, FULL_GRID, type GridPreset } from './constants'
+import { Pathfinding } from './pathfinding'
 
 function iniGrid(preset: GridPreset): Hex[] {
   const centerRowIndex = Math.floor(preset.hex.length / 2) // Default=4
@@ -249,27 +250,78 @@ export class Grid {
   }
 
   /**
+   * Traversal function for finding paths to enemies (allows moving through all non-blocked tiles)
+   */
+  private canTraverseToEnemy(tile: GridTile): boolean {
+    // Only blocked tiles are impassable
+    return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
+  }
+  
+  /**
+   * Traversal function for finding paths to allies (allows moving through all non-blocked tiles)
+   */
+  private canTraverseToAlly(tile: GridTile): boolean {
+    // Only blocked tiles are impassable
+    return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
+  }
+
+  /**
    * Find the closest target from a source tile among a list of target tiles
-   * Tie-breaking: if multiple targets at same distance, choose the one with lowest hex ID
+   * Uses A* pathfinding to account for obstacles
+   * Tie-breaking: if multiple targets at same path distance, choose the one with lowest hex ID
    */
   private findClosestTarget(
     sourceTile: GridTile,
     targetTiles: GridTile[],
+    canTraverse: (tile: GridTile) => boolean,
   ): { hexId: number; distance: number } | null {
     let closest: { hexId: number; distance: number } | null = null
 
+    // Create a safe getTile helper that returns undefined for out-of-bounds hexes
+    // The A* pathfinding algorithm explores all neighbors of each hex during pathfinding.
+    // When hexes are near grid edges, some neighbors will be outside the grid bounds.
+    // getTile() throws an error for non-existent hexes, so we catch these and return
+    // undefined, which the pathfinding algorithm treats as impassable terrain.
+    const getTileHelper = (hex: Hex) => {
+      try {
+        return this.getTile(hex)
+      } catch {
+        return undefined
+      }
+    }
+
     for (const targetTile of targetTiles) {
-      const distance = sourceTile.hex.distance(targetTile.hex)
+      // Create traversal function that allows destination tile
+      const canTraverseToTarget = (tile: GridTile) => {
+        // Always allow the target tile itself
+        if (tile.hex.equals(targetTile.hex)) {
+          return true
+        }
+        return canTraverse(tile)
+      }
+
+      // Calculate path distance using A* 
+      const pathDistance = Pathfinding.findPathDistance(
+        sourceTile.hex,
+        targetTile.hex,
+        getTileHelper,
+        canTraverseToTarget
+      )
+
+      // Skip if no path exists
+      if (pathDistance === null) {
+        continue
+      }
 
       // Update if this target is closer, or same distance with lower hex ID
       if (
         !closest ||
-        distance < closest.distance ||
-        (distance === closest.distance && targetTile.hex.getId() < closest.hexId)
+        pathDistance < closest.distance ||
+        (pathDistance === closest.distance && targetTile.hex.getId() < closest.hexId)
       ) {
         closest = {
           hexId: targetTile.hex.getId(),
-          distance: distance,
+          distance: pathDistance,
         }
       }
     }
@@ -280,6 +332,7 @@ export class Grid {
   /**
    * Calculate closest enemy for each ally character
    * Returns a map of ally hex IDs to their closest enemy info
+   * Uses pathfinding to account for obstacles
    */
   getClosestEnemyMap(): Map<number, { enemyHexId: number; distance: number }> {
     const result = new Map<number, { enemyHexId: number; distance: number }>()
@@ -289,9 +342,9 @@ export class Grid {
     const allyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Ally')
     const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Enemy')
 
-    // For each ally character, find closest enemy
+    // For each ally character, find closest enemy using pathfinding
     for (const allyTile of allyTiles) {
-      const closestEnemy = this.findClosestTarget(allyTile, enemyTiles)
+      const closestEnemy = this.findClosestTarget(allyTile, enemyTiles, (tile) => this.canTraverseToEnemy(tile))
 
       if (closestEnemy) {
         result.set(allyTile.hex.getId(), {
@@ -307,6 +360,7 @@ export class Grid {
   /**
    * Calculate closest ally character for each enemy
    * Returns a map of enemy hex IDs to their closest ally character info
+   * Uses pathfinding to account for obstacles
    */
   getClosestAllyMap(): Map<number, { allyHexId: number; distance: number }> {
     const result = new Map<number, { allyHexId: number; distance: number }>()
@@ -316,9 +370,9 @@ export class Grid {
     const allyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Ally')
     const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Enemy')
 
-    // For each enemy character, find closest ally character
+    // For each enemy character, find closest ally character using pathfinding
     for (const enemyTile of enemyTiles) {
-      const closestAlly = this.findClosestTarget(enemyTile, allyTiles)
+      const closestAlly = this.findClosestTarget(enemyTile, allyTiles, (tile) => this.canTraverseToAlly(tile))
 
       if (closestAlly) {
         result.set(enemyTile.hex.getId(), {
