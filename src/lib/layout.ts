@@ -126,14 +126,44 @@ export class Layout {
     const dirX = dx / length
     const dirY = dy / length
 
-    // Calculate start and end points at edge of circles
+    // Add angular offset for inverted arrows to prevent overlap
+    // Offset by ~15 degrees (π/12 radians) for enemy-to-ally arrows
+    let startDirX = dirX
+    let startDirY = dirY
+    let endDirX = -dirX
+    let endDirY = -dirY
+
+    if (invertCurve) {
+      const angleOffset = Math.PI / 12 // 15 degrees
+
+      // Determine which side of the grid we're on based on average X position
+      const avgX = (startCenter.x + endCenter.x) / 2
+      const gridCenterX = this.origin.x
+      const isOnLeftSide = avgX < gridCenterX
+
+      // Choose rotation direction based on grid position
+      const rotationMultiplier = isOnLeftSide ? 1 : -1
+
+      const cosOffset = Math.cos(angleOffset)
+      const sinOffset = Math.sin(angleOffset)
+
+      // Rotate start direction (swap offset direction for left vs right side)
+      startDirX = dirX * cosOffset + dirY * sinOffset * -rotationMultiplier
+      startDirY = -dirX * sinOffset * -rotationMultiplier + dirY * cosOffset
+
+      // Rotate end direction (inverted from start)
+      endDirX = -dirX * cosOffset - dirY * sinOffset * rotationMultiplier
+      endDirY = dirX * sinOffset * rotationMultiplier - dirY * cosOffset
+    }
+
+    // Calculate start and end points at edge of circles with offset
     const start = {
-      x: startCenter.x + dirX * characterRadius,
-      y: startCenter.y + dirY * characterRadius,
+      x: startCenter.x + startDirX * characterRadius,
+      y: startCenter.y + startDirY * characterRadius,
     }
     const end = {
-      x: endCenter.x - dirX * characterRadius,
-      y: endCenter.y - dirY * characterRadius,
+      x: endCenter.x + endDirX * characterRadius,
+      y: endCenter.y + endDirY * characterRadius,
     }
 
     // Calculate control point for curve (offset perpendicular to line)
