@@ -5,5 +5,6 @@
   "faction": "lightbearer",
   "class": "marksman",
   "damage": "physical",
-  "season": "0"
+  "range": 4,
+  "season": 0
 }

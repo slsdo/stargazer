@@ -5,5 +5,6 @@
   "faction": "mauler",
   "class": "warrior",
   "damage": "physical",
-  "season": "0"
+  "range": 1,
+  "season": 0
 }

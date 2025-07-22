@@ -1,10 +1,10 @@
 {
-  "id": "salazer",
+  "id": "thador",
   "type": "character",
   "level": "a",
-  "faction": "graveborn",
-  "class": "rogue",
+  "faction": "wilder",
+  "class": "tank",
   "damage": "physical",
   "range": 1,
-  "season": 0
+  "season": 4
 }

@@ -5,5 +5,6 @@
   "faction": "mauler",
   "class": "mage",
   "damage": "magic",
-  "season": "0"
+  "range": 1,
+  "season": 0
 }

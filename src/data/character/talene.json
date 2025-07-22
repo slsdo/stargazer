@@ -5,5 +5,6 @@
   "faction": "celestial",
   "class": "mage",
   "damage": "magic",
-  "season": "1"
+  "range": 3,
+  "season": 1
 }

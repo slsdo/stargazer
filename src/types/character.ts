@@ -5,7 +5,8 @@ export interface CharacterType {
   faction: string
   class: string
   damage: string
-  season: string
+  range: number
+  season: number
   sourceHexId?: number // Optional property for tracking drag source
   team?: 'Ally' | 'Enemy' // Team assignment for placement
 }

@@ -5,5 +5,6 @@
   "faction": "wilder",
   "class": "mage",
   "damage": "magic",
-  "season": "2"
+  "range": 4,
+  "season": 2
 }

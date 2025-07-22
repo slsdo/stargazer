@@ -1,10 +1,10 @@
 {
-  "id": "scarlita",
+  "id": "baelran",
   "type": "character",
   "level": "s",
   "faction": "celestial",
   "class": "warrior",
   "damage": "physical",
   "range": 1,
-  "season": 0
+  "season": 4
 }

@@ -5,5 +5,6 @@
   "faction": "lightbearer",
   "class": "rogue",
   "damage": "physical",
-  "season": "0"
+  "range": 7,
+  "season": 0
 }

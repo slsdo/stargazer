@@ -5,5 +5,6 @@
   "faction": "graveborn",
   "class": "support",
   "damage": "magic",
-  "season": "0"
+  "range": 1,
+  "season": 0
 }
