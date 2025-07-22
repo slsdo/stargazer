@@ -7,6 +7,7 @@ import { useGridStore } from '../stores/grid'
 import { State } from '../lib/types/state'
 import { getHexFillColor } from '../utils/stateFormatting'
 import { Team } from '../lib/types/team'
+import { watch } from 'vue'
 
 interface Props {
   hexes: Hex[]
@@ -59,13 +60,29 @@ const emit = defineEmits<{
   characterDropped: [hex: Hex, character: any, characterId: string]
 }>()
 
-const { handleDragOver, handleDrop, hasCharacterData, draggedCharacter } = useDragDrop()
+const {
+  handleDragOver,
+  handleDrop,
+  hasCharacterData,
+  draggedCharacter,
+  hoveredHexId,
+  isDragging,
+  setHoveredHex,
+  setDropHandled,
+} = useDragDrop()
 const gridStore = useGridStore()
 
-// Track which hex is currently being hovered during drag
-const dragHoveredHex = ref<number | null>(null)
 // Track which hex is currently being hovered (non-drag)
 const hoveredHex = ref<number | null>(null)
+
+// Watch for changes in position-based hex detection
+watch(hoveredHexId, (newHexId) => {
+  if (isDragging.value && newHexId !== null) {
+    // Trigger drop validation for the detected hex
+    const hex = gridStore.getHexById(newHexId)
+    // We could emit drag over events here if needed
+  }
+})
 
 const gridTransform = computed(() => {
   const transforms: string[] = []
@@ -112,50 +129,71 @@ const handleHexMouseLeave = (hex: Hex) => {
   }
 }
 
-// Drop handling functions
+/**
+ * Hybrid drag detection: combines SVG events with position-based detection
+ * to handle drops when character portraits block tile events.
+ */
 const handleHexDragOver = (event: DragEvent, hex: Hex) => {
   if (hasCharacterData(event)) {
     handleDragOver(event)
-    dragHoveredHex.value = hex.getId()
+    // Sync with global hover state for visual feedback
+    setHoveredHex(hex.getId())
   }
 }
 
 const handleHexDragLeave = (event: DragEvent, hex: Hex) => {
-  // Only clear hover if we're actually leaving this hex (not entering a child element)
-  if (dragHoveredHex.value === hex.getId()) {
-    dragHoveredHex.value = null
+  // Only clear if position detection confirms we left this hex
+  const currentDetectedHex = hoveredHexId.value
+  if (currentDetectedHex !== hex.getId()) {
+    setHoveredHex(null)
   }
 }
 
 const handleHexDrop = (event: DragEvent, hex: Hex) => {
+  // Prevent event from bubbling up to global handlers
+  event.stopPropagation()
+  event.preventDefault()
+  
   console.log('Drop detected on hex:', hex.getId())
   const dropResult = handleDrop(event)
   console.log('Drop result:', dropResult)
 
-  // Clear hover state on drop
-  dragHoveredHex.value = null
+  // Hover state is managed by position-based detection
 
   if (dropResult) {
     const { character, characterId } = dropResult
     console.log('Placing character on hex:', hex.getId(), character.id, 'team:', character.team)
+    
+    setDropHandled(true) // Prevent duplicate processing
 
-    // Check if this is a character being moved from another hex
+    // Grid-to-grid character moves have sourceHexId from overlay drag handlers
     if (character.sourceHexId !== undefined) {
       const sourceHexId = character.sourceHexId
       const targetHexId = hex.getId()
-
-      // Use store action for character movement with validation
-      const moved = gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
-      if (moved) {
-        console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
+      
+      // Swap if target is occupied, otherwise move
+      if (gridStore.isHexOccupied(targetHexId)) {
+        console.log('Target hex is occupied, swapping characters')
+        const swapped = gridStore.swapCharacters(sourceHexId, targetHexId)
+        if (swapped) {
+          console.log('Swapped characters between hex', sourceHexId, 'and hex', targetHexId)
+        } else {
+          console.log('Failed to swap characters')
+        }
+      } else {
+        // Empty target - regular move
+        const moved = gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
+        if (moved) {
+          console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
+        }
       }
     } else {
-      // This is a new character placement from the character selection
+      // Character selection placement
       const hexId = hex.getId()
       const tile = gridStore.getTile(hexId)
       const state = tile.state
 
-      // Determine the team based on tile state
+      // Auto-assign team based on tile state
       let team: Team
       if (state === State.AVAILABLE_ALLY || state === State.OCCUPIED_ALLY) {
         team = Team.ALLY
@@ -166,7 +204,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
         return
       }
 
-      // Check if the team has space for this character
+      // Validate team capacity
       if (!gridStore.canPlaceCharacter(characterId, team)) {
         console.log(`Failed to place character - team ${team} is full or character already on team`)
         return
@@ -179,7 +217,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       }
     }
 
-    // Emit event for any additional handling
+    // Notify parent components
     emit('characterDropped', hex, character, characterId)
   } else {
     console.log('No valid drop result')
@@ -189,27 +227,34 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
 const getHexDropClass = (hex: Hex) => {
   const hexId = hex.getId()
   const isOccupied = gridStore.isHexOccupied(hexId)
-  const isDragHover = dragHoveredHex.value === hexId
+  // Use position-based hover detection instead of SVG event-based detection
+  const isDragHover = isDragging.value && hoveredHexId.value === hexId
 
-  // Check if this tile can accept a character based on new logic
+  // Validate drop zone for visual feedback
   let validDropZone = false
   if (isDragHover && draggedCharacter.value) {
     const tile = gridStore.getTile(hexId)
     const state = tile.state
 
-    // Tile is valid if it's available for either team or occupied by either team
+    // Check if tile accepts characters
     if (
       state === State.AVAILABLE_ALLY ||
       state === State.OCCUPIED_ALLY ||
       state === State.AVAILABLE_ENEMY ||
       state === State.OCCUPIED_ENEMY
     ) {
-      // Determine which team this tile belongs to
+      // Get tile team for validation
       const tileTeam =
         state === State.AVAILABLE_ALLY || state === State.OCCUPIED_ALLY ? Team.ALLY : Team.ENEMY
 
-      // Check if the team has space for this character
-      validDropZone = gridStore.canPlaceCharacter(draggedCharacter.value.id, tileTeam)
+      // Grid moves: always allow (just repositioning existing characters)
+      if (draggedCharacter.value.sourceHexId !== undefined) {
+        // This is a character being moved from another hex on the grid
+        validDropZone = true
+      } else {
+        // Character selection: check team capacity
+        validDropZone = gridStore.canPlaceCharacter(draggedCharacter.value.id, tileTeam)
+      }
     }
   }
 
@@ -229,9 +274,9 @@ const isElevated = (hex: Hex) => {
 const regularHexes = computed(() => props.hexes.filter((hex) => !isElevated(hex)))
 const elevatedHexes = computed(() => props.hexes.filter((hex) => isElevated(hex)))
 
-// Clear hover state when drag ends globally
+// Hover state is now managed by position-based detection
 const handleDragEnded = () => {
-  dragHoveredHex.value = null
+  // No longer needed - position-based system handles cleanup
 }
 
 onMounted(() => {
@@ -327,10 +372,14 @@ onUnmounted(() => {
         </text>
       </g>
 
-      <!-- Character components and other content (render on top of everything) -->
+      <!-- Character components and other content -->
       <slot />
 
-      <!-- Invisible event layer (renders on top for event handling and border styling) -->
+      <!-- 
+        Invisible event layer - MUST be rendered last to be topmost layer
+        This ensures drag and drop events are captured even when hovering over characters
+        All character visual elements have pointer-events: none to allow events to pass through
+      -->
       <g
         v-for="hex in hexes"
         :key="`event-${hex.getId()}`"
@@ -372,9 +421,12 @@ onUnmounted(() => {
 .grid-event-layer {
   cursor: pointer;
   pointer-events: all;
+  /* Ensure event layer can receive drop events even with HTML overlays above */
 }
 
+/* Ensure event layer polygons can receive all pointer events including drops */
 .grid-event-layer polygon {
+  pointer-events: all;
   transition:
     fill 0.2s ease,
     stroke 0.2s ease,

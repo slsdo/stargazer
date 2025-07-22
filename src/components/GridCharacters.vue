@@ -63,62 +63,76 @@ const getBackgroundColor = (characterId: string): string => {
 </script>
 
 <template>
-  <g v-for="[hexId, characterId] in characterPlacements" :key="hexId" class="grid-characters">
-    <g v-if="hexExists(hexId)">
-      <!-- Clipping mask for character image -->
-      <defs>
-        <clipPath :id="`clip-grid-character-${hexId}`">
-          <circle
-            :cx="gridStore.getHexPosition(hexId).x"
-            :cy="gridStore.getHexPosition(hexId).y"
-            :r="innerRadius"
-          />
-        </clipPath>
-      </defs>
-      <!-- Background circle -->
-      <circle
-        :cx="gridStore.getHexPosition(hexId).x"
-        :cy="gridStore.getHexPosition(hexId).y"
-        :r="outerRadius"
-        :fill="getBackgroundColor(characterId)"
-        :fill-opacity="backgroundOpacity"
-        :stroke="getBackgroundColor(characterId)"
-        :stroke-width="borderWidth"
-      />
-      <!-- Character image (clipped to inner circle) -->
-      <image
-        :href="characterImages[characterId]"
-        :x="gridStore.getHexPosition(hexId).x - outerRadius"
-        :y="gridStore.getHexPosition(hexId).y - outerRadius"
-        :width="outerRadius * 2"
-        :height="outerRadius * 2"
-        :clip-path="`url(#clip-grid-character-${hexId})`"
-      />
-      <!-- Inner border circle (drawn on top) -->
-      <circle
-        :cx="gridStore.getHexPosition(hexId).x"
-        :cy="gridStore.getHexPosition(hexId).y"
-        :r="innerRadius"
-        fill="none"
-        :stroke="borderColor"
-        :stroke-width="innerBorderWidth"
-      />
-      <!-- Semi-transparent overlay -->
-      <circle
-        v-if="showOverlay"
-        :cx="gridStore.getHexPosition(hexId).x"
-        :cy="gridStore.getHexPosition(hexId).y"
-        :r="innerRadius"
-        :fill="overlayColor"
-        :fill-opacity="overlayOpacity"
-        style="pointer-events: none"
-      />
+  <g class="grid-characters-container">
+    <!-- SVG elements for visual display -->
+    <g v-for="[hexId, characterId] in characterPlacements" :key="hexId" class="grid-characters">
+      <g v-if="hexExists(hexId)">
+        <!-- Clipping mask for character image -->
+        <defs>
+          <clipPath :id="`clip-grid-character-${hexId}`">
+            <circle
+              :cx="gridStore.getHexPosition(hexId).x"
+              :cy="gridStore.getHexPosition(hexId).y"
+              :r="innerRadius"
+            />
+          </clipPath>
+        </defs>
+        <!-- Background circle -->
+        <circle
+          :cx="gridStore.getHexPosition(hexId).x"
+          :cy="gridStore.getHexPosition(hexId).y"
+          :r="outerRadius"
+          :fill="getBackgroundColor(characterId)"
+          :fill-opacity="backgroundOpacity"
+          :stroke="getBackgroundColor(characterId)"
+          :stroke-width="borderWidth"
+        />
+        <!-- Character image (clipped to inner circle) -->
+        <image
+          :href="characterImages[characterId]"
+          :x="gridStore.getHexPosition(hexId).x - outerRadius"
+          :y="gridStore.getHexPosition(hexId).y - outerRadius"
+          :width="outerRadius * 2"
+          :height="outerRadius * 2"
+          :clip-path="`url(#clip-grid-character-${hexId})`"
+          class="character-image"
+        />
+        <!-- Inner border circle (drawn on top) -->
+        <circle
+          :cx="gridStore.getHexPosition(hexId).x"
+          :cy="gridStore.getHexPosition(hexId).y"
+          :r="innerRadius"
+          fill="none"
+          :stroke="borderColor"
+          :stroke-width="innerBorderWidth"
+        />
+        <!-- Semi-transparent overlay -->
+        <circle
+          v-if="showOverlay"
+          :cx="gridStore.getHexPosition(hexId).x"
+          :cy="gridStore.getHexPosition(hexId).y"
+          :r="innerRadius"
+          :fill="overlayColor"
+          :fill-opacity="overlayOpacity"
+          style="pointer-events: none"
+        />
+      </g>
     </g>
   </g>
 </template>
 
 <style scoped>
-.grid-characters image {
+/* 
+ * Disable pointer events on all character visual elements to allow 
+ * drag and drop events to pass through to the hex tiles underneath.
+ * The HTML overlay in Home.vue handles character dragging instead.
+ */
+.character-image {
+  pointer-events: none;
+}
+
+/* Ensure all SVG elements in character display don't block hex tile events */
+.grid-characters * {
   pointer-events: none;
 }
 </style>

@@ -97,20 +97,135 @@ export const useGridStore = defineStore('grid', () => {
     return grid.value.getCharacterTeam(hexId)
   }
 
+  /**
+   * Moves a character with automatic team switching based on target tile state.
+   * Characters can be moved to any valid tile and will automatically join the
+   * appropriate team (ally/enemy). Restores original position on failure.
+   */
+
+  /**
+   * Swaps positions of two characters, handling cross-team moves if necessary.
+   */
+  const swapCharacters = (fromHexId: number, toHexId: number): boolean => {
+    // Don't swap if same hex
+    if (fromHexId === toHexId) {
+      return false
+    }
+
+    // Get both characters and their teams
+    const fromCharacterId = grid.value.getCharacter(fromHexId)
+    const toCharacterId = grid.value.getCharacter(toHexId)
+    const fromTeam = grid.value.getCharacterTeam(fromHexId)
+    const toTeam = grid.value.getCharacterTeam(toHexId)
+
+    // Validate both hexes have characters
+    if (!fromCharacterId || !toCharacterId || !fromTeam || !toTeam) {
+      return false
+    }
+
+    // Get tile states to determine target teams
+    const fromTileState = grid.value.getTile(fromHexId).state
+    const toTileState = grid.value.getTile(toHexId).state
+
+    // Determine what teams the characters should have after swap
+    let fromTargetTeam: Team | null = null
+    let toTargetTeam: Team | null = null
+
+    if (fromTileState === State.AVAILABLE_ALLY || fromTileState === State.OCCUPIED_ALLY) {
+      fromTargetTeam = Team.ALLY
+    } else if (fromTileState === State.AVAILABLE_ENEMY || fromTileState === State.OCCUPIED_ENEMY) {
+      fromTargetTeam = Team.ENEMY
+    }
+
+    if (toTileState === State.AVAILABLE_ALLY || toTileState === State.OCCUPIED_ALLY) {
+      toTargetTeam = Team.ALLY
+    } else if (toTileState === State.AVAILABLE_ENEMY || toTileState === State.OCCUPIED_ENEMY) {
+      toTargetTeam = Team.ENEMY
+    }
+
+    if (!fromTargetTeam || !toTargetTeam) {
+      return false
+    }
+
+    // Remove both characters first
+    grid.value.removeCharacter(fromHexId)
+    grid.value.removeCharacter(toHexId)
+
+    // Place characters in swapped positions with appropriate teams
+    const success1 = grid.value.placeCharacter(fromHexId, toCharacterId, fromTargetTeam)
+    const success2 = grid.value.placeCharacter(toHexId, fromCharacterId, toTargetTeam)
+
+    // If either placement fails, restore original positions
+    if (!success1 || !success2) {
+      // Clean up any partial placements
+      if (success1) grid.value.removeCharacter(fromHexId)
+      if (success2) grid.value.removeCharacter(toHexId)
+      
+      // Restore original positions
+      grid.value.placeCharacter(fromHexId, fromCharacterId, fromTeam)
+      grid.value.placeCharacter(toHexId, toCharacterId, toTeam)
+      return false
+    }
+
+    characterUpdateTrigger.value++ // Trigger Vue reactivity for UI updates
+    return true
+  }
+
   const moveCharacter = (fromHexId: number, toHexId: number, characterId: string): boolean => {
     // Don't move if dropping on the same hex
     if (fromHexId === toHexId) {
       return false
     }
 
-    // Get the team from the source hex
+    // Get the team from the source hex - needed for restoration if move fails
     const team = grid.value.getCharacterTeam(fromHexId) || Team.ALLY
 
-    // Move character from source to target hex
-    grid.value.removeCharacter(fromHexId)
-    const success = grid.value.placeCharacter(toHexId, characterId, team)
-    characterUpdateTrigger.value++ // Trigger reactivity
-    return success
+    // Get target tile to determine what team the character should join
+    const targetTile = grid.value.getTile(toHexId)
+    const targetState = targetTile.state
+
+    // Determine target team based on tile state (enables automatic team switching)
+    let targetTeam: Team | null = null
+    if (targetState === State.AVAILABLE_ALLY || targetState === State.OCCUPIED_ALLY) {
+      targetTeam = Team.ALLY
+    } else if (targetState === State.AVAILABLE_ENEMY || targetState === State.OCCUPIED_ENEMY) {
+      targetTeam = Team.ENEMY
+    }
+
+    // If target tile doesn't support character placement, fail the move
+    if (!targetTeam) {
+      return false
+    }
+
+    // For cross-team moves, we need to handle the character transfer more carefully
+    // Instead of removing then placing, let's try a direct approach
+    if (team !== targetTeam) {
+      // Cross-team move - remove from original team first
+      grid.value.removeCharacter(fromHexId)
+      
+      // For cross-team moves, we should always be able to place the character
+      // since we're switching teams (capacity shouldn't be an issue)
+      const success = grid.value.placeCharacter(toHexId, characterId, targetTeam)
+      
+      if (!success) {
+        // This should rarely happen for cross-team moves, but restore if it does
+        grid.value.placeCharacter(fromHexId, characterId, team)
+      }
+      
+      characterUpdateTrigger.value++ // Trigger Vue reactivity for UI updates
+      return success
+    } else {
+      // Same team move - use the original logic
+      grid.value.removeCharacter(fromHexId)
+      const success = grid.value.placeCharacter(toHexId, characterId, targetTeam)
+      
+      if (!success) {
+        grid.value.placeCharacter(fromHexId, characterId, team)
+      }
+      
+      characterUpdateTrigger.value++ // Trigger Vue reactivity for UI updates
+      return success
+    }
   }
 
   // Grid utility functions
@@ -283,6 +398,7 @@ export const useGridStore = defineStore('grid', () => {
     canPlaceCharacterOnTile,
     getCharacterTeam,
     moveCharacter,
+    swapCharacters,
     getArrowPath,
     getHexById,
     getHexPosition,

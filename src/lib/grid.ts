@@ -6,7 +6,7 @@ import { Pathfinding } from './pathfinding'
 import { Team } from './types/team'
 
 function iniGrid(preset: GridPreset): Hex[] {
-  const centerRowIndex = Math.floor(preset.hex.length / 2) // Default=4
+  const centerRowIndex = Math.floor(preset.hex.length / 2)
   const hexes: Hex[] = []
 
   for (let rowIndex = 0; rowIndex < preset.hex.length; rowIndex++) {
@@ -82,7 +82,6 @@ export class Grid {
     return Array.from(this.storage.values()).map((entry) => entry.hex)
   }
 
-  // Helper method to get hex by ID
   getHexById(id: number): Hex {
     const hex = Array.from(this.storage.values()).find((entry) => entry.hex.getId() === id)?.hex
     if (!hex) throw new Error(`Hex with ID ${id} not found`)
@@ -99,17 +98,14 @@ export class Grid {
     return tile
   }
 
-  // Get all GridTiles
   getAllTiles(): GridTile[] {
     return Array.from(this.storage.values())
   }
 
-  // Get tiles with characters
   getTilesWithCharacters(): GridTile[] {
     return Array.from(this.storage.values()).filter((tile) => tile.character !== undefined)
   }
 
-  // Team availability methods
   getAvailableAlly(): number {
     return this.getAvailableForTeam(Team.ALLY)
   }
@@ -123,10 +119,7 @@ export class Grid {
   }
 
   canPlaceCharacter(characterId: string, team: Team): boolean {
-    // Check if team has space
     if (this.getAvailableForTeam(team) <= 0) return false
-
-    // Check if character is already on the same team
     return !this.teamCharacters.get(team)?.has(characterId)
   }
 
@@ -143,39 +136,30 @@ export class Grid {
    * Place a character on a hex tile
    */
   placeCharacter(hexOrId: Hex | number, characterId: string, team: Team = Team.ALLY): boolean {
-    // Check if tile allows this team
     if (!this.canPlaceCharacterOnTile(hexOrId, team)) return false
-
-    // Check if character can be placed (team size and duplicate restrictions)
     if (!this.canPlaceCharacter(characterId, team)) return false
 
     const tile = this.getTile(hexOrId)
 
-    // If there's already a character on this tile, remove it first
     if (tile.character) {
       this.removeCharacterFromTeam(tile.character, tile.team)
     }
 
-    // Place the new character
     this.setCharacterOnTile(tile, characterId, team)
 
     return true
   }
 
-  // Helper method to get original tile state (before character placement)
   private getOriginalTileState(hexOrId: Hex | number): State {
-    // Check the arena configuration to see what this tile's original state should be
     const tile = this.getTile(hexOrId)
     const currentState = tile.state
 
-    // If it's occupied, determine what it should be when empty
     if (currentState === State.OCCUPIED_ALLY) {
       return State.AVAILABLE_ALLY
     } else if (currentState === State.OCCUPIED_ENEMY) {
       return State.AVAILABLE_ENEMY
     }
 
-    // For other states, return as is
     return currentState
   }
 
@@ -207,7 +191,6 @@ export class Grid {
     return this.getTile(hexOrId).character !== undefined
   }
 
-  // Get all character placements as a Map for compatibility
   getCharacterPlacements(): Map<number, string> {
     const placements = new Map<number, string>()
     for (const entry of this.storage.values()) {
@@ -218,7 +201,6 @@ export class Grid {
     return placements
   }
 
-  // Clear all characters
   clearAllCharacters(): void {
     for (const entry of this.storage.values()) {
       if (entry.character) {
@@ -236,7 +218,6 @@ export class Grid {
     return this.getTile(hexOrId).team
   }
 
-  // Get count of placed characters
   getCharacterCount(): number {
     let count = 0
     for (const entry of this.storage.values()) {
@@ -275,11 +256,7 @@ export class Grid {
   ): { hexId: number; distance: number } | null {
     let closest: { hexId: number; distance: number } | null = null
 
-    // Create a safe getTile helper that returns undefined for out-of-bounds hexes
-    // The A* pathfinding algorithm explores all neighbors of each hex during pathfinding.
-    // When hexes are near grid edges, some neighbors will be outside the grid bounds.
-    // getTile() throws an error for non-existent hexes, so we catch these and return
-    // undefined, which the pathfinding algorithm treats as impassable terrain.
+    // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
     const getTileHelper = (hex: Hex) => {
       try {
         return this.getTile(hex)
@@ -289,16 +266,13 @@ export class Grid {
     }
 
     for (const targetTile of targetTiles) {
-      // Create traversal function that allows destination tile
       const canTraverseToTarget = (tile: GridTile) => {
-        // Always allow the target tile itself
         if (tile.hex.equals(targetTile.hex)) {
           return true
         }
         return canTraverse(tile)
       }
 
-      // Calculate path distance using A*
       const pathDistance = Pathfinding.findPathDistance(
         sourceTile.hex,
         targetTile.hex,
@@ -306,12 +280,10 @@ export class Grid {
         canTraverseToTarget,
       )
 
-      // Skip if no path exists
       if (pathDistance === null) {
         continue
       }
 
-      // Update if this target is closer, or same distance with lower hex ID
       if (
         !closest ||
         pathDistance < closest.distance ||
@@ -387,7 +359,6 @@ export class Grid {
     return result
   }
 
-  // Consolidated character operation methods
   private removeCharacterFromTeam(characterId: string, team: Team | undefined): void {
     if (team) {
       this.teamCharacters.get(team)?.delete(characterId)

@@ -12,13 +12,90 @@ import type { CharacterType } from '../lib/types/character'
 import type { ArtifactType } from '../lib/types/artifact'
 import type { Hex } from '../lib/hex'
 import { Team } from '../lib/types/team'
+import { State } from '../lib/types/state'
 import { useGridStore } from '../stores/grid'
 import { getMapNames } from '../lib/maps'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { loadAssetsDict } from '../utils/assetLoader'
+import { useDragDrop } from '../composables/useDragDrop'
 
 // Use Pinia grid store
 const gridStore = useGridStore()
+
+// Use drag and drop composable
+const {
+  startDrag,
+  endDrag,
+  currentMousePosition,
+  hoveredHexId,
+  setHoveredHex,
+  isDragging,
+  handleDrop,
+  dropHandled,
+  setDropHandled,
+} = useDragDrop()
+
+/**
+ * Utility function to find which hex is under the given screen coordinates
+ * Uses point-in-polygon detection to accurately determine hex boundaries
+ *
+ * @param x - Screen X coordinate
+ * @param y - Screen Y coordinate
+ * @returns Hex ID if mouse is over a hex, null otherwise
+ */
+const findHexUnderMouse = (x: number, y: number): number | null => {
+  // Get the SVG element to convert screen coordinates to SVG coordinates
+  const svgElement = document.querySelector('.grid-tiles') as SVGSVGElement
+  if (!svgElement) return null
+
+  // Create SVG point for coordinate conversion
+  const pt = svgElement.createSVGPoint()
+  pt.x = x
+  pt.y = y
+
+  // Convert screen coordinates to SVG coordinates
+  const screenCTM = svgElement.getScreenCTM()
+  if (!screenCTM) return null
+  const svgPt = pt.matrixTransform(screenCTM.inverse())
+
+  // Check each hex to see if the point is inside it
+  for (const hex of gridStore.hexes) {
+    const hexCenter = gridStore.layout.hexToPixel(hex)
+    const corners = gridStore.layout.polygonCorners(hex)
+
+    // Point-in-polygon test
+    if (isPointInPolygon({ x: svgPt.x, y: svgPt.y }, corners)) {
+      return hex.getId()
+    }
+  }
+
+  return null
+}
+
+/**
+ * Point-in-polygon algorithm to check if a point is inside a hexagon
+ * Uses ray casting algorithm
+ */
+const isPointInPolygon = (
+  point: { x: number; y: number },
+  vertices: { x: number; y: number }[],
+): boolean => {
+  let inside = false
+  const n = vertices.length
+
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const xi = vertices[i].x
+    const yi = vertices[i].y
+    const xj = vertices[j].x
+    const yj = vertices[j].y
+
+    if (yi > point.y !== yj > point.y && point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi) {
+      inside = !inside
+    }
+  }
+
+  return inside
+}
 
 // Tab state management
 const activeTab = ref('characters')
@@ -97,6 +174,160 @@ const icons = loadAssetsDict(
     string
   >,
 )
+
+/**
+ * Drag and drop system combining SVG events with position-based hex detection.
+ * 
+ * Uses HTML overlays to drag grid characters and point-in-polygon detection
+ * to handle drops when character portraits block tile events. Supports automatic
+ * team assignment and character swapping between occupied tiles.
+ */
+
+// Grid character drag handlers using HTML overlays
+const handleCharacterDragStart = (event: DragEvent, hexId: number, characterId: string) => {
+  const character = characters.find((c) => c.id === characterId)
+  if (!character) return
+
+  // Add sourceHexId to differentiate from character selection drags
+  const characterWithSource = { ...character, sourceHexId: hexId }
+  startDrag(event, characterWithSource, characterId, characterImages[characterId])
+}
+
+// Clean up drag state when character drag ends
+const handleCharacterDragEnd = (event: DragEvent) => {
+  endDrag(event)
+}
+
+// Remove character when clicking on overlay
+const handleCharacterOverlayClick = (hexId: number) => {
+  gridStore.handleHexClick(gridStore.getHexById(hexId))
+}
+
+// Global drop handling for characters dropped outside valid hexes
+const handleGlobalDrop = (event: DragEvent) => {
+  // Prevent default behavior
+  event.preventDefault()
+  
+  // Check if drop was already handled by a hex tile
+  if (dropHandled.value) {
+    console.log('Drop already handled by hex tile, skipping global handler')
+    return
+  }
+  
+  // Check if we detected a hex under the mouse using position-based detection
+  if (hoveredHexId.value !== null) {
+    // Simulate a drop on the detected hex
+    const hex = gridStore.getHexById(hoveredHexId.value)
+    triggerHexDrop(event, hex)
+  }
+
+  // This handler will catch drops that didn't land on a valid hex
+  // The drag will automatically end and the character will remain in its original position
+  // due to the logic in moveCharacter that restores on failed placement
+}
+
+// Utility function to trigger drop logic programmatically
+const triggerHexDrop = (event: DragEvent, hex: any) => {
+  console.log('Position-based drop detected on hex:', hex.getId())
+
+  // Use the same drop logic as GridTiles.vue
+  const dropResult = handleDrop(event)
+
+  if (dropResult) {
+    const { character, characterId } = dropResult
+    console.log('Processing position-based drop:', character.id, 'on hex:', hex.getId())
+    
+    // Mark drop as handled
+    setDropHandled(true)
+
+    // Check if this is a character being moved from another hex (drag from grid)
+    if (character.sourceHexId !== undefined) {
+      const sourceHexId = character.sourceHexId
+      const targetHexId = hex.getId()
+      
+      // Check if target hex is occupied - if so, swap characters
+      if (gridStore.isHexOccupied(targetHexId)) {
+        console.log('Target hex is occupied, swapping characters')
+        const swapped = gridStore.swapCharacters(sourceHexId, targetHexId)
+        if (swapped) {
+          console.log('Swapped characters between hex', sourceHexId, 'and hex', targetHexId)
+        } else {
+          console.log('Failed to swap characters')
+        }
+      } else {
+        // Target hex is empty, use regular move
+        const moved = gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
+        if (moved) {
+          console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
+        }
+      }
+    } else {
+      // This is a new character placement from the character selection
+      const hexId = hex.getId()
+      const tile = gridStore.getTile(hexId)
+      const state = tile.state
+
+      // Determine the team based on tile state
+      let team: Team
+      if (state === State.AVAILABLE_ALLY || state === State.OCCUPIED_ALLY) {
+        team = Team.ALLY
+      } else if (state === State.AVAILABLE_ENEMY || state === State.OCCUPIED_ENEMY) {
+        team = Team.ENEMY
+      } else {
+        console.log(`Cannot drop character on tile ${hexId} - invalid state: ${state}`)
+        return
+      }
+
+      // Check if the team has space for this character
+      if (!gridStore.canPlaceCharacter(characterId, team)) {
+        console.log(`Failed to place character - team ${team} is full or character already on team`)
+        return
+      }
+
+      const success = gridStore.placeCharacterOnHex(hexId, characterId, team)
+      if (!success) {
+        console.log('Failed to place character')
+        return
+      }
+    }
+  }
+}
+
+// Global mouse tracking for hex detection during drag
+const handleGlobalMouseMove = (event: MouseEvent) => {
+  if (isDragging.value) {
+    const hexId = findHexUnderMouse(event.clientX, event.clientY)
+    setHoveredHex(hexId)
+  }
+}
+
+// Also track during dragover events for better coverage
+const handleGlobalDragOver = (event: DragEvent) => {
+  // Prevent default to allow drop
+  event.preventDefault()
+
+  // Update hex detection during dragover as backup to mousemove
+  if (isDragging.value) {
+    const hexId = findHexUnderMouse(event.clientX, event.clientY)
+    setHoveredHex(hexId)
+  }
+}
+
+// Setup global event handlers
+onMounted(() => {
+  // Add listeners to the document body to catch drops outside the grid
+  document.addEventListener('drop', handleGlobalDrop)
+  document.addEventListener('dragover', handleGlobalDragOver)
+  // Add mouse tracking for hex detection during drag
+  document.addEventListener('mousemove', handleGlobalMouseMove)
+})
+
+onUnmounted(() => {
+  // Clean up listeners
+  document.removeEventListener('drop', handleGlobalDrop)
+  document.removeEventListener('dragover', handleGlobalDragOver)
+  document.removeEventListener('mousemove', handleGlobalMouseMove)
+})
 </script>
 
 <template>
@@ -162,6 +393,25 @@ const icons = loadAssetsDict(
               />
             </GridTiles>
 
+            <!-- HTML overlay system for dragging grid characters -->
+            <div class="character-drag-overlay" v-if="gridStore.characterPlacements.size > 0">
+              <div
+                v-for="[hexId, characterId] in gridStore.characterPlacements"
+                :key="hexId"
+                class="character-drag-handle"
+                :style="{
+                  left: `${gridStore.getHexPosition(hexId).x - 30}px`,
+                  top: `${gridStore.getHexPosition(hexId).y - 30}px`,
+                  width: '60px',
+                  height: '60px',
+                }"
+                :draggable="true"
+                @dragstart="handleCharacterDragStart($event, hexId, characterId)"
+                @dragend="handleCharacterDragEnd($event)"
+                @click="handleCharacterOverlayClick(hexId)"
+              />
+            </div>
+
             <!-- Artifact Display -->
             <GridArtifacts
               :allyArtifact="gridStore.allyArtifact"
@@ -220,6 +470,28 @@ const icons = loadAssetsDict(
 </template>
 
 <style scoped>
+/* HTML overlay styles for grid character dragging */
+/* Container for character drag overlays */
+.character-drag-overlay {
+  position: absolute; /* Positioned relative to the grid container */
+  top: 0;
+  left: 0;
+  pointer-events: none; /* Container doesn't intercept events, only children do */
+}
+
+/* Invisible draggable handles positioned over each character */
+.character-drag-handle {
+  position: absolute;
+  border-radius: 50%;
+  cursor: grab;
+  pointer-events: all;
+  z-index: 10;
+  /* Uncomment for debugging: background: rgba(255, 0, 0, 0.2); */
+}
+
+.character-drag-handle:active {
+  cursor: grabbing;
+}
 main {
   flex: 1;
   display: flex;
