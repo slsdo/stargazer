@@ -110,9 +110,9 @@ const getImageName = (imageSrc: string): string => {
 
 <style scoped>
 .grid-stats {
-  padding: 1rem;
-  background: #f0f0f0;
-  border-radius: 8px;
+  padding: var(--spacing-lg);
+  background: var(--color-bg-light-gray);
+  border-radius: var(--radius-large);
 }
 
 .stats-header {
@@ -124,7 +124,7 @@ const getImageName = (imageSrc: string): string => {
 
 .grid-stats h3 {
   margin: 0;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .toggle-btn {
@@ -182,8 +182,8 @@ const getImageName = (imageSrc: string): string => {
 }
 
 .grid-stats p {
-  margin: 0.5rem 0;
-  color: #666;
+  margin: var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
 }
 
 .grid-stats ul {
@@ -195,59 +195,59 @@ const getImageName = (imageSrc: string): string => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem;
-  background: white;
-  margin: 0.5rem 0;
-  border-radius: 4px;
+  padding: var(--spacing-sm);
+  background: var(--color-bg-white);
+  margin: var(--spacing-sm) 0;
+  border-radius: var(--radius-small);
 }
 
 .character-tile {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
-  background: white;
-  margin: 0.5rem 0;
-  border-radius: 6px;
-  border-left: 4px solid #ddd;
+  padding: var(--spacing-md);
+  background: var(--color-bg-white);
+  margin: var(--spacing-sm) 0;
+  border-radius: var(--radius-medium);
+  border-left: 4px solid var(--color-border-light);
 }
 
 .character-tile.ally-character {
-  border-left-color: #36958e;
+  border-left-color: var(--color-ally);
 }
 
 .character-tile.enemy-character {
-  border-left-color: #c82333;
+  border-left-color: var(--color-enemy);
 }
 
 .tile-info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--spacing-xs);
   flex: 1;
 }
 
 .tile-main {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--spacing-md);
   align-items: center;
 }
 
 .hex-id {
   font-weight: bold;
-  color: #333;
+  color: var(--color-text-primary);
   font-size: 0.9rem;
 }
 
 .character-name {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 
 .tile-state {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
@@ -314,11 +314,11 @@ const getImageName = (imageSrc: string): string => {
 }
 
 .remove-btn {
-  background: #c05b4d;
+  background: var(--color-danger);
   color: white;
   border: none;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-small);
   cursor: pointer;
   font-size: 1rem;
   font-weight: bold;
@@ -331,7 +331,7 @@ const getImageName = (imageSrc: string): string => {
 }
 
 .remove-btn:hover {
-  background: #c82333;
+  background: var(--color-danger-hover);
 }
 
 /* Artifact section styles */

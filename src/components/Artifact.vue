@@ -30,29 +30,29 @@ const handleClick = () => {
 .artifact {
   width: 50px;
   height: 50px;
-  border-radius: 50%;
-  border: 2px solid #fff;
+  border-radius: var(--radius-round);
+  border: 2px solid var(--color-bg-white);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 0 5px #fff;
+  box-shadow: 0 0 0 5px var(--color-bg-white);
   font-size: 1rem;
   font-weight: 600;
   text-align: center;
-  margin-top: 0.25rem;
-  color: #333;
+  margin-top: var(--spacing-xs);
+  color: var(--color-text-primary);
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-fast);
 }
 
 .artifact::before {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   background: #fff4;
 }
 
@@ -77,6 +77,6 @@ const handleClick = () => {
 }
 
 .artifact.placed {
-  box-shadow: 0 0 0 5px #c05b4d;
+  box-shadow: 0 0 0 5px var(--color-danger);
 }
 </style>

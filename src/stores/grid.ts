@@ -25,43 +25,30 @@ export const useGridStore = defineStore('grid', () => {
   const allyArtifact = ref<string | null>(null)
   const enemyArtifact = ref<string | null>(null)
 
-  // Getters that read from Grid instance
+  // Consolidated character state - single computation point
+  const characterState = computed(() => {
+    characterUpdateTrigger.value // Single reactivity trigger
+    return {
+      count: grid.value.getCharacterCount(),
+      placements: grid.value.getCharacterPlacements(),
+      placedList: Array.from(grid.value.getCharacterPlacements().entries()),
+      tilesWithCharacters: grid.value.getTilesWithCharacters(),
+      availableAlly: grid.value.getAvailableAlly(),
+      availableEnemy: grid.value.getAvailableEnemy(),
+      closestEnemyMap: grid.value.getClosestEnemyMap(),
+      closestAllyMap: grid.value.getClosestAllyMap()
+    }
+  })
+
+  // Individual getters that access consolidated state
   const totalHexes = computed(() => hexes.value.length)
-  const charactersPlaced = computed(() => {
-    characterUpdateTrigger.value // Reactivity trigger
-    return grid.value.getCharacterCount()
-  })
-  const placedCharactersList = computed(() => {
-    characterUpdateTrigger.value // Reactivity trigger
-    return Array.from(grid.value.getCharacterPlacements().entries())
-  })
-  const characterPlacements = computed(() => {
-    characterUpdateTrigger.value // Reactivity trigger
-    return grid.value.getCharacterPlacements()
-  })
-
-  // Team availability getters
-  const availableAlly = computed(() => {
-    characterUpdateTrigger.value // Reactivity trigger
-    return grid.value.getAvailableAlly()
-  })
-
-  const availableEnemy = computed(() => {
-    characterUpdateTrigger.value // Reactivity trigger
-    return grid.value.getAvailableEnemy()
-  })
-
-  // Compute closest enemy map using Grid method
-  const closestEnemyMap = computed(() => {
-    characterUpdateTrigger.value // Reactivity trigger
-    return grid.value.getClosestEnemyMap()
-  })
-
-  // Compute closest ally map using Grid method
-  const closestAllyMap = computed(() => {
-    characterUpdateTrigger.value // Reactivity trigger
-    return grid.value.getClosestAllyMap()
-  })
+  const charactersPlaced = computed(() => characterState.value.count)
+  const placedCharactersList = computed(() => characterState.value.placedList)
+  const characterPlacements = computed(() => characterState.value.placements)
+  const availableAlly = computed(() => characterState.value.availableAlly)
+  const availableEnemy = computed(() => characterState.value.availableEnemy)
+  const closestEnemyMap = computed(() => characterState.value.closestEnemyMap)
+  const closestAllyMap = computed(() => characterState.value.closestAllyMap)
 
   // Actions that use Grid instance
   const placeCharacterOnHex = (
@@ -138,6 +125,7 @@ export const useGridStore = defineStore('grid', () => {
     return layout.getArrowPath(startHex, endHex, characterRadius, invertCurve)
   }
 
+  // Static methods that don't need reactivity - moved above
   const getHexById = (id: number): Hex => {
     return grid.value.getHexById(id)
   }
@@ -161,8 +149,8 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   const getTilesWithCharacters = (): GridTile[] => {
-    characterUpdateTrigger.value // Reactivity trigger
-    return grid.value.getTilesWithCharacters()
+    // Use consolidated state instead of direct grid access
+    return characterState.value.tilesWithCharacters
   }
 
   const autoPlaceCharacter = (characterId: string, team: Team): boolean => {
