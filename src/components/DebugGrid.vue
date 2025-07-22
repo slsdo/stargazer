@@ -30,6 +30,10 @@ const getImageName = (imageSrc: string): string => {
           v-for="tile in gridStore.getTilesWithCharacters()"
           :key="tile.hex.getId()"
           class="character-tile"
+          :class="{
+            'ally-character': tile.team === Team.ALLY,
+            'enemy-character': tile.team === Team.ENEMY,
+          }"
         >
           <div class="tile-info">
             <div class="tile-main">
@@ -65,6 +69,41 @@ const getImageName = (imageSrc: string): string => {
           </button>
         </li>
       </ul>
+    </div>
+
+    <!-- Artifact Selection Info -->
+    <div class="artifact-section">
+      <h4>Artifact Selection</h4>
+      <div class="artifact-info">
+        <div class="artifact-team ally">
+          <span class="team-label">Artifact (Ally):</span>
+          <span class="artifact-name" v-if="gridStore.allyArtifact">
+            {{ gridStore.allyArtifact }}
+          </span>
+          <span class="artifact-name" v-else>n/a</span>
+          <button
+            v-if="gridStore.allyArtifact"
+            @click="gridStore.removeArtifact(Team.ALLY)"
+            class="remove-artifact-btn"
+          >
+            ×
+          </button>
+        </div>
+        <div class="artifact-team enemy">
+          <span class="team-label">Artifact (Enemy):</span>
+          <span class="artifact-name" v-if="gridStore.enemyArtifact">
+            {{ gridStore.enemyArtifact }}
+          </span>
+          <span class="artifact-name" v-else>n/a</span>
+          <button
+            v-if="gridStore.enemyArtifact"
+            @click="gridStore.removeArtifact(Team.ENEMY)"
+            class="remove-artifact-btn"
+          >
+            ×
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -171,6 +210,14 @@ const getImageName = (imageSrc: string): string => {
   margin: 0.5rem 0;
   border-radius: 6px;
   border-left: 4px solid #ddd;
+}
+
+.character-tile.ally-character {
+  border-left-color: #36958e;
+}
+
+.character-tile.enemy-character {
+  border-left-color: #c82333;
 }
 
 .tile-info {
@@ -284,6 +331,80 @@ const getImageName = (imageSrc: string): string => {
 }
 
 .remove-btn:hover {
+  background: #c82333;
+}
+
+/* Artifact section styles */
+.artifact-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid #ddd;
+}
+
+.artifact-section h4 {
+  margin: 0 0 0.75rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.artifact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.artifact-team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 6px;
+  border-left: 4px solid #ddd;
+}
+
+.artifact-team.ally {
+  border-left-color: #36958e;
+}
+
+.artifact-team.enemy {
+  border-left-color: #c82333;
+}
+
+.team-label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #333;
+  min-width: 130px;
+  text-align: left;
+}
+
+.artifact-name {
+  color: #666;
+  font-size: 0.9rem;
+  flex: 1;
+  font-family: monospace;
+  text-align: left;
+}
+
+.remove-artifact-btn {
+  background: #c05b4d;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  line-height: 1;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-artifact-btn:hover {
   background: #c82333;
 }
 </style>

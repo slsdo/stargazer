@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import CharacterSelection from '../components/CharacterSelection.vue'
+import ArtifactSelection from '../components/ArtifactSelection.vue'
 import GridTiles from '../components/GridTiles.vue'
 import GridCharacters from '../components/GridCharacters.vue'
 import GridArrow from '../components/GridArrow.vue'
 import DebugGrid from '../components/DebugGrid.vue'
 import type { CharacterType } from '../lib/types/character'
+import type { ArtifactType } from '../lib/types/artifact'
 import type { Hex } from '../lib/hex'
+import { Team } from '../lib/types/team'
 import { useGridStore } from '../stores/grid'
 import { getMapNames } from '../lib/maps'
 import { ref, onMounted, onUnmounted } from 'vue'
@@ -75,6 +78,11 @@ const handleArrowClick = (startHexId: number, endHexId: number) => {
   console.log('Arrow clicked:', startHexId, '->', endHexId)
 }
 
+const handleArtifactGridClick = (team: Team) => {
+  console.log('Artifact grid clicked for team:', team)
+  gridStore.removeArtifact(team)
+}
+
 // Grid starts empty - no default character placement
 
 const characters = (
@@ -83,8 +91,21 @@ const characters = (
   ) as CharacterType[]
 ).sort((a, b) => a.faction.localeCompare(b.faction))
 
+const artifacts = (
+  Object.values(
+    import.meta.glob('../data/artifact/*.json', { eager: true, import: 'default' }),
+  ) as ArtifactType[]
+).sort((a, b) => a.id.localeCompare(b.id))
+
 const characterImages = loadAssetsDict(
   import.meta.glob('../assets/images/character/*.png', {
+    eager: true,
+    import: 'default',
+  }) as Record<string, string>,
+)
+
+const artifactImages = loadAssetsDict(
+  import.meta.glob('../assets/images/artifact/*.png', {
     eager: true,
     import: 'default',
   }) as Record<string, string>,
@@ -160,6 +181,33 @@ const icons = loadAssetsDict(
                 @character-click="handleCharacterClick"
               />
             </GridTiles>
+
+            <!-- Artifact Display -->
+            <!-- Ally Artifact (bottom left) -->
+            <div 
+              v-if="gridStore.allyArtifact" 
+              class="artifact-display ally-artifact"
+              @click="handleArtifactGridClick(Team.ALLY)"
+            >
+              <img
+                :src="artifactImages[gridStore.allyArtifact]"
+                :alt="gridStore.allyArtifact"
+                class="artifact-portrait"
+              />
+            </div>
+
+            <!-- Enemy Artifact (top right) -->
+            <div 
+              v-if="gridStore.enemyArtifact" 
+              class="artifact-display enemy-artifact"
+              @click="handleArtifactGridClick(Team.ENEMY)"
+            >
+              <img
+                :src="artifactImages[gridStore.enemyArtifact]"
+                :alt="gridStore.enemyArtifact"
+                class="artifact-portrait"
+              />
+            </div>
           </div>
 
           <!-- Debug Panel -->
@@ -195,6 +243,12 @@ const icons = loadAssetsDict(
           >
             Characters
           </button>
+          <button
+            @click="setActiveTab('artifacts')"
+            :class="['tab-btn', { active: activeTab === 'artifacts' }]"
+          >
+            Artifacts
+          </button>
           <div class="tab-dropdown">
             <button @click="toggleMapDropdown" class="tab-btn dropdown-btn">
               Map: {{ availableMaps.find((m) => m.key === selectedMap)?.name || 'Arena 1' }} ▼
@@ -221,6 +275,14 @@ const icons = loadAssetsDict(
               :characterImages="characterImages"
               :icons="icons"
               :isDraggable="true"
+            />
+          </div>
+          <!-- Artifacts Tab -->
+          <div v-show="activeTab === 'artifacts'" class="tab-panel">
+            <ArtifactSelection
+              :artifacts="artifacts"
+              :artifactImages="artifactImages"
+              :icons="icons"
             />
           </div>
         </div>
@@ -432,5 +494,38 @@ main {
 .dropdown-item.selected {
   background: #36958e;
   color: white;
+}
+
+.artifact-display {
+  position: absolute;
+  z-index: 10;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 4px #999;
+  cursor: pointer;
+}
+
+.ally-artifact {
+  bottom: 25px;
+  left: 55px;
+}
+
+.enemy-artifact {
+  top: 25px;
+  right: 55px;
+}
+
+.artifact-portrait {
+  width: 95px;
+  height: 95px;
+  object-fit: cover;
+  z-index: 1;
+  transform: translateY(-8px) translateX(1px);
 }
 </style>

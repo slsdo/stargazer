@@ -21,6 +21,7 @@ const setTeam = (team: Team) => {
 
 const clearAll = () => {
   gridStore.clearAllCharacters()
+  gridStore.clearAllArtifacts()
 }
 
 const isCharacterPlaced = (characterId: string): boolean => {

@@ -20,6 +20,10 @@ export const useGridStore = defineStore('grid', () => {
 
   // Reactive trigger for character updates
   const characterUpdateTrigger = ref(0)
+  
+  // Artifact tracking
+  const allyArtifact = ref<string | null>(null)
+  const enemyArtifact = ref<string | null>(null)
 
   // Getters that read from Grid instance
   const totalHexes = computed(() => hexes.value.length)
@@ -233,6 +237,34 @@ export const useGridStore = defineStore('grid', () => {
     return true
   }
 
+  // Artifact management functions
+  const placeArtifact = (artifactId: string, team: Team): boolean => {
+    console.log('Store: placing artifact', artifactId, 'for team:', team)
+    
+    if (team === Team.ALLY) {
+      allyArtifact.value = artifactId
+      console.log('Store: ally artifact set to:', artifactId)
+    } else {
+      enemyArtifact.value = artifactId
+      console.log('Store: enemy artifact set to:', artifactId)
+    }
+    
+    return true
+  }
+
+  const removeArtifact = (team: Team) => {
+    if (team === Team.ALLY) {
+      allyArtifact.value = null
+    } else {
+      enemyArtifact.value = null
+    }
+  }
+
+  const clearAllArtifacts = () => {
+    allyArtifact.value = null
+    enemyArtifact.value = null
+  }
+
   return {
     // Core grid data (readonly)
     grid: readonly(grid),
@@ -274,5 +306,12 @@ export const useGridStore = defineStore('grid', () => {
     autoPlaceCharacter,
     handleHexClick,
     switchMap,
+
+    // Artifact management
+    allyArtifact: readonly(allyArtifact),
+    enemyArtifact: readonly(enemyArtifact),
+    placeArtifact,
+    removeArtifact,
+    clearAllArtifacts,
   }
 })
