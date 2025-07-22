@@ -1,4 +1,4 @@
-import { State } from '../constants'
+import { State } from '../types/state'
 
 export const ARENA_2 = {
   name: 'Arena II',

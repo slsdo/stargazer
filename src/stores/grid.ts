@@ -2,9 +2,11 @@ import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { Grid, type GridTile } from '../lib/grid'
 import { Layout, POINTY } from '../lib/layout'
-import { State, FULL_GRID } from '../lib/constants'
+import { State } from '../lib/types/state'
+import { FULL_GRID } from '../lib/constants'
 import { getMapByKey, type MapConfig } from '../lib/maps'
 import type { Hex } from '../lib/hex'
+import { Team } from '../lib/types/team'
 
 export const useGridStore = defineStore('grid', () => {
   // Core grid instances
@@ -61,7 +63,7 @@ export const useGridStore = defineStore('grid', () => {
   const placeCharacterOnHex = (
     hexId: number,
     characterId: string,
-    team: 'Ally' | 'Enemy' = 'Ally',
+    team: Team = Team.ALLY,
   ): boolean => {
     console.log('Store: placing character on hex', hexId, characterId, 'team:', team)
     const success = grid.value.placeCharacter(hexId, characterId, team)
@@ -92,15 +94,15 @@ export const useGridStore = defineStore('grid', () => {
     return grid.value.hasCharacter(hexId)
   }
 
-  const canPlaceCharacter = (characterId: string, team: 'Ally' | 'Enemy'): boolean => {
+  const canPlaceCharacter = (characterId: string, team: Team): boolean => {
     return grid.value.canPlaceCharacter(characterId, team)
   }
 
-  const canPlaceCharacterOnTile = (hexId: number, team: 'Ally' | 'Enemy'): boolean => {
+  const canPlaceCharacterOnTile = (hexId: number, team: Team): boolean => {
     return grid.value.canPlaceCharacterOnTile(hexId, team)
   }
 
-  const getCharacterTeam = (hexId: number): 'Ally' | 'Enemy' | undefined => {
+  const getCharacterTeam = (hexId: number): Team | undefined => {
     return grid.value.getCharacterTeam(hexId)
   }
 
@@ -111,7 +113,7 @@ export const useGridStore = defineStore('grid', () => {
     }
 
     // Get the team from the source hex
-    const team = grid.value.getCharacterTeam(fromHexId) || 'Ally'
+    const team = grid.value.getCharacterTeam(fromHexId) || Team.ALLY
 
     // Move character from source to target hex
     grid.value.removeCharacter(fromHexId)
@@ -159,7 +161,7 @@ export const useGridStore = defineStore('grid', () => {
     return grid.value.getTilesWithCharacters()
   }
 
-  const autoPlaceCharacter = (characterId: string, team: 'Ally' | 'Enemy'): boolean => {
+  const autoPlaceCharacter = (characterId: string, team: Team): boolean => {
     // Check if character can be placed
     if (!canPlaceCharacter(characterId, team)) {
       console.log('Store: cannot place character - team restrictions or duplicate')

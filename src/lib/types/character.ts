@@ -1,3 +1,5 @@
+import { Team } from './team'
+
 export interface CharacterType {
   id: string
   type: string
@@ -8,5 +10,5 @@ export interface CharacterType {
   range: number
   season: number
   sourceHexId?: number // Optional property for tracking drag source
-  team?: 'Ally' | 'Enemy' // Team assignment for placement
+  team?: Team // Team assignment for placement
 }

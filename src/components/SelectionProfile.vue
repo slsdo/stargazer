@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Character from './Character.vue'
-import type { CharacterType } from '../types/character'
+import type { CharacterType } from '../lib/types/character'
 
 defineProps<{
   character: CharacterType

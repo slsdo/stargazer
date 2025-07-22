@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { CharacterType } from '../types/character'
+import type { CharacterType } from '../lib/types/character'
 
 // MIME type for character drag data
 const CHARACTER_MIME_TYPE = 'application/character'

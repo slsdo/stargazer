@@ -33,7 +33,12 @@ const markerId = computed(() =>
 )
 
 const pathData = computed(() => {
-  return gridStore.getArrowPath(props.startHexId, props.endHexId, props.characterRadius, props.invertCurve)
+  return gridStore.getArrowPath(
+    props.startHexId,
+    props.endHexId,
+    props.characterRadius,
+    props.invertCurve,
+  )
 })
 </script>
 

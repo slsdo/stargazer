@@ -13,17 +13,17 @@ export interface MapConfig {
 }
 
 export const MAPS: Record<string, MapConfig> = {
-  'arena1': ARENA_1,
-  'arena2': ARENA_2,
-  'arena3': ARENA_3,
-  'arena4': ARENA_4,
-  'arena5': ARENA_5,
+  arena1: ARENA_1,
+  arena2: ARENA_2,
+  arena3: ARENA_3,
+  arena4: ARENA_4,
+  arena5: ARENA_5,
 }
 
 export const getMapNames = (): Array<{ key: string; name: string }> => {
   return Object.entries(MAPS).map(([key, config]) => ({
     key,
-    name: config.name
+    name: config.name,
   }))
 }
 

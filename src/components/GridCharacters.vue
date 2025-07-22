@@ -2,7 +2,7 @@
 import { useGridStore } from '../stores/grid'
 import type { Hex } from '../lib/hex'
 import type { Layout } from '../lib/layout'
-import type { CharacterType } from '../types/character'
+import type { CharacterType } from '../lib/types/character'
 
 interface Props {
   characterPlacements: Map<number, string>

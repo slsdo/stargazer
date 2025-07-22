@@ -108,7 +108,12 @@ export class Layout {
   }
 
   // Calculate curved arrow path between two hexes
-  getArrowPath(startHex: Hex, endHex: Hex, characterRadius: number = 0, invertCurve: boolean = false): string {
+  getArrowPath(
+    startHex: Hex,
+    endHex: Hex,
+    characterRadius: number = 0,
+    invertCurve: boolean = false,
+  ): string {
     const startCenter = this.hexToPixel(startHex)
     const endCenter = this.hexToPixel(endHex)
 
@@ -116,53 +121,53 @@ export class Layout {
     const dx = endCenter.x - startCenter.x
     const dy = endCenter.y - startCenter.y
     const length = Math.sqrt(dx * dx + dy * dy)
-    
+
     // Normalize direction vector
     const dirX = dx / length
     const dirY = dy / length
-    
+
     // Calculate start and end points at edge of circles
     const start = {
       x: startCenter.x + dirX * characterRadius,
-      y: startCenter.y + dirY * characterRadius
+      y: startCenter.y + dirY * characterRadius,
     }
     const end = {
       x: endCenter.x - dirX * characterRadius,
-      y: endCenter.y - dirY * characterRadius
+      y: endCenter.y - dirY * characterRadius,
     }
 
     // Calculate control point for curve (offset perpendicular to line)
     const midX = (start.x + end.x) / 2
     const midY = (start.y + end.y) / 2
-    
+
     // Determine curve direction based on average X position relative to grid center
     const avgX = (startCenter.x + endCenter.x) / 2
     const gridCenterX = this.origin.x
     const relativeX = avgX - gridCenterX
-    
+
     // Calculate curve intensity based on distance from center
     // Arrows closer to center have less curve, arrows at edges have more
     const maxDistance = 200 // Approximate half-width of the grid
     const distanceFromCenter = Math.abs(relativeX)
     const curveFactor = Math.min(distanceFromCenter / maxDistance, 1) // 0 to 1
     const baseCurvature = length * 0.15 // Base curve amount
-    
+
     // Apply different curvature multipliers for enemy arrows (invertCurve = true)
     // Enemy arrows curve 1.5x more than ally arrows to prevent overlap
     const curvatureMultiplier = invertCurve ? 1.5 : 1.0
-    const curvature = (baseCurvature + (baseCurvature * curveFactor)) * curvatureMultiplier // Scale curve by position and type
-    
+    const curvature = (baseCurvature + baseCurvature * curveFactor) * curvatureMultiplier // Scale curve by position and type
+
     // Curve direction: negative for left side, positive for right side
     let curveDirection = relativeX < 0 ? -1 : 1
-    
+
     // Invert curve direction if requested (for enemy-to-ally arrows)
     if (invertCurve) {
       curveDirection *= -1
     }
-    
+
     // Perpendicular offset for control point
-    const controlX = midX - (dirY) * curvature * curveDirection
-    const controlY = midY + (dirX) * curvature * curveDirection
+    const controlX = midX - dirY * curvature * curveDirection
+    const controlY = midY + dirX * curvature * curveDirection
 
     return `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
   }

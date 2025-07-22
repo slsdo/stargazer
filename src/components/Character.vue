@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CharacterType } from '../types/character'
+import type { CharacterType } from '../lib/types/character'
 import { useDragDrop } from '../composables/useDragDrop'
 import { ref } from 'vue'
 

@@ -1,7 +1,9 @@
 import { Hex } from './hex'
 import { ARENA_1 } from './arena/arena1'
-import { State, FULL_GRID, type GridPreset } from './constants'
+import { State } from './types/state'
+import { FULL_GRID, type GridPreset } from './constants'
 import { Pathfinding } from './pathfinding'
+import { Team } from './types/team'
 
 function iniGrid(preset: GridPreset): Hex[] {
   const centerRowIndex = Math.floor(preset.hex.length / 2) // Default=4
@@ -27,14 +29,14 @@ export interface GridTile {
   hex: Hex
   state: State
   character?: string
-  team?: 'Ally' | 'Enemy'
+  team?: Team
 }
 
 export class Grid {
   private storage: Map<string, GridTile>
-  private teamCharacters: Map<'Ally' | 'Enemy', Set<string>> = new Map([
-    ['Ally', new Set()],
-    ['Enemy', new Set()],
+  private teamCharacters: Map<Team, Set<string>> = new Map([
+    [Team.ALLY, new Set()],
+    [Team.ENEMY, new Set()],
   ])
   private readonly MAX_TEAM_SIZE = 5
 
@@ -109,18 +111,18 @@ export class Grid {
 
   // Team availability methods
   getAvailableAlly(): number {
-    return this.getAvailableForTeam('Ally')
+    return this.getAvailableForTeam(Team.ALLY)
   }
 
   getAvailableEnemy(): number {
-    return this.getAvailableForTeam('Enemy')
+    return this.getAvailableForTeam(Team.ENEMY)
   }
 
-  private getAvailableForTeam(team: 'Ally' | 'Enemy'): number {
+  private getAvailableForTeam(team: Team): number {
     return this.MAX_TEAM_SIZE - (this.teamCharacters.get(team)?.size || 0)
   }
 
-  canPlaceCharacter(characterId: string, team: 'Ally' | 'Enemy'): boolean {
+  canPlaceCharacter(characterId: string, team: Team): boolean {
     // Check if team has space
     if (this.getAvailableForTeam(team) <= 0) return false
 
@@ -128,11 +130,11 @@ export class Grid {
     return !this.teamCharacters.get(team)?.has(characterId)
   }
 
-  canPlaceCharacterOnTile(hexOrId: Hex | number, team: 'Ally' | 'Enemy'): boolean {
+  canPlaceCharacterOnTile(hexOrId: Hex | number, team: Team): boolean {
     const tile = this.getTile(hexOrId)
     const state = tile.state
-    const availableState = team === 'Ally' ? State.AVAILABLE_ALLY : State.AVAILABLE_ENEMY
-    const occupiedState = team === 'Ally' ? State.OCCUPIED_ALLY : State.OCCUPIED_ENEMY
+    const availableState = team === Team.ALLY ? State.AVAILABLE_ALLY : State.AVAILABLE_ENEMY
+    const occupiedState = team === Team.ALLY ? State.OCCUPIED_ALLY : State.OCCUPIED_ENEMY
 
     return state === availableState || state === occupiedState
   }
@@ -140,11 +142,7 @@ export class Grid {
   /**
    * Place a character on a hex tile
    */
-  placeCharacter(
-    hexOrId: Hex | number,
-    characterId: string,
-    team: 'Ally' | 'Enemy' = 'Ally',
-  ): boolean {
+  placeCharacter(hexOrId: Hex | number, characterId: string, team: Team = Team.ALLY): boolean {
     // Check if tile allows this team
     if (!this.canPlaceCharacterOnTile(hexOrId, team)) return false
 
@@ -227,14 +225,14 @@ export class Grid {
         this.clearCharacterFromTile(entry, entry.hex.getId())
       }
     }
-    this.teamCharacters.get('Ally')?.clear()
-    this.teamCharacters.get('Enemy')?.clear()
+    this.teamCharacters.get(Team.ALLY)?.clear()
+    this.teamCharacters.get(Team.ENEMY)?.clear()
   }
 
   /**
    * Get team of a character on a hex tile
    */
-  getCharacterTeam(hexOrId: Hex | number): 'Ally' | 'Enemy' | undefined {
+  getCharacterTeam(hexOrId: Hex | number): Team | undefined {
     return this.getTile(hexOrId).team
   }
 
@@ -256,7 +254,7 @@ export class Grid {
     // Only blocked tiles are impassable
     return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
   }
-  
+
   /**
    * Traversal function for finding paths to allies (allows moving through all non-blocked tiles)
    */
@@ -300,12 +298,12 @@ export class Grid {
         return canTraverse(tile)
       }
 
-      // Calculate path distance using A* 
+      // Calculate path distance using A*
       const pathDistance = Pathfinding.findPathDistance(
         sourceTile.hex,
         targetTile.hex,
         getTileHelper,
-        canTraverseToTarget
+        canTraverseToTarget,
       )
 
       // Skip if no path exists
@@ -339,12 +337,14 @@ export class Grid {
 
     // Get all tiles with characters
     const tilesWithCharacters = this.getTilesWithCharacters()
-    const allyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Ally')
-    const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Enemy')
+    const allyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ALLY)
+    const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
 
     // For each ally character, find closest enemy using pathfinding
     for (const allyTile of allyTiles) {
-      const closestEnemy = this.findClosestTarget(allyTile, enemyTiles, (tile) => this.canTraverseToEnemy(tile))
+      const closestEnemy = this.findClosestTarget(allyTile, enemyTiles, (tile) =>
+        this.canTraverseToEnemy(tile),
+      )
 
       if (closestEnemy) {
         result.set(allyTile.hex.getId(), {
@@ -367,12 +367,14 @@ export class Grid {
 
     // Get all tiles with characters
     const tilesWithCharacters = this.getTilesWithCharacters()
-    const allyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Ally')
-    const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === 'Enemy')
+    const allyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ALLY)
+    const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
 
     // For each enemy character, find closest ally character using pathfinding
     for (const enemyTile of enemyTiles) {
-      const closestAlly = this.findClosestTarget(enemyTile, allyTiles, (tile) => this.canTraverseToAlly(tile))
+      const closestAlly = this.findClosestTarget(enemyTile, allyTiles, (tile) =>
+        this.canTraverseToAlly(tile),
+      )
 
       if (closestAlly) {
         result.set(enemyTile.hex.getId(), {
@@ -386,16 +388,16 @@ export class Grid {
   }
 
   // Consolidated character operation methods
-  private removeCharacterFromTeam(characterId: string, team: 'Ally' | 'Enemy' | undefined): void {
+  private removeCharacterFromTeam(characterId: string, team: Team | undefined): void {
     if (team) {
       this.teamCharacters.get(team)?.delete(characterId)
     }
   }
 
-  private setCharacterOnTile(tile: GridTile, characterId: string, team: 'Ally' | 'Enemy'): void {
+  private setCharacterOnTile(tile: GridTile, characterId: string, team: Team): void {
     tile.character = characterId
     tile.team = team
-    tile.state = team === 'Ally' ? State.OCCUPIED_ALLY : State.OCCUPIED_ENEMY
+    tile.state = team === Team.ALLY ? State.OCCUPIED_ALLY : State.OCCUPIED_ENEMY
     this.teamCharacters.get(team)?.add(characterId)
   }
 

@@ -4,8 +4,9 @@ import type { Hex } from '../lib/hex'
 import type { Layout } from '../lib/layout'
 import { useDragDrop } from '../composables/useDragDrop'
 import { useGridStore } from '../stores/grid'
-import { State } from '../lib/constants'
+import { State } from '../lib/types/state'
 import { getHexFillColor } from '../utils/stateFormatting'
+import { Team } from '../lib/types/team'
 
 interface Props {
   hexes: Hex[]
@@ -150,7 +151,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       }
     } else {
       // This is a new character placement from the character selection
-      const team = character.team || 'Ally'
+      const team = character.team || Team.ALLY
       const hexId = hex.getId()
 
       // Check if tile allows this team
@@ -181,7 +182,7 @@ const getHexDropClass = (hex: Hex) => {
   // Check if this tile can accept the currently dragged character's team
   let validDropZone = true
   if (isDragHover && draggedCharacter.value) {
-    const team = draggedCharacter.value.team || 'Ally'
+    const team = draggedCharacter.value.team || Team.ALLY
     validDropZone = gridStore.canPlaceCharacterOnTile(hexId, team)
   }
 

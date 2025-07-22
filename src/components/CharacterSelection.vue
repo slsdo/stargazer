@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import SelectionProfile from './SelectionProfile.vue'
-import type { CharacterType } from '../types/character'
+import type { CharacterType } from '../lib/types/character'
+import { Team } from '../lib/types/team'
 import { ref } from 'vue'
 import { useGridStore } from '../stores/grid'
 
@@ -11,10 +12,10 @@ defineProps<{
   isDraggable?: boolean
 }>()
 
-const selectedTeam = ref<'Ally' | 'Enemy'>('Ally')
+const selectedTeam = ref<Team>(Team.ALLY)
 const gridStore = useGridStore()
 
-const setTeam = (team: 'Ally' | 'Enemy') => {
+const setTeam = (team: Team) => {
   selectedTeam.value = team
 }
 
@@ -72,19 +73,20 @@ const removeCharacterFromGrid = (characterId: string) => {
     <!-- Team Toggle with Availability -->
     <div class="controls-row">
       <div class="team-toggle">
-        <button @click="setTeam('Ally')" :class="['team-btn', { active: selectedTeam === 'Ally' }]">
+        <button
+          @click="setTeam(Team.ALLY)"
+          :class="['team-btn', { active: selectedTeam === Team.ALLY }]"
+        >
           Ally ({{ gridStore.availableAlly }}/5)
         </button>
-        <button @click="setTeam('Enemy')" :class="['team-btn', { active: selectedTeam === 'Enemy' }]">
+        <button
+          @click="setTeam(Team.ENEMY)"
+          :class="['team-btn', { active: selectedTeam === Team.ENEMY }]"
+        >
           Enemy ({{ gridStore.availableEnemy }}/5)
         </button>
       </div>
-      <button 
-        @click="clearAll" 
-        class="clear-all-btn"
-      >
-        Clear All
-      </button>
+      <button @click="clearAll" class="clear-all-btn">Clear All</button>
     </div>
 
     <!-- Characters Grid -->

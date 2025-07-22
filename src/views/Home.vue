@@ -4,7 +4,7 @@ import GridTiles from '../components/GridTiles.vue'
 import GridCharacters from '../components/GridCharacters.vue'
 import GridArrow from '../components/GridArrow.vue'
 import DebugGrid from '../components/DebugGrid.vue'
-import type { CharacterType } from '../types/character'
+import type { CharacterType } from '../lib/types/character'
 import type { Hex } from '../lib/hex'
 import { useGridStore } from '../stores/grid'
 import { getMapNames } from '../lib/maps'
@@ -27,12 +27,10 @@ const showMapDropdown = ref(false)
 const showArrows = ref(true)
 const showHexIds = ref(true)
 
-
 const setActiveTab = (tab: string) => {
   activeTab.value = tab
   showMapDropdown.value = false // Close dropdown when switching tabs
 }
-
 
 const toggleMapDropdown = () => {
   showMapDropdown.value = !showMapDropdown.value
@@ -106,62 +104,62 @@ const icons = loadAssetsDict(
       <div class="section">
         <div class="grid-container">
           <div id="map">
-          <svg
-            v-if="showArrows"
-            width="600"
-            height="600"
-            style="position: absolute; pointer-events: none"
-          >
-            <!-- Arrows from ally characters to closest enemies (rendered on top of everything) -->
-            <g class="arrows-layer" style="pointer-events: auto">
-              <!-- Ally to Enemy arrows (teal) -->
-              <GridArrow
-                v-for="[allyHexId, enemyInfo] in gridStore.closestEnemyMap"
-                :key="`arrow-ally-${allyHexId}-${enemyInfo.enemyHexId}`"
-                :start-hex-id="allyHexId"
-                :end-hex-id="enemyInfo.enemyHexId"
-                :color="'#36958e'"
-                :stroke-width="3"
-                :arrowhead-size="6"
-                @arrow-click="handleArrowClick"
-              />
-              <!-- Enemy to Ally arrows (red) -->
-              <GridArrow
-                v-for="[enemyHexId, allyInfo] in gridStore.closestAllyMap"
-                :key="`arrow-enemy-${enemyHexId}-${allyInfo.allyHexId}`"
-                :start-hex-id="enemyHexId"
-                :end-hex-id="allyInfo.allyHexId"
-                :color="'#dc3545'"
-                :stroke-width="3"
-                :arrowhead-size="6"
-                :invert-curve="true"
-                @arrow-click="handleArrowClick"
-              />
-            </g>
-          </svg>
-          <GridTiles
-            :hexes="gridStore.hexes"
-            :layout="gridStore.layout"
-            :width="600"
-            :height="600"
-            :rotation="0"
-            :center-x="gridStore.gridOrigin.x"
-            :center-y="gridStore.gridOrigin.y"
-            :text-rotation="30"
-            :show-hex-ids="showHexIds"
-            :show-coordinates="showDebug"
-            @hex-click="handleHexClick"
-          >
-            <!-- Character placements -->
-            <GridCharacters
-              :character-placements="gridStore.characterPlacements"
+            <svg
+              v-if="showArrows"
+              width="600"
+              height="600"
+              style="position: absolute; pointer-events: none"
+            >
+              <!-- Arrows from ally characters to closest enemies (rendered on top of everything) -->
+              <g class="arrows-layer" style="pointer-events: auto">
+                <!-- Ally to Enemy arrows (teal) -->
+                <GridArrow
+                  v-for="[allyHexId, enemyInfo] in gridStore.closestEnemyMap"
+                  :key="`arrow-ally-${allyHexId}-${enemyInfo.enemyHexId}`"
+                  :start-hex-id="allyHexId"
+                  :end-hex-id="enemyInfo.enemyHexId"
+                  :color="'#36958e'"
+                  :stroke-width="3"
+                  :arrowhead-size="6"
+                  @arrow-click="handleArrowClick"
+                />
+                <!-- Enemy to Ally arrows (red) -->
+                <GridArrow
+                  v-for="[enemyHexId, allyInfo] in gridStore.closestAllyMap"
+                  :key="`arrow-enemy-${enemyHexId}-${allyInfo.allyHexId}`"
+                  :start-hex-id="enemyHexId"
+                  :end-hex-id="allyInfo.allyHexId"
+                  :color="'#dc3545'"
+                  :stroke-width="3"
+                  :arrowhead-size="6"
+                  :invert-curve="true"
+                  @arrow-click="handleArrowClick"
+                />
+              </g>
+            </svg>
+            <GridTiles
               :hexes="gridStore.hexes"
               :layout="gridStore.layout"
-              :character-images="characterImages"
-              :characters="characters"
-              @character-click="handleCharacterClick"
-            />
-          </GridTiles>
+              :width="600"
+              :height="600"
+              :rotation="0"
+              :center-x="gridStore.gridOrigin.x"
+              :center-y="gridStore.gridOrigin.y"
+              :text-rotation="30"
+              :show-hex-ids="showHexIds"
+              :show-coordinates="showDebug"
+              @hex-click="handleHexClick"
+            >
+              <!-- Character placements -->
+              <GridCharacters
+                :character-placements="gridStore.characterPlacements"
+                :hexes="gridStore.hexes"
+                :layout="gridStore.layout"
+                :character-images="characterImages"
+                :characters="characters"
+                @character-click="handleCharacterClick"
+              />
+            </GridTiles>
           </div>
 
           <!-- Debug Panel -->
@@ -173,11 +171,7 @@ const icons = loadAssetsDict(
         <!-- Grid Display Toggle -->
         <div class="grid-controls">
           <label class="grid-toggle-btn">
-            <input
-              type="checkbox"
-              v-model="showDebug"
-              class="grid-toggle-checkbox"
-            />
+            <input type="checkbox" v-model="showDebug" class="grid-toggle-checkbox" />
             <span class="grid-toggle-text">Debug View</span>
           </label>
           <label class="grid-toggle-btn">

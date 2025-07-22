@@ -2,6 +2,7 @@
 import { useGridStore } from '../stores/grid'
 import { getStateName, getStateClass } from '../utils/stateFormatting'
 import { extractFileName } from '../utils/assetLoader'
+import { Team } from '../lib/types/team'
 
 // Access Pinia grid store
 const gridStore = useGridStore()
@@ -40,14 +41,22 @@ const getImageName = (imageSrc: string): string => {
                 {{ getStateName(tile.state) }}
               </span>
               <!-- Show closest enemy info for Ally characters -->
-              <span v-if="tile.team === 'Ally' && gridStore.closestEnemyMap.has(tile.hex.getId())" class="closest-enemy">
-                → Enemy at Hex {{ gridStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} 
-                (distance: {{ gridStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
+              <span
+                v-if="tile.team === Team.ALLY && gridStore.closestEnemyMap.has(tile.hex.getId())"
+                class="closest-enemy"
+              >
+                → Enemy at Hex
+                {{ gridStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} (distance:
+                {{ gridStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
               </span>
               <!-- Show closest ally info for Enemy characters -->
-              <span v-if="tile.team === 'Enemy' && gridStore.closestAllyMap.has(tile.hex.getId())" class="closest-ally">
-                → Ally at Hex {{ gridStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} 
-                (distance: {{ gridStore.closestAllyMap.get(tile.hex.getId())?.distance }})
+              <span
+                v-if="tile.team === Team.ENEMY && gridStore.closestAllyMap.has(tile.hex.getId())"
+                class="closest-ally"
+              >
+                → Ally at Hex
+                {{ gridStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} (distance:
+                {{ gridStore.closestAllyMap.get(tile.hex.getId())?.distance }})
               </span>
             </div>
           </div>
