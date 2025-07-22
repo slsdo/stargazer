@@ -52,7 +52,7 @@ const getImageName = (imageSrc: string): string => {
             </div>
           </div>
           <button @click="gridStore.removeCharacterFromHex(tile.hex.getId())" class="remove-btn">
-            Remove
+            ×
           </button>
         </li>
       </ul>
@@ -247,7 +247,7 @@ const getImageName = (imageSrc: string): string => {
 
 .closest-enemy {
   font-size: 0.75rem;
-  color: #dc3545;
+  color: #c82333;
   font-style: italic;
 }
 
@@ -258,16 +258,23 @@ const getImageName = (imageSrc: string): string => {
 }
 
 .remove-btn {
-  background: #ff6b6b;
+  background: #c05b4d;
   color: white;
   border: none;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .remove-btn:hover {
-  background: #ff5252;
+  background: #c82333;
 }
 </style>
