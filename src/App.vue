@@ -25,13 +25,13 @@ import DragPreview from './components/DragPreview.vue'
 header {
   background-color: #282c34;
   border-bottom: 3px solid #f7d87c;
-  padding: 0.2rem 0 0.5rem;
+  padding: 0.5rem 0;
 }
 
 nav {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 2.5em 0 2em;
@@ -54,12 +54,10 @@ nav {
   font-weight: 600;
   padding: 0.5rem 1rem;
   border-radius: 6px;
-  transition: all 0.3s ease;
 }
 
 .menu a:hover {
-  color: #36958e;
-  background-color: rgba(255, 255, 255, 0.1);
+  color: #f7d87c;
 }
 
 @media (max-width: 480px) {

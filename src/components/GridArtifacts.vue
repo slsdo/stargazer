@@ -17,29 +17,29 @@ const handleArtifactClick = (team: Team) => {
 </script>
 
 <template>
-  <div class="artifact-displays">
+  <div class="grid-artifacts">
     <!-- Ally Artifact (bottom left) -->
     <div
       v-if="allyArtifact"
-      class="artifact-display ally-artifact"
+      class="grid-artifact ally-artifact"
       @click="handleArtifactClick(Team.ALLY)"
     >
-      <img :src="artifactImages[allyArtifact]" :alt="allyArtifact" class="artifact-portrait" />
+      <img :src="artifactImages[allyArtifact]" :alt="allyArtifact" class="artifact-image" />
     </div>
 
     <!-- Enemy Artifact (top right) -->
     <div
       v-if="enemyArtifact"
-      class="artifact-display enemy-artifact"
+      class="grid-artifact enemy-artifact"
       @click="handleArtifactClick(Team.ENEMY)"
     >
-      <img :src="artifactImages[enemyArtifact]" :alt="enemyArtifact" class="artifact-portrait" />
+      <img :src="artifactImages[enemyArtifact]" :alt="enemyArtifact" class="artifact-image" />
     </div>
   </div>
 </template>
 
 <style scoped>
-.artifact-displays {
+.grid-artifacts {
   position: absolute;
   top: 0;
   left: 0;
@@ -48,7 +48,7 @@ const handleArtifactClick = (team: Team) => {
   pointer-events: none;
 }
 
-.artifact-display {
+.grid-artifact {
   position: absolute;
   z-index: 10;
   width: 45px;
@@ -74,7 +74,7 @@ const handleArtifactClick = (team: Team) => {
   right: 55px;
 }
 
-.artifact-portrait {
+.artifact-image {
   width: 95px;
   height: 95px;
   object-fit: cover;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SelectionProfile from './SelectionProfile.vue'
+import Character from './Character.vue'
 import TeamToggle from './TeamToggle.vue'
 import ClearButton from './ClearButton.vue'
 import type { CharacterType } from '../lib/types/character'
@@ -88,7 +88,7 @@ const removeCharacterFromGrid = (characterId: string) => {
 
     <!-- Characters Grid -->
     <div class="characters">
-      <SelectionProfile
+      <Character
         v-for="character in characters"
         :key="character.id"
         :character="{ ...character, team: selectedTeam }"

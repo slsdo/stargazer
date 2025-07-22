@@ -6,6 +6,7 @@ import { ref } from 'vue'
 const props = defineProps<{
   character: CharacterType
   characterImage: string
+  icons: { [key: string]: string }
   isDraggable?: boolean
   isPlaced?: boolean
 }>()
@@ -52,21 +53,35 @@ const handleMouseUp = (event: MouseEvent) => {
 </script>
 
 <template>
-  <div
-    class="character"
-    :class="[`level-${character.level}`, { draggable: isDraggable, placed: isPlaced }]"
-    :draggable="isDraggable"
-    @dragstart="handleDragStart"
-    @dragend="handleDragEnd"
-    @mousedown="handleMouseDown"
-    @mouseup="handleMouseUp"
-  >
-    <img :src="characterImage" :alt="character.id" class="portrait" />
+  <div class="character-wrapper">
+    <div
+      class="character-display"
+      :class="[`level-${character.level}`, { draggable: isDraggable, placed: isPlaced }]"
+      :draggable="isDraggable"
+      @dragstart="handleDragStart"
+      @dragend="handleDragEnd"
+      @mousedown="handleMouseDown"
+      @mouseup="handleMouseUp"
+    >
+      <img :src="characterImage" :alt="character.id" class="portrait" />
+    </div>
+    <div class="character-info">
+      <img :src="icons[`faction-${character.faction}`]" :alt="character.faction" class="icon" />
+      <img :src="icons[`class-${character.class}`]" :alt="character.class" class="icon" />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.character {
+.character-wrapper {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 0.25rem;
+  color: #333;
+}
+
+.character-display {
   width: 70px;
   height: 70px;
   border-radius: 50%;
@@ -84,7 +99,7 @@ const handleMouseUp = (event: MouseEvent) => {
   color: #333;
 }
 
-.character::before {
+.character-display::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -124,7 +139,27 @@ const handleMouseUp = (event: MouseEvent) => {
   cursor: grabbing;
 }
 
-.character.placed {
+.character-display.placed {
   box-shadow: 0 0 0 5px #c05b4d;
+}
+
+.character-info {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-top: 0.4rem;
+}
+
+.character-info img {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #484848;
+  border-radius: 50%;
+}
+
+@media (max-width: 480px) {
+  .characters {
+    gap: 0.5rem;
+  }
 }
 </style>

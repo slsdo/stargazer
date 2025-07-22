@@ -7,7 +7,7 @@ import GridArrow from '../components/GridArrow.vue'
 import DebugGrid from '../components/DebugGrid.vue'
 import TabNavigation from '../components/TabNavigation.vue'
 import GridControls from '../components/GridControls.vue'
-import ArtifactDisplay from '../components/ArtifactDisplay.vue'
+import GridArtifacts from '../components/GridArtifacts.vue'
 import type { CharacterType } from '../lib/types/character'
 import type { ArtifactType } from '../lib/types/artifact'
 import type { Hex } from '../lib/hex'
@@ -163,7 +163,7 @@ const icons = loadAssetsDict(
             </GridTiles>
 
             <!-- Artifact Display -->
-            <ArtifactDisplay
+            <GridArtifacts
               :allyArtifact="gridStore.allyArtifact"
               :enemyArtifact="gridStore.enemyArtifact"
               :artifactImages="artifactImages"
@@ -275,5 +275,5 @@ main {
   color: var(--color-text-muted);
 }
 
-/* Artifact display styles moved to ArtifactDisplay.vue component */
+/* Artifact display styles moved to GridArtifacts.vue component */
 </style>
