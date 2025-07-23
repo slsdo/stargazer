@@ -4,6 +4,7 @@ import ArtifactSelection from '../components/ArtifactSelection.vue'
 import GridManager from '../components/GridManager.vue'
 import TabNavigation from '../components/TabNavigation.vue'
 import GridControls from '../components/GridControls.vue'
+import DragDropProvider from '../components/DragDropProvider.vue'
 import type { CharacterType } from '../lib/types/character'
 import type { ArtifactType } from '../lib/types/artifact'
 import { Team } from '../lib/types/team'
@@ -88,58 +89,60 @@ const icons = loadAssetsDict(
 
 <template>
   <main>
-    <div class="content">
-      <div class="section">
-        <!-- Grid Manager Component -->
-        <GridManager
-          :characters="characters"
-          :character-images="characterImages"
-          :artifact-images="artifactImages"
-          :show-arrows="showArrows"
-          :show-hex-ids="showHexIds"
-          :show-debug="showDebug"
-          @artifact-click="handleArtifactGridClick"
-        />
-
-        <!-- Grid Display Toggle -->
-        <GridControls
-          :showDebug="showDebug"
-          :showArrows="showArrows"
-          :showHexIds="showHexIds"
-          @update:showDebug="showDebug = $event"
-          @update:showArrows="showArrows = $event"
-          @update:showHexIds="showHexIds = $event"
-        />
-      </div>
-
-      <!-- Tab Navigation -->
-      <TabNavigation
-        :activeTab="activeTab"
-        :availableMaps="availableMaps"
-        :selectedMap="selectedMap"
-        @tab-change="handleTabChange"
-        @map-change="handleMapChange"
-      >
-        <!-- Tab Content -->
-        <!-- Characters Tab -->
-        <div v-show="activeTab === 'characters'" class="tab-panel">
-          <CharacterSelection
+    <DragDropProvider>
+      <div class="content">
+        <div class="section">
+          <!-- Grid Manager Component -->
+          <GridManager
             :characters="characters"
-            :characterImages="characterImages"
-            :icons="icons"
-            :isDraggable="true"
+            :character-images="characterImages"
+            :artifact-images="artifactImages"
+            :show-arrows="showArrows"
+            :show-hex-ids="showHexIds"
+            :show-debug="showDebug"
+            @artifact-click="handleArtifactGridClick"
+          />
+
+          <!-- Grid Display Toggle -->
+          <GridControls
+            :showDebug="showDebug"
+            :showArrows="showArrows"
+            :showHexIds="showHexIds"
+            @update:showDebug="showDebug = $event"
+            @update:showArrows="showArrows = $event"
+            @update:showHexIds="showHexIds = $event"
           />
         </div>
-        <!-- Artifacts Tab -->
-        <div v-show="activeTab === 'artifacts'" class="tab-panel">
-          <ArtifactSelection
-            :artifacts="artifacts"
-            :artifactImages="artifactImages"
-            :icons="icons"
-          />
-        </div>
-      </TabNavigation>
-    </div>
+
+        <!-- Tab Navigation -->
+        <TabNavigation
+          :activeTab="activeTab"
+          :availableMaps="availableMaps"
+          :selectedMap="selectedMap"
+          @tab-change="handleTabChange"
+          @map-change="handleMapChange"
+        >
+          <!-- Tab Content -->
+          <!-- Characters Tab -->
+          <div v-show="activeTab === 'characters'" class="tab-panel">
+            <CharacterSelection
+              :characters="characters"
+              :characterImages="characterImages"
+              :icons="icons"
+              :isDraggable="true"
+            />
+          </div>
+          <!-- Artifacts Tab -->
+          <div v-show="activeTab === 'artifacts'" class="tab-panel">
+            <ArtifactSelection
+              :artifacts="artifacts"
+              :artifactImages="artifactImages"
+              :icons="icons"
+            />
+          </div>
+        </TabNavigation>
+      </div>
+    </DragDropProvider>
   </main>
 </template>
 

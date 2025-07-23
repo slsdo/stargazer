@@ -9,8 +9,8 @@ import type { Hex } from '../lib/hex'
 import { Team } from '../lib/types/team'
 import { State } from '../lib/types/state'
 import { useGridStore } from '../stores/grid'
-import { useDragDrop } from '../composables/useDragDrop'
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, inject } from 'vue'
+import type { DragDropAPI } from './DragDropProvider.vue'
 
 // Props
 interface Props {
@@ -33,18 +33,26 @@ const emit = defineEmits<{
   'artifact-click': [team: Team]
 }>()
 
-// Use stores and composables
+// Use stores and inject drag/drop API
 const gridStore = useGridStore()
+
+// Inject the drag/drop API from provider
+const dragDropAPI = inject<DragDropAPI>('dragDrop')
+if (!dragDropAPI) {
+  throw new Error('GridManager must be used within a DragDropProvider')
+}
+
 const {
   startDrag,
   endDrag,
   hoveredHexId,
-  setHoveredHex,
   isDragging,
   handleDrop,
   dropHandled,
   setDropHandled,
-} = useDragDrop()
+  registerHexDetector,
+  registerDropHandler,
+} = dragDropAPI
 
 // Computed
 const hasCharacters = computed(() => gridStore.characterPlacements.size > 0)
@@ -111,11 +119,11 @@ const handleHexClick = (hex: Hex) => {
   gridStore.handleHexClick(hex)
 }
 
-const handleCharacterClick = (hexId: number, characterId: string) => {
+const handleCharacterClick = (hexId: number) => {
   gridStore.removeCharacterFromHex(hexId)
 }
 
-const handleArrowClick = (startHexId: number, endHexId: number) => {
+const handleArrowClick = () => {
   // Arrow clicked - could add targeting logic here
 }
 
@@ -142,19 +150,10 @@ const handleCharacterOverlayClick = (hexId: number) => {
   gridStore.handleHexClick(gridStore.getHexById(hexId))
 }
 
-// Global drop handling for characters dropped outside valid hexes
-const handleGlobalDrop = (event: DragEvent) => {
-  // Prevent default behavior
-  event.preventDefault()
-
-  // Check if drop was already handled by a hex tile
-  if (dropHandled.value) {
-    return
-  }
-
-  // Check if we detected a hex under the mouse using position-based detection
-  if (hoveredHexId.value !== null) {
-    // Simulate a drop on the detected hex
+// Handle drops on detected hexes
+// This is called by DragDropProvider when a drop occurs outside a hex tile
+const handleDetectedHexDrop = (event: DragEvent) => {
+  if (hoveredHexId.value !== null && dropHandled.value === false) {
     const hex = gridStore.getHexById(hoveredHexId.value)
     triggerHexDrop(event, hex)
   }
@@ -212,40 +211,10 @@ const triggerHexDrop = (event: DragEvent, hex: any) => {
   }
 }
 
-// Global mouse tracking for hex detection during drag
-const handleGlobalMouseMove = (event: MouseEvent) => {
-  if (isDragging.value) {
-    const hexId = findHexUnderMouse(event.clientX, event.clientY)
-    setHoveredHex(hexId)
-  }
-}
-
-// Also track during dragover events for better coverage
-const handleGlobalDragOver = (event: DragEvent) => {
-  // Prevent default to allow drop
-  event.preventDefault()
-
-  // Update hex detection during dragover as backup to mousemove
-  if (isDragging.value) {
-    const hexId = findHexUnderMouse(event.clientX, event.clientY)
-    setHoveredHex(hexId)
-  }
-}
-
-// Setup global event handlers
+// Register hex detector and drop handler with DragDropProvider
 onMounted(() => {
-  // Add listeners to the document body to catch drops outside the grid
-  document.addEventListener('drop', handleGlobalDrop)
-  document.addEventListener('dragover', handleGlobalDragOver)
-  // Add mouse tracking for hex detection during drag
-  document.addEventListener('mousemove', handleGlobalMouseMove)
-})
-
-onUnmounted(() => {
-  // Clean up listeners
-  document.removeEventListener('drop', handleGlobalDrop)
-  document.removeEventListener('dragover', handleGlobalDragOver)
-  document.removeEventListener('mousemove', handleGlobalMouseMove)
+  registerHexDetector(findHexUnderMouse)
+  registerDropHandler(handleDetectedHexDrop)
 })
 
 // Expose methods for parent components if needed
