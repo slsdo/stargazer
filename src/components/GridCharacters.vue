@@ -8,8 +8,8 @@ interface Props {
   characterPlacements: Map<number, string>
   hexes: Hex[]
   layout: Layout
-  characterImages: { [key: string]: string }
-  characters: CharacterType[]
+  characterImages: Readonly<Record<string, string>>
+  characters: readonly CharacterType[]
   outerRadius?: number
   innerRadius?: number
   borderWidth?: number

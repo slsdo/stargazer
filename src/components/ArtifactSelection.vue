@@ -8,9 +8,9 @@ import { ref } from 'vue'
 import { useGridStore } from '../stores/grid'
 
 const props = defineProps<{
-  artifacts: ArtifactType[]
-  artifactImages: { [key: string]: string }
-  icons: { [key: string]: string }
+  artifacts: readonly ArtifactType[]
+  artifactImages: Readonly<Record<string, string>>
+  icons: Readonly<Record<string, string>>
 }>()
 
 const selectedTeam = ref<Team>(Team.ALLY)

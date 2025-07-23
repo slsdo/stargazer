@@ -5,13 +5,10 @@ import GridManager from '../components/GridManager.vue'
 import TabNavigation from '../components/TabNavigation.vue'
 import GridControls from '../components/GridControls.vue'
 import DragDropProvider from '../components/DragDropProvider.vue'
-import type { CharacterType } from '../lib/types/character'
-import type { ArtifactType } from '../lib/types/artifact'
 import { Team } from '../lib/types/team'
 import { useGridStore } from '../stores/grid'
 import { getMapNames } from '../lib/maps'
 import { ref } from 'vue'
-import { loadAssetsDict } from '../utils/assetLoader'
 
 // Use Pinia grid store
 const gridStore = useGridStore()
@@ -39,52 +36,13 @@ const handleMapChange = (mapKey: string) => {
   }
 }
 
+// Initialize data immediately (synchronous)
+gridStore.initializeData()
+
 // Event handlers
 const handleArtifactGridClick = (team: Team) => {
   gridStore.removeArtifact(team)
 }
-
-// Grid starts empty - no default character placement
-
-const characters = (
-  Object.values(
-    import.meta.glob('../data/character/*.json', { eager: true, import: 'default' }),
-  ) as CharacterType[]
-).sort((a, b) => a.faction.localeCompare(b.faction))
-
-// Create character ranges map and pass to store
-const characterRanges = new Map<string, number>()
-characters.forEach((char) => {
-  characterRanges.set(char.id, char.range)
-})
-gridStore.setCharacterRanges(characterRanges)
-
-const artifacts = (
-  Object.values(
-    import.meta.glob('../data/artifact/*.json', { eager: true, import: 'default' }),
-  ) as ArtifactType[]
-).sort((a, b) => a.id.localeCompare(b.id))
-
-const characterImages = loadAssetsDict(
-  import.meta.glob('../assets/images/character/*.png', {
-    eager: true,
-    import: 'default',
-  }) as Record<string, string>,
-)
-
-const artifactImages = loadAssetsDict(
-  import.meta.glob('../assets/images/artifact/*.png', {
-    eager: true,
-    import: 'default',
-  }) as Record<string, string>,
-)
-
-const icons = loadAssetsDict(
-  import.meta.glob('../assets/images/icons/*.png', { eager: true, import: 'default' }) as Record<
-    string,
-    string
-  >,
-)
 </script>
 
 <template>
@@ -94,9 +52,9 @@ const icons = loadAssetsDict(
         <div class="section">
           <!-- Grid Manager Component -->
           <GridManager
-            :characters="characters"
-            :character-images="characterImages"
-            :artifact-images="artifactImages"
+            :characters="gridStore.characters"
+            :character-images="gridStore.characterImages"
+            :artifact-images="gridStore.artifactImages"
             :show-arrows="showArrows"
             :show-hex-ids="showHexIds"
             :show-debug="showDebug"
@@ -126,18 +84,18 @@ const icons = loadAssetsDict(
           <!-- Characters Tab -->
           <div v-show="activeTab === 'characters'" class="tab-panel">
             <CharacterSelection
-              :characters="characters"
-              :characterImages="characterImages"
-              :icons="icons"
+              :characters="gridStore.characters"
+              :characterImages="gridStore.characterImages"
+              :icons="gridStore.icons"
               :isDraggable="true"
             />
           </div>
           <!-- Artifacts Tab -->
           <div v-show="activeTab === 'artifacts'" class="tab-panel">
             <ArtifactSelection
-              :artifacts="artifacts"
-              :artifactImages="artifactImages"
-              :icons="icons"
+              :artifacts="gridStore.artifacts"
+              :artifactImages="gridStore.artifactImages"
+              :icons="gridStore.icons"
             />
           </div>
         </TabNavigation>

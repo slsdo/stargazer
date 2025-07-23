@@ -7,6 +7,9 @@ import { FULL_GRID } from '../lib/constants'
 import { getMapByKey, type MapConfig } from '../lib/maps'
 import type { Hex } from '../lib/hex'
 import { Team } from '../lib/types/team'
+import { dataManager } from '../services/DataManager'
+import type { CharacterType } from '../lib/types/character'
+import type { ArtifactType } from '../lib/types/artifact'
 
 export const useGridStore = defineStore('grid', () => {
   // Core grid instances
@@ -25,13 +28,45 @@ export const useGridStore = defineStore('grid', () => {
   const allyArtifact = ref<string | null>(null)
   const enemyArtifact = ref<string | null>(null)
 
-  // Character ranges - will be set from outside when needed
+  // Data state
+  const characters = ref<CharacterType[]>([])
+  const artifacts = ref<ArtifactType[]>([])
+  const characterImages = ref<Record<string, string>>({})
+  const artifactImages = ref<Record<string, string>>({})
+  const icons = ref<Record<string, string>>({})
+  const dataLoaded = ref(false)
+
+  // Character ranges - now managed internally
   let characterRanges = new Map<string, number>()
 
-  // Function to update character ranges from external source
+  // Function to update character ranges from external source (deprecated)
   const setCharacterRanges = (ranges: Map<string, number>) => {
     characterRanges = ranges
     characterUpdateTrigger.value++ // Trigger reactivity
+  }
+
+  // Initialize all data using DataManager
+  const initializeData = () => {
+    if (dataLoaded.value) {
+      return // Already loaded
+    }
+
+    try {
+      const data = dataManager.loadAllData()
+      
+      // Update reactive state
+      characters.value = data.characters
+      artifacts.value = data.artifacts
+      characterImages.value = data.characterImages
+      artifactImages.value = data.artifactImages
+      icons.value = data.icons
+      characterRanges = data.characterRanges
+      
+      dataLoaded.value = true
+      characterUpdateTrigger.value++ // Trigger reactivity
+    } catch (error) {
+      console.error('Failed to initialize data:', error)
+    }
   }
 
   // Consolidated character state - single computation point
@@ -362,6 +397,14 @@ export const useGridStore = defineStore('grid', () => {
     gridOrigin: readonly(gridOrigin),
     currentMap: readonly(currentMap),
 
+    // Data state (readonly)
+    characters: readonly(characters),
+    artifacts: readonly(artifacts),
+    characterImages: readonly(characterImages),
+    artifactImages: readonly(artifactImages),
+    icons: readonly(icons),
+    dataLoaded: readonly(dataLoaded),
+
     // Reactive state
     characterPlacements,
 
@@ -397,8 +440,9 @@ export const useGridStore = defineStore('grid', () => {
     handleHexClick,
     switchMap,
 
-    // Character ranges management
-    setCharacterRanges,
+    // Data management
+    initializeData,
+    setCharacterRanges, // Deprecated but kept for backward compatibility
 
     // Artifact management
     allyArtifact: readonly(allyArtifact),

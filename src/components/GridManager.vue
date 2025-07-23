@@ -14,9 +14,9 @@ import type { DragDropAPI } from './DragDropProvider.vue'
 
 // Props
 interface Props {
-  characters: CharacterType[]
-  characterImages: Record<string, string>
-  artifactImages: Record<string, string>
+  characters: readonly CharacterType[]
+  characterImages: Readonly<Record<string, string>>
+  artifactImages: Readonly<Record<string, string>>
   showArrows?: boolean
   showHexIds?: boolean
   showDebug?: boolean

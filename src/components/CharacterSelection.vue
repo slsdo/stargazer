@@ -8,9 +8,9 @@ import { ref } from 'vue'
 import { useGridStore } from '../stores/grid'
 
 defineProps<{
-  characters: CharacterType[]
-  characterImages: { [key: string]: string }
-  icons: { [key: string]: string }
+  characters: readonly CharacterType[]
+  characterImages: Readonly<Record<string, string>>
+  icons: Readonly<Record<string, string>>
   isDraggable?: boolean
 }>()
 
