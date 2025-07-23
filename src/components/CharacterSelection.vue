@@ -37,11 +37,8 @@ const isCharacterPlaced = (characterId: string): boolean => {
 }
 
 const handleCharacterClick = (character: CharacterType) => {
-  console.log('Character clicked:', character.id, 'team:', selectedTeam.value)
-
   // Check if character is already placed for current team
   if (isCharacterPlaced(character.id)) {
-    console.log('Character already placed for team', selectedTeam.value, '- removing from grid')
     removeCharacterFromGrid(character.id)
     return
   }
@@ -49,9 +46,7 @@ const handleCharacterClick = (character: CharacterType) => {
   // Attempt to auto-place the character
   const success = gridStore.autoPlaceCharacter(character.id, selectedTeam.value)
   if (success) {
-    console.log('Character', character.id, 'successfully auto-placed')
   } else {
-    console.log('Failed to auto-place character', character.id)
   }
 }
 
@@ -63,10 +58,8 @@ const removeCharacterFromGrid = (characterId: string) => {
   )
 
   if (characterTile) {
-    console.log('Removing character', characterId, 'from hex', characterTile.hex.getId())
     gridStore.removeCharacterFromHex(characterTile.hex.getId())
   } else {
-    console.log('Character', characterId, 'not found on grid for team', selectedTeam.value)
   }
 }
 </script>
@@ -111,7 +104,7 @@ const removeCharacterFromGrid = (characterId: string) => {
 
 .controls-row {
   display: flex;
-  justify-content: left;
+  justify-content: space-between;
   align-items: center;
   gap: var(--spacing-lg);
 }

@@ -114,7 +114,6 @@ const handleTabChange = (tab: string) => {
 }
 
 const handleMapChange = (mapKey: string) => {
-  console.log('Switching to map:', mapKey)
   const success = gridStore.switchMap(mapKey)
   if (success) {
     selectedMap.value = mapKey
@@ -127,16 +126,14 @@ const handleHexClick = (hex: Hex) => {
 }
 
 const handleCharacterClick = (hexId: number, characterId: string) => {
-  console.log('Character clicked on grid:', hexId, characterId, '- removing from grid')
   gridStore.removeCharacterFromHex(hexId)
 }
 
 const handleArrowClick = (startHexId: number, endHexId: number) => {
-  console.log('Arrow clicked:', startHexId, '->', endHexId)
+  // Arrow clicked - could add targeting logic here
 }
 
 const handleArtifactGridClick = (team: Team) => {
-  console.log('Artifact grid clicked for team:', team)
   gridStore.removeArtifact(team)
 }
 
@@ -150,7 +147,7 @@ const characters = (
 
 // Create character ranges map and pass to store
 const characterRanges = new Map<string, number>()
-characters.forEach(char => {
+characters.forEach((char) => {
   characterRanges.set(char.id, char.range)
 })
 gridStore.setCharacterRanges(characterRanges)
@@ -184,7 +181,7 @@ const icons = loadAssetsDict(
 
 /**
  * Drag and drop system combining SVG events with position-based hex detection.
- * 
+ *
  * Uses HTML overlays to drag grid characters and point-in-polygon detection
  * to handle drops when character portraits block tile events. Supports automatic
  * team assignment and character swapping between occupied tiles.
@@ -214,13 +211,12 @@ const handleCharacterOverlayClick = (hexId: number) => {
 const handleGlobalDrop = (event: DragEvent) => {
   // Prevent default behavior
   event.preventDefault()
-  
+
   // Check if drop was already handled by a hex tile
   if (dropHandled.value) {
-    console.log('Drop already handled by hex tile, skipping global handler')
     return
   }
-  
+
   // Check if we detected a hex under the mouse using position-based detection
   if (hoveredHexId.value !== null) {
     // Simulate a drop on the detected hex
@@ -235,15 +231,12 @@ const handleGlobalDrop = (event: DragEvent) => {
 
 // Utility function to trigger drop logic programmatically
 const triggerHexDrop = (event: DragEvent, hex: any) => {
-  console.log('Position-based drop detected on hex:', hex.getId())
-
   // Use the same drop logic as GridTiles.vue
   const dropResult = handleDrop(event)
 
   if (dropResult) {
     const { character, characterId } = dropResult
-    console.log('Processing position-based drop:', character.id, 'on hex:', hex.getId())
-    
+
     // Mark drop as handled
     setDropHandled(true)
 
@@ -251,22 +244,13 @@ const triggerHexDrop = (event: DragEvent, hex: any) => {
     if (character.sourceHexId !== undefined) {
       const sourceHexId = character.sourceHexId
       const targetHexId = hex.getId()
-      
+
       // Check if target hex is occupied - if so, swap characters
       if (gridStore.isHexOccupied(targetHexId)) {
-        console.log('Target hex is occupied, swapping characters')
-        const swapped = gridStore.swapCharacters(sourceHexId, targetHexId)
-        if (swapped) {
-          console.log('Swapped characters between hex', sourceHexId, 'and hex', targetHexId)
-        } else {
-          console.log('Failed to swap characters')
-        }
+        gridStore.swapCharacters(sourceHexId, targetHexId)
       } else {
         // Target hex is empty, use regular move
-        const moved = gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
-        if (moved) {
-          console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
-        }
+        gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
       }
     } else {
       // This is a new character placement from the character selection
@@ -281,19 +265,16 @@ const triggerHexDrop = (event: DragEvent, hex: any) => {
       } else if (state === State.AVAILABLE_ENEMY || state === State.OCCUPIED_ENEMY) {
         team = Team.ENEMY
       } else {
-        console.log(`Cannot drop character on tile ${hexId} - invalid state: ${state}`)
         return
       }
 
       // Check if the team has space for this character
       if (!gridStore.canPlaceCharacter(characterId, team)) {
-        console.log(`Failed to place character - team ${team} is full or character already on team`)
         return
       }
 
       const success = gridStore.placeCharacterOnHex(hexId, characterId, team)
       if (!success) {
-        console.log('Failed to place character')
         return
       }
     }
@@ -493,7 +474,6 @@ onUnmounted(() => {
   cursor: grab;
   pointer-events: all;
   z-index: 10;
-  /* Uncomment for debugging: background: rgba(255, 0, 0, 0.2); */
 }
 
 .character-drag-handle:active {
@@ -545,14 +525,8 @@ main {
   overflow-y: auto;
 }
 
-/* Grid control styles moved to GridControls.vue component */
-
-/* Tab navigation styles moved to TabNavigation.vue component */
-
 .tab-panel {
   padding: var(--spacing-2xl);
   color: var(--color-text-muted);
 }
-
-/* Artifact display styles moved to GridArtifacts.vue component */
 </style>

@@ -29,7 +29,6 @@ const toggleMapDropdown = () => {
 }
 
 const handleMapChange = (mapKey: string) => {
-  console.log('Switching to map:', mapKey)
   emit('mapChange', mapKey)
   showMapDropdown.value = false // Close dropdown after selection
 }

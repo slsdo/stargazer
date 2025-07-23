@@ -65,13 +65,9 @@ export const useGridStore = defineStore('grid', () => {
     characterId: string,
     team: Team = Team.ALLY,
   ): boolean => {
-    console.log('Store: placing character on hex', hexId, characterId, 'team:', team)
     const success = grid.value.placeCharacter(hexId, characterId, team)
     if (success) {
       characterUpdateTrigger.value++ // Trigger reactivity
-      console.log('Store: character placements now:', grid.value.getCharacterPlacements())
-    } else {
-      console.log('Store: placement failed - team restrictions or duplicate character')
     }
     return success
   }
@@ -169,7 +165,7 @@ export const useGridStore = defineStore('grid', () => {
       // Clean up any partial placements
       if (success1) grid.value.removeCharacter(fromHexId)
       if (success2) grid.value.removeCharacter(toHexId)
-      
+
       // Restore original positions
       grid.value.placeCharacter(fromHexId, fromCharacterId, fromTeam)
       grid.value.placeCharacter(toHexId, toCharacterId, toTeam)
@@ -212,27 +208,27 @@ export const useGridStore = defineStore('grid', () => {
     if (team !== targetTeam) {
       // Cross-team move - remove from original team first
       grid.value.removeCharacter(fromHexId)
-      
+
       // For cross-team moves, we should always be able to place the character
       // since we're switching teams (capacity shouldn't be an issue)
       const success = grid.value.placeCharacter(toHexId, characterId, targetTeam)
-      
+
       if (!success) {
         // This should rarely happen for cross-team moves, but restore if it does
         grid.value.placeCharacter(fromHexId, characterId, team)
       }
-      
+
       characterUpdateTrigger.value++ // Trigger Vue reactivity for UI updates
       return success
     } else {
       // Same team move - use the original logic
       grid.value.removeCharacter(fromHexId)
       const success = grid.value.placeCharacter(toHexId, characterId, targetTeam)
-      
+
       if (!success) {
         grid.value.placeCharacter(fromHexId, characterId, team)
       }
-      
+
       characterUpdateTrigger.value++ // Trigger Vue reactivity for UI updates
       return success
     }
@@ -281,7 +277,6 @@ export const useGridStore = defineStore('grid', () => {
   const autoPlaceCharacter = (characterId: string, team: Team): boolean => {
     // Check if character can be placed
     if (!canPlaceCharacter(characterId, team)) {
-      console.log('Store: cannot place character - team restrictions or duplicate')
       return false
     }
 
@@ -291,7 +286,6 @@ export const useGridStore = defineStore('grid', () => {
     )
 
     if (availableTiles.length === 0) {
-      console.log('Store: no available tiles for team', team)
       return false
     }
 
@@ -302,31 +296,20 @@ export const useGridStore = defineStore('grid', () => {
     const randomIndex = Math.floor(Math.random() * availableTiles.length)
     const selectedTile = availableTiles[randomIndex]
 
-    console.log(
-      'Store: auto-placing character',
-      characterId,
-      'on hex',
-      selectedTile.hex.getId(),
-      'team:',
-      team,
-    )
     return placeCharacterOnHex(selectedTile.hex.getId(), characterId, team)
   }
 
   const handleHexClick = (hex: Hex): boolean => {
     const hexId = hex.getId()
-    console.log('Store: hex clicked:', hexId)
 
     // Get the tile to check its state
     const tile = getTile(hex)
 
     // Check if the hex is occupied by a character
     if (tile.state === State.OCCUPIED_ALLY || tile.state === State.OCCUPIED_ENEMY) {
-      console.log('Store: hex', hexId, 'is occupied - removing character')
       removeCharacterFromHex(hexId)
       return true // Character was removed
     } else {
-      console.log('Store: hex', hexId, 'is not occupied, state:', tile.state)
       return false // No action taken
     }
   }
@@ -334,11 +317,8 @@ export const useGridStore = defineStore('grid', () => {
   const switchMap = (mapKey: string): boolean => {
     const mapConfig = getMapByKey(mapKey)
     if (!mapConfig) {
-      console.log('Store: map not found:', mapKey)
       return false
     }
-
-    console.log('Store: switching to map:', mapConfig.name)
 
     // Create new grid with the selected map
     grid.value = new Grid(FULL_GRID, mapConfig)
@@ -352,14 +332,10 @@ export const useGridStore = defineStore('grid', () => {
 
   // Artifact management functions
   const placeArtifact = (artifactId: string, team: Team): boolean => {
-    console.log('Store: placing artifact', artifactId, 'for team:', team)
-
     if (team === Team.ALLY) {
       allyArtifact.value = artifactId
-      console.log('Store: ally artifact set to:', artifactId)
     } else {
       enemyArtifact.value = artifactId
-      console.log('Store: enemy artifact set to:', artifactId)
     }
 
     return true

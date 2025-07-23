@@ -21,8 +21,6 @@ const handleTeamChange = (team: Team) => {
 }
 
 const handleArtifactClick = (artifact: ArtifactType) => {
-  console.log('Artifact clicked:', artifact.id, 'for team:', selectedTeam.value)
-
   // Check if this artifact is already placed for the selected team
   const isAlreadyPlaced =
     (selectedTeam.value === Team.ALLY && gridStore.allyArtifact === artifact.id) ||
@@ -31,11 +29,9 @@ const handleArtifactClick = (artifact: ArtifactType) => {
   if (isAlreadyPlaced) {
     // Remove the artifact if it's already placed
     gridStore.removeArtifact(selectedTeam.value)
-    console.log('Artifact removed:', artifact.id, 'from team:', selectedTeam.value)
   } else {
     // Place artifact for the selected team
     gridStore.placeArtifact(artifact.id, selectedTeam.value)
-    console.log('Artifact placed:', artifact.id, 'for team:', selectedTeam.value)
   }
 }
 
@@ -84,7 +80,7 @@ const isArtifactPlaced = (artifactId: string): boolean => {
 
 .controls-row {
   display: flex;
-  justify-content: left;
+  justify-content: space-between;
   align-items: center;
   gap: var(--spacing-lg);
 }
@@ -93,7 +89,7 @@ const isArtifactPlaced = (artifactId: string): boolean => {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-xl);
-  justify-content: center;
+  justify-content: flex-start;
   padding: var(--spacing-lg);
   background-color: var(--color-bg-light-gray);
   border-radius: var(--radius-large);

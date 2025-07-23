@@ -54,4 +54,4 @@ src/
 
 See `CLAUDE.md` for detailed technical documentation and architecture guidelines.
 
-_Built with the help of Claude Code - because even AFK journies need a good AI pair programmer! 🤖⚔️_
+_Built with the help of Claude Code - because even AFK journeys need a good AI pair programmer! 🤖⚔️_

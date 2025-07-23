@@ -153,38 +153,31 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
   // Prevent event from bubbling up to global handlers
   event.stopPropagation()
   event.preventDefault()
-  
-  console.log('Drop detected on hex:', hex.getId())
+
   const dropResult = handleDrop(event)
-  console.log('Drop result:', dropResult)
 
   // Hover state is managed by position-based detection
 
   if (dropResult) {
     const { character, characterId } = dropResult
-    console.log('Placing character on hex:', hex.getId(), character.id, 'team:', character.team)
-    
+
     setDropHandled(true) // Prevent duplicate processing
 
     // Grid-to-grid character moves have sourceHexId from overlay drag handlers
     if (character.sourceHexId !== undefined) {
       const sourceHexId = character.sourceHexId
       const targetHexId = hex.getId()
-      
+
       // Swap if target is occupied, otherwise move
       if (gridStore.isHexOccupied(targetHexId)) {
-        console.log('Target hex is occupied, swapping characters')
         const swapped = gridStore.swapCharacters(sourceHexId, targetHexId)
         if (swapped) {
-          console.log('Swapped characters between hex', sourceHexId, 'and hex', targetHexId)
         } else {
-          console.log('Failed to swap characters')
         }
       } else {
         // Empty target - regular move
         const moved = gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
         if (moved) {
-          console.log('Moved character from hex', sourceHexId, 'to hex', targetHexId)
         }
       }
     } else {
@@ -200,19 +193,16 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       } else if (state === State.AVAILABLE_ENEMY || state === State.OCCUPIED_ENEMY) {
         team = Team.ENEMY
       } else {
-        console.log(`Cannot drop character on tile ${hexId} - invalid state: ${state}`)
         return
       }
 
       // Validate team capacity
       if (!gridStore.canPlaceCharacter(characterId, team)) {
-        console.log(`Failed to place character - team ${team} is full or character already on team`)
         return
       }
 
       const success = gridStore.placeCharacterOnHex(hexId, characterId, team)
       if (!success) {
-        console.log('Failed to place character')
         return
       }
     }
@@ -220,7 +210,6 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
     // Notify parent components
     emit('characterDropped', hex, character, characterId)
   } else {
-    console.log('No valid drop result')
   }
 }
 

@@ -9,6 +9,9 @@ const emit = defineEmits<{
   'update:showDebug': [value: boolean]
   'update:showArrows': [value: boolean]
   'update:showHexIds': [value: boolean]
+  link: []
+  copyImage: []
+  download: []
 }>()
 
 const handleDebugChange = (event: Event) => {
@@ -21,6 +24,10 @@ const handleArrowsChange = (event: Event) => {
   emit('update:showArrows', target.checked)
   emit('update:showHexIds', target.checked) // Keep hex IDs in sync with arrows
 }
+
+const handleLink = () => emit('link')
+const handleCopyImage = () => emit('copyImage')
+const handleDownload = () => emit('download')
 </script>
 
 <template>
@@ -43,13 +50,18 @@ const handleArrowsChange = (event: Event) => {
       />
       <span class="grid-toggle-text">Show Details</span>
     </label>
+
+    <!-- Action buttons -->
+    <button class="action-btn" @click="handleLink">Copy Link</button>
+    <button class="action-btn" @click="handleCopyImage">Copy Image</button>
+    <button class="action-btn" @click="handleDownload">Download</button>
   </div>
 </template>
 
 <style scoped>
 .grid-controls {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: var(--spacing-lg);
   margin-top: var(--spacing-lg);
 }
@@ -85,5 +97,23 @@ const handleArrowsChange = (event: Event) => {
   background: var(--color-bg-tertiary);
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.action-btn {
+  background: var(--color-primary);
+  color: white;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-medium);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.action-btn:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 </style>
