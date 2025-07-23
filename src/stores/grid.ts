@@ -7,7 +7,7 @@ import { FULL_GRID } from '../lib/constants'
 import { getMapByKey, type MapConfig } from '../lib/maps'
 import type { Hex } from '../lib/hex'
 import { Team } from '../lib/types/team'
-import { dataManager } from '../services/DataManager'
+import { loadAllData } from '../utils/dataLoader'
 import type { CharacterType } from '../lib/types/character'
 import type { ArtifactType } from '../lib/types/artifact'
 
@@ -52,7 +52,7 @@ export const useGridStore = defineStore('grid', () => {
     }
 
     try {
-      const data = dataManager.loadAllData()
+      const data = loadAllData()
       
       // Update reactive state
       characters.value = data.characters

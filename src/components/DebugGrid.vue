@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGridStore } from '../stores/grid'
 import { getStateName, getStateClass } from '../utils/stateFormatting'
-import { extractFileName } from '../utils/assetLoader'
+import { extractFileName } from '../utils/dataLoader'
 import { Team } from '../lib/types/team'
 
 // Access Pinia grid store
