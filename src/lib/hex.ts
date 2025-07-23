@@ -1,3 +1,7 @@
+/**
+ * Hex and grid implementation based on Hexagonal Grids:
+ * https://www.redblobgames.com/grids/hexagons/
+ */
 export class Hex {
   readonly q: number
   readonly r: number

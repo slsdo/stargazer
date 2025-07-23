@@ -6,6 +6,7 @@
 - Use TypeScript strictly - avoid `any` types
 - Refactor repeated functionality (DRY principle)
 - Keep comments concise and focused on design concepts
+- Use functional and stateless approaches when possible
 - Test changes: `npm run build` and `npm run type-check`
 
 ## ARCHITECTURE
