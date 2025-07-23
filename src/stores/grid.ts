@@ -25,6 +25,15 @@ export const useGridStore = defineStore('grid', () => {
   const allyArtifact = ref<string | null>(null)
   const enemyArtifact = ref<string | null>(null)
 
+  // Character ranges - will be set from outside when needed
+  let characterRanges = new Map<string, number>()
+
+  // Function to update character ranges from external source
+  const setCharacterRanges = (ranges: Map<string, number>) => {
+    characterRanges = ranges
+    characterUpdateTrigger.value++ // Trigger reactivity
+  }
+
   // Consolidated character state - single computation point
   const characterState = computed(() => {
     characterUpdateTrigger.value // Single reactivity trigger
@@ -35,8 +44,8 @@ export const useGridStore = defineStore('grid', () => {
       tilesWithCharacters: grid.value.getTilesWithCharacters(),
       availableAlly: grid.value.getAvailableAlly(),
       availableEnemy: grid.value.getAvailableEnemy(),
-      closestEnemyMap: grid.value.getClosestEnemyMap(),
-      closestAllyMap: grid.value.getClosestAllyMap(),
+      closestEnemyMap: grid.value.getClosestEnemyMap(characterRanges),
+      closestAllyMap: grid.value.getClosestAllyMap(characterRanges),
     }
   })
 
@@ -178,7 +187,8 @@ export const useGridStore = defineStore('grid', () => {
     }
 
     // Get the team from the source hex - needed for restoration if move fails
-    const team = grid.value.getCharacterTeam(fromHexId) || Team.ALLY
+    const fromTile = grid.value.getTile(fromHexId)
+    const team = fromTile.team || Team.ALLY
 
     // Get target tile to determine what team the character should join
     const targetTile = grid.value.getTile(toHexId)
@@ -410,6 +420,9 @@ export const useGridStore = defineStore('grid', () => {
     autoPlaceCharacter,
     handleHexClick,
     switchMap,
+
+    // Character ranges management
+    setCharacterRanges,
 
     // Artifact management
     allyArtifact: readonly(allyArtifact),

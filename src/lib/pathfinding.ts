@@ -116,4 +116,43 @@ export class Pathfinding {
     // Cannot traverse through blocked tiles
     return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
   }
+
+  /**
+   * Calculate effective movement distance considering character range.
+   * Characters can attack without moving if target is within range, bypassing blocked tiles.
+   * Returns movement tiles needed (0 if already in range) rather than total path distance.
+   */
+  static calculateEffectiveDistance(
+    start: Hex,
+    goal: Hex,
+    range: number,
+    getTile: (hex: Hex) => GridTile | undefined,
+    canTraverse: (tile: GridTile) => boolean,
+  ): { movementDistance: number; canReach: boolean; directDistance: number } {
+    // Calculate direct hex distance (ignoring obstacles)
+    const directDistance = start.distance(goal)
+    
+    // If target is within range, no movement needed
+    if (directDistance <= range) {
+      return { movementDistance: 0, canReach: true, directDistance }
+    }
+    
+    // Need to move closer - find path to get within range
+    const path = this.findPath(start, goal, getTile, canTraverse)
+    
+    if (!path) {
+      // No path exists, cannot reach target
+      return { movementDistance: Infinity, canReach: false, directDistance }
+    }
+    
+    // Calculate how many tiles we need to move to get within range
+    const pathLength = path.length - 1 // Subtract 1 because path includes start position
+    const movementNeeded = Math.max(0, pathLength - range)
+    
+    return { 
+      movementDistance: movementNeeded, 
+      canReach: true,
+      directDistance 
+    }
+  }
 }

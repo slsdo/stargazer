@@ -7,7 +7,6 @@
 - Refactor repeated functionality (DRY principle)
 - Keep comments concise and focused on design concepts
 - Test changes: `npm run build` and `npm run type-check`
-- Use `npm run format` to format code
 
 ## ARCHITECTURE
 
@@ -30,28 +29,34 @@ src/
 ### KEY FILES
 
 **Core Logic (`src/lib/`)**
+
 - `hex.ts` - Hex coordinate system
 - `grid.ts` - Grid management and character placement
 - `layout.ts` - Hex-to-pixel conversions
-- `pathfinding.ts` - A* pathfinding algorithms
+- `pathfinding.ts` - A\* pathfinding algorithms
 - `maps.ts` - Map configuration management
 
 **State (`src/stores/`)**
+
 - `grid.ts` - Reactive wrapper around Grid class
 
 **Components (`src/components/`)**
+
 - `GridTiles.vue` - Hex grid rendering with drag/drop
 - `GridCharacters.vue` - Character overlay system
 - `CharacterSelection.vue` - Character roster
 - `DragPreview.vue` - Visual drag feedback
 
 **Composables (`src/composables/`)**
+
 - `useDragDrop.ts` - Global drag/drop state management
 
 ## DESIGN PRINCIPLES
 
 ### Grid API
+
 Grid methods accept both `Hex` objects and hex IDs:
+
 ```typescript
 grid.placeCharacter(hexOrId, characterId, team)
 grid.getCharacter(hexOrId)
@@ -59,11 +64,13 @@ grid.removeCharacter(hexOrId)
 ```
 
 ### State Management
+
 - Use computed properties for reactive data
 - Trigger reactivity: `characterUpdateTrigger.value++`
 - Store methods should be minimal and focused
 
 ### Vue Components
+
 - Structure: `<script setup>`, `<template>`, `<style scoped>`
 - Use TypeScript interfaces for complex props
 - Prefer composition over inheritance
@@ -71,6 +78,7 @@ grid.removeCharacter(hexOrId)
 ## DRAG AND DROP SYSTEM
 
 ### Architecture
+
 Hybrid detection system supporting multiple drag sources:
 
 - **useDragDrop**: Global state management for all drag operations
@@ -79,6 +87,7 @@ Hybrid detection system supporting multiple drag sources:
 - **Automatic team assignment**: Characters join teams based on drop tile
 
 ### Key Features
+
 - Drag from character selection or grid characters
 - Automatic team assignment based on target tile state
 - Character swapping between occupied tiles
@@ -86,6 +95,7 @@ Hybrid detection system supporting multiple drag sources:
 - Point-in-polygon detection for accurate hex targeting
 
 ### Implementation Notes
+
 - HTML overlays enable dragging SVG elements
 - Position-based detection handles blocked tile events
 - Uses `hoveredHexId` for unified visual feedback
@@ -94,12 +104,14 @@ Hybrid detection system supporting multiple drag sources:
 ## DEVELOPMENT WORKFLOW
 
 ### Layer Guidelines
+
 - Core logic → `src/lib/`
 - State management → `src/stores/`
 - UI components → `src/components/`
 - Utilities → `src/utils/`
 
 ### Validation
+
 1. `npm run build` - Check for build errors
 2. `npm run type-check` - Verify TypeScript compliance
 3. Test in development mode
@@ -108,6 +120,7 @@ Hybrid detection system supporting multiple drag sources:
 ## COMMON PATTERNS
 
 ### Asset Loading
+
 ```typescript
 import { loadAssetsDict } from '../utils/assetLoader'
 
@@ -120,6 +133,7 @@ const images = loadAssetsDict(
 ```
 
 ### Grid Operations
+
 ```typescript
 const gridStore = useGridStore()
 
@@ -134,6 +148,7 @@ const isOccupied = gridStore.isHexOccupied(hexId)
 ```
 
 ### State Formatting
+
 ```typescript
 import { getHexFillColor } from '../utils/stateFormatting'
 const fillColor = getHexFillColor(state)

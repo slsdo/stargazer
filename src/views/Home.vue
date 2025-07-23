@@ -148,6 +148,13 @@ const characters = (
   ) as CharacterType[]
 ).sort((a, b) => a.faction.localeCompare(b.faction))
 
+// Create character ranges map and pass to store
+const characterRanges = new Map<string, number>()
+characters.forEach(char => {
+  characterRanges.set(char.id, char.range)
+})
+gridStore.setCharacterRanges(characterRanges)
+
 const artifacts = (
   Object.values(
     import.meta.glob('../data/artifact/*.json', { eager: true, import: 'default' }),

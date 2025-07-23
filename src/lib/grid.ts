@@ -246,12 +246,13 @@ export class Grid {
 
   /**
    * Find the closest target from a source tile among a list of target tiles
-   * Uses A* pathfinding to account for obstacles
-   * Tie-breaking: if multiple targets at same path distance, choose the one with lowest hex ID
+   * Uses A* pathfinding to account for obstacles and character range
+   * Tie-breaking: if multiple targets at same effective distance, choose the one with lowest hex ID
    */
   private findClosestTarget(
     sourceTile: GridTile,
     targetTiles: GridTile[],
+    sourceRange: number,
     canTraverse: (tile: GridTile) => boolean,
   ): { hexId: number; distance: number } | null {
     let closest: { hexId: number; distance: number } | null = null
@@ -273,25 +274,30 @@ export class Grid {
         return canTraverse(tile)
       }
 
-      const pathDistance = Pathfinding.findPathDistance(
+      // Use range-aware pathfinding
+      const effectiveDistance = Pathfinding.calculateEffectiveDistance(
         sourceTile.hex,
         targetTile.hex,
+        sourceRange,
         getTileHelper,
         canTraverseToTarget,
       )
 
-      if (pathDistance === null) {
+      if (!effectiveDistance.canReach) {
         continue
       }
 
+      // Use movement distance for comparison (tiles needed to move)
+      const distance = effectiveDistance.movementDistance
+
       if (
         !closest ||
-        pathDistance < closest.distance ||
-        (pathDistance === closest.distance && targetTile.hex.getId() < closest.hexId)
+        distance < closest.distance ||
+        (distance === closest.distance && targetTile.hex.getId() < closest.hexId)
       ) {
         closest = {
           hexId: targetTile.hex.getId(),
-          distance: pathDistance,
+          distance: distance,
         }
       }
     }
@@ -302,9 +308,10 @@ export class Grid {
   /**
    * Calculate closest enemy for each ally character
    * Returns a map of ally hex IDs to their closest enemy info
-   * Uses pathfinding to account for obstacles
+   * Uses pathfinding to account for obstacles and character range
+   * @param characterRanges Map of character IDs to their range values
    */
-  getClosestEnemyMap(): Map<number, { enemyHexId: number; distance: number }> {
+  getClosestEnemyMap(characterRanges: Map<string, number> = new Map()): Map<number, { enemyHexId: number; distance: number }> {
     const result = new Map<number, { enemyHexId: number; distance: number }>()
 
     // Get all tiles with characters
@@ -314,7 +321,8 @@ export class Grid {
 
     // For each ally character, find closest enemy using pathfinding
     for (const allyTile of allyTiles) {
-      const closestEnemy = this.findClosestTarget(allyTile, enemyTiles, (tile) =>
+      const range = allyTile.character ? characterRanges.get(allyTile.character) ?? 1 : 1
+      const closestEnemy = this.findClosestTarget(allyTile, enemyTiles, range, (tile) =>
         this.canTraverseToEnemy(tile),
       )
 
@@ -332,9 +340,10 @@ export class Grid {
   /**
    * Calculate closest ally character for each enemy
    * Returns a map of enemy hex IDs to their closest ally character info
-   * Uses pathfinding to account for obstacles
+   * Uses pathfinding to account for obstacles and character range
+   * @param characterRanges Map of character IDs to their range values
    */
-  getClosestAllyMap(): Map<number, { allyHexId: number; distance: number }> {
+  getClosestAllyMap(characterRanges: Map<string, number> = new Map()): Map<number, { allyHexId: number; distance: number }> {
     const result = new Map<number, { allyHexId: number; distance: number }>()
 
     // Get all tiles with characters
@@ -344,7 +353,8 @@ export class Grid {
 
     // For each enemy character, find closest ally character using pathfinding
     for (const enemyTile of enemyTiles) {
-      const closestAlly = this.findClosestTarget(enemyTile, allyTiles, (tile) =>
+      const range = enemyTile.character ? characterRanges.get(enemyTile.character) ?? 1 : 1
+      const closestAlly = this.findClosestTarget(enemyTile, allyTiles, range, (tile) =>
         this.canTraverseToAlly(tile),
       )
 
