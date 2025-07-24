@@ -17,11 +17,11 @@ const handleClick = () => {
   background: var(--color-danger);
   color: white;
   border: 2px solid var(--color-danger);
-  padding: var(--spacing-md) var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-md);
   margin-right: 5px;
-  border-radius: var(--radius-large);
+  border-radius: var(--radius-medium);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   transition: all var(--transition-fast);
 }

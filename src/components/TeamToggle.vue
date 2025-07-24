@@ -53,13 +53,13 @@ const setTeam = (team: Team) => {
   background: transparent;
   color: var(--color-text-secondary);
   border: none;
-  padding: var(--spacing-md) var(--spacing-2xl);
+  padding: var(--spacing-md) var(--spacing-lg);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   transition: all var(--transition-fast);
   border-radius: var(--radius-medium);
-  width: 160px;
+  width: 120px;
 }
 
 .team-btn:hover {

@@ -60,11 +60,27 @@ const handleDownload = () => {
     </label>
 
     <!-- Action Buttons -->
-    <button @click="handleCopyLink" class="action-btn">Copy Link</button>
+    <button @click="handleCopyLink" class="action-btn">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="btn-icon"
+      >
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </svg>
+      Copy Link
+    </button>
     <button @click="handleCopyImage" class="action-btn">
       <svg
-        width="16"
-        height="16"
+        width="14"
+        height="14"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -80,8 +96,8 @@ const handleDownload = () => {
     </button>
     <button @click="handleDownload" class="action-btn">
       <svg
-        width="16"
-        height="16"
+        width="14"
+        height="14"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -110,21 +126,21 @@ const handleDownload = () => {
 .grid-toggle-btn {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
   user-select: none;
   background: var(--color-bg-primary);
   border: 2px solid var(--color-border-primary);
   border-radius: var(--radius-medium);
-  padding: var(--spacing-sm) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
   transition: all var(--transition-fast);
 }
 
 .grid-toggle-checkbox {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 0.9rem;
+  height: 0.9rem;
   cursor: pointer;
   accent-color: var(--color-primary);
   margin: 0;
