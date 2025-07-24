@@ -65,12 +65,12 @@ const handleArtifactClick = (team: Team) => {
 
 .ally-artifact {
   bottom: 25px;
-  left: 55px;
+  left: 60px;
 }
 
 .enemy-artifact {
   top: 25px;
-  right: 55px;
+  right: 60px;
 }
 
 .artifact-image {
