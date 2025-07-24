@@ -235,11 +235,29 @@ const handleTabChange = (tab: string) => {
 GridControls provides action buttons for various operations:
 
 ```typescript
+// Grid export functionality using html-to-image
+const handleDownload = async () => {
+  const { toPng } = await import('html-to-image')
+  const mapElement = document.getElementById('map')
+  const dataUrl = await toPng(mapElement, {
+    quality: 1.0,
+    pixelRatio: 2,
+    backgroundColor: 'transparent',
+  })
+  // Create and trigger download
+}
+
 // Placeholder handlers for future implementation
 const handleCopyLink = () => { /* TODO */ }
 const handleCopyImage = () => { /* TODO */ }  
-const handleDownload = () => { /* TODO */ }
 ```
+
+**Grid Export Feature:**
+- Downloads the entire grid (everything inside `id="map"`) as a PNG image
+- Uses `html-to-image` library for high-quality export
+- Transparent background for easy compositing
+- Includes characters, tiles, arrows, and all visual elements
+- Filename format: `stargazer-YYYYMMDD-HHMMSSMMM.png`
 
 ## BUILD COMMANDS
 

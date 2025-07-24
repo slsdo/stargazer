@@ -55,9 +55,42 @@ const handleCopyImage = () => {
   console.log('Copy Image clicked - implementation coming soon')
 }
 
-const handleDownload = () => {
-  // TODO: Implement download functionality
-  console.log('Download clicked - implementation coming soon')
+const handleDownload = async () => {
+  try {
+    // Import html-to-image dynamically
+    const { toPng } = await import('html-to-image')
+
+    // Get the map element
+    const mapElement = document.getElementById('map')
+    if (!mapElement) {
+      console.error('Map element not found')
+      return
+    }
+
+    // Generate PNG from the map element
+    const dataUrl = await toPng(mapElement, {
+      quality: 1.0,
+      pixelRatio: 2, // Higher quality export
+      backgroundColor: 'transparent', // Transparent background
+    })
+
+    // Create download link
+    const now = new Date()
+    const dateStr = now.toISOString().split('T')[0].replace(/-/g, '')
+    const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '') + now.getMilliseconds().toString().padStart(3, '0')
+    const link = document.createElement('a')
+    link.download = `stargazer-${dateStr}-${timeStr}.png`
+    link.href = dataUrl
+
+    // Trigger download
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    console.log('Grid exported successfully!')
+  } catch (error) {
+    console.error('Failed to export grid:', error)
+  }
 }
 </script>
 
