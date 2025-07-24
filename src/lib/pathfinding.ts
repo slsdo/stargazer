@@ -1,6 +1,8 @@
 import { Hex } from './hex'
 import { State } from './types/state'
 import type { GridTile } from './grid'
+import { PriorityQueue } from './priorityQueue'
+import { MemoCache, generatePathCacheKey } from './memoization'
 
 interface PathNode {
   hex: Hex
@@ -11,6 +13,13 @@ interface PathNode {
 }
 
 export class Pathfinding {
+  // Cache for path calculations - stores results to avoid redundant pathfinding
+  private static pathCache = new MemoCache<string, Hex[] | null>(500)
+  private static effectiveDistanceCache = new MemoCache<
+    string,
+    { movementDistance: number; canReach: boolean; directDistance: number }
+  >(500)
+
   // A* pathfinding algorithm for hex grids
   static findPath(
     start: Hex,
@@ -18,8 +27,9 @@ export class Pathfinding {
     getTile: (hex: Hex) => GridTile | undefined,
     canTraverse: (tile: GridTile) => boolean,
   ): Hex[] | null {
-    const openSet: PathNode[] = []
+    const openSet = new PriorityQueue<PathNode>()
     const closedSet = new Set<string>()
+    const nodeMap = new Map<string, PathNode>()
 
     // Create start node
     const startNode: PathNode = {
@@ -30,18 +40,12 @@ export class Pathfinding {
       parent: null,
     }
 
-    openSet.push(startNode)
+    openSet.enqueue(startNode, startNode.f)
+    nodeMap.set(start.toString(), startNode)
 
-    while (openSet.length > 0) {
-      // Find node with lowest f score
-      let currentIndex = 0
-      for (let i = 1; i < openSet.length; i++) {
-        if (openSet[i].f < openSet[currentIndex].f) {
-          currentIndex = i
-        }
-      }
-
-      const current = openSet.splice(currentIndex, 1)[0]
+    while (!openSet.isEmpty()) {
+      const current = openSet.dequeue()
+      if (!current) break
 
       // Check if we reached the goal
       if (current.hex.equals(goal)) {
@@ -60,8 +64,10 @@ export class Pathfinding {
       // Check all 6 neighbors
       for (let direction = 0; direction < 6; direction++) {
         const neighbor = current.hex.neighbor(direction)
+        const neighborKey = neighbor.toString()
+
         // Skip if already evaluated
-        if (closedSet.has(neighbor.toString())) {
+        if (closedSet.has(neighborKey)) {
           continue
         }
 
@@ -74,8 +80,8 @@ export class Pathfinding {
         // Calculate tentative g score
         const tentativeG = current.g + 1
 
-        // Check if neighbor is already in open set
-        let neighborNode = openSet.find((n) => n.hex.equals(neighbor))
+        // Check if neighbor is already known
+        let neighborNode = nodeMap.get(neighborKey)
 
         if (!neighborNode) {
           // Create new node
@@ -86,12 +92,15 @@ export class Pathfinding {
             f: tentativeG + neighbor.distance(goal),
             parent: current,
           }
-          openSet.push(neighborNode)
+          nodeMap.set(neighborKey, neighborNode)
+          openSet.enqueue(neighborNode, neighborNode.f)
         } else if (tentativeG < neighborNode.g) {
           // Update existing node if we found a better path
           neighborNode.g = tentativeG
           neighborNode.f = tentativeG + neighborNode.h
           neighborNode.parent = current
+          // Update priority in queue
+          openSet.updatePriority(neighborNode, neighborNode.f, (a, b) => a.hex.equals(b.hex))
         }
       }
     }
@@ -128,13 +137,28 @@ export class Pathfinding {
     range: number,
     getTile: (hex: Hex) => GridTile | undefined,
     canTraverse: (tile: GridTile) => boolean,
+    cachingEnabled: boolean = false,
   ): { movementDistance: number; canReach: boolean; directDistance: number } {
+    // Check cache first if caching is enabled
+    if (cachingEnabled) {
+      const cacheKey = generatePathCacheKey(start.getId(), goal.getId(), range)
+      const cached = this.effectiveDistanceCache.get(cacheKey)
+      if (cached) {
+        return cached
+      }
+    }
+
     // Calculate direct hex distance (ignoring obstacles)
     const directDistance = start.distance(goal)
 
     // If target is within range, no movement needed
     if (directDistance <= range) {
-      return { movementDistance: 0, canReach: true, directDistance }
+      const result = { movementDistance: 0, canReach: true, directDistance }
+      if (cachingEnabled) {
+        const cacheKey = generatePathCacheKey(start.getId(), goal.getId(), range)
+        this.effectiveDistanceCache.set(cacheKey, result)
+      }
+      return result
     }
 
     // Need to move closer - find path to get within range
@@ -142,17 +166,36 @@ export class Pathfinding {
 
     if (!path) {
       // No path exists, cannot reach target
-      return { movementDistance: Infinity, canReach: false, directDistance }
+      const result = { movementDistance: Infinity, canReach: false, directDistance }
+      if (cachingEnabled) {
+        const cacheKey = generatePathCacheKey(start.getId(), goal.getId(), range)
+        this.effectiveDistanceCache.set(cacheKey, result)
+      }
+      return result
     }
 
     // Calculate how many tiles we need to move to get within range
     const pathLength = path.length - 1 // Subtract 1 because path includes start position
     const movementNeeded = Math.max(0, pathLength - range)
 
-    return {
+    const result = {
       movementDistance: movementNeeded,
       canReach: true,
       directDistance,
     }
+
+    if (cachingEnabled) {
+      const cacheKey = generatePathCacheKey(start.getId(), goal.getId(), range)
+      this.effectiveDistanceCache.set(cacheKey, result)
+    }
+    return result
+  }
+
+  /**
+   * Clear all caches - should be called when grid state changes significantly
+   */
+  static clearCache(): void {
+    this.pathCache.clear()
+    this.effectiveDistanceCache.clear()
   }
 }

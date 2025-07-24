@@ -28,6 +28,7 @@ export const useGridStore = defineStore('grid', () => {
   // Artifact tracking
   const allyArtifact = ref<string | null>(null)
   const enemyArtifact = ref<string | null>(null)
+  
 
   // Data state
   const characters = ref<CharacterType[]>([])
@@ -122,8 +123,6 @@ export const useGridStore = defineStore('grid', () => {
       tilesWithCharacters: grid.value.getTilesWithCharacters(),
       availableAlly: grid.value.getAvailableAlly(),
       availableEnemy: grid.value.getAvailableEnemy(),
-      closestEnemyMap: grid.value.getClosestEnemyMap(characterRanges),
-      closestAllyMap: grid.value.getClosestAllyMap(characterRanges),
     }
   })
 
@@ -134,8 +133,18 @@ export const useGridStore = defineStore('grid', () => {
   const characterPlacements = computed(() => characterState.value.placements)
   const availableAlly = computed(() => characterState.value.availableAlly)
   const availableEnemy = computed(() => characterState.value.availableEnemy)
-  const closestEnemyMap = computed(() => characterState.value.closestEnemyMap)
-  const closestAllyMap = computed(() => characterState.value.closestAllyMap)
+  
+  // Lazy evaluation for expensive computations - only compute when accessed
+  // This prevents slowdowns during character placement/movement operations
+  const closestEnemyMap = computed(() => {
+    characterUpdateTrigger.value // Ensure reactivity
+    return grid.value.getClosestEnemyMap(characterRanges)
+  })
+  
+  const closestAllyMap = computed(() => {
+    characterUpdateTrigger.value // Ensure reactivity
+    return grid.value.getClosestAllyMap(characterRanges)
+  })
 
   // Actions that use Grid instance
   const placeCharacterOnHex = (
@@ -226,26 +235,29 @@ export const useGridStore = defineStore('grid', () => {
       return false
     }
 
+    // Skip cache invalidation during intermediate operations
     // Remove both characters first
-    grid.value.removeCharacter(fromHexId)
-    grid.value.removeCharacter(toHexId)
+    grid.value.removeCharacter(fromHexId, true) // Skip cache invalidation
+    grid.value.removeCharacter(toHexId, true) // Skip cache invalidation
 
     // Place characters in swapped positions with appropriate teams
-    const success1 = grid.value.placeCharacter(fromHexId, toCharacterId, fromTargetTeam)
-    const success2 = grid.value.placeCharacter(toHexId, fromCharacterId, toTargetTeam)
+    const success1 = grid.value.placeCharacter(fromHexId, toCharacterId, fromTargetTeam, true) // Skip cache invalidation
+    const success2 = grid.value.placeCharacter(toHexId, fromCharacterId, toTargetTeam, true) // Skip cache invalidation
 
     // If either placement fails, restore original positions
     if (!success1 || !success2) {
       // Clean up any partial placements
-      if (success1) grid.value.removeCharacter(fromHexId)
-      if (success2) grid.value.removeCharacter(toHexId)
+      if (success1) grid.value.removeCharacter(fromHexId, true) // Skip cache invalidation
+      if (success2) grid.value.removeCharacter(toHexId, true) // Skip cache invalidation
 
       // Restore original positions
-      grid.value.placeCharacter(fromHexId, fromCharacterId, fromTeam)
-      grid.value.placeCharacter(toHexId, toCharacterId, toTeam)
+      grid.value.placeCharacter(fromHexId, fromCharacterId, fromTeam, true) // Skip cache invalidation
+      grid.value.placeCharacter(toHexId, toCharacterId, toTeam) // Final operation - invalidate caches
       return false
     }
 
+    // Final cache invalidation after all operations complete
+    grid.value.invalidateCaches()
     characterUpdateTrigger.value++ // Trigger Vue reactivity for UI updates
     return true
   }
@@ -281,11 +293,11 @@ export const useGridStore = defineStore('grid', () => {
     // Instead of removing then placing, let's try a direct approach
     if (team !== targetTeam) {
       // Cross-team move - remove from original team first
-      grid.value.removeCharacter(fromHexId)
+      grid.value.removeCharacter(fromHexId, true) // Skip cache invalidation
 
       // For cross-team moves, we should always be able to place the character
-      // since we're switching teams (capacity shouldn't be an issue)
-      const success = grid.value.placeCharacter(toHexId, characterId, targetTeam)
+      // since we're switching teams (capacity shouldn't be an issue)  
+      const success = grid.value.placeCharacter(toHexId, characterId, targetTeam) // Final operation - invalidate caches
 
       if (!success) {
         // This should rarely happen for cross-team moves, but restore if it does
@@ -296,8 +308,8 @@ export const useGridStore = defineStore('grid', () => {
       return success
     } else {
       // Same team move - use the original logic
-      grid.value.removeCharacter(fromHexId)
-      const success = grid.value.placeCharacter(toHexId, characterId, targetTeam)
+      grid.value.removeCharacter(fromHexId, true) // Skip cache invalidation
+      const success = grid.value.placeCharacter(toHexId, characterId, targetTeam) // Final operation - invalidate caches
 
       if (!success) {
         grid.value.placeCharacter(fromHexId, characterId, team)

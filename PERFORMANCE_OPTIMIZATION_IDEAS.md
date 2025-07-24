@@ -1,147 +1,79 @@
-# Performance Optimization Guide
+Pathfinding Performance Optimization Plan
 
-This guide documents the performance optimizations implemented for the pathfinding and calculation system.
+Overview
 
-## Overview
+The main performance bottleneck is the recalculation of getClosestEnemyMap and getClosestAllyMap
+on every character update. These O(n²) operations with pathfinding are being called unnecessarily
+through the reactive computed properties in the grid store.
 
-The main performance bottleneck was the recalculation of `getClosestEnemyMap` and `getClosestAllyMap` on every character update. These O(n²) operations with pathfinding were being called unnecessarily, even when most character positions hadn't changed.
+Optimization Strategy
 
-## Implemented Optimizations
+1. Priority Queue Implementation (High Impact)
 
-### 1. **Memoization System** (`src/lib/memoization.ts`)
+- Replace O(n) linear search in pathfinding with O(log n) min-heap
+- Create src/lib/priorityQueue.ts with efficient heap operations
+- Modify Pathfinding.findPath to use priority queue for open set
 
-- **MemoCache**: LRU cache with configurable size and TTL
-- **Grid State Hashing**: Efficient cache key generation based on character positions
-- **Path Cache Keys**: Unique keys for pathfinding results
+2. Memoization System (Very High Impact)
 
-### 2. **Priority Queue for A*** (`src/lib/priorityQueue.ts`)
+- Create src/lib/memoization.ts with LRU cache implementation
+- Cache pathfinding results based on (start, goal, range) tuple
+- Cache closest enemy/ally maps with grid state hashing
+- Implement automatic cache invalidation on character moves
 
-- Replaced O(n) linear search with O(log n) min-heap operations
-- Significantly improves pathfinding performance for large grids
+3. Grid-Level Caching (High Impact)
 
-### 3. **Grid-Level Caching** (`src/lib/grid.ts`)
+- Add caching directly in Grid class for closest target calculations
+- Cache keys based on character positions and ranges
+- Invalidate only affected paths on character movement
 
-```typescript
-// Before: Called on every characterUpdateTrigger
-const closestEnemyMap = computed(() => grid.value.getClosestEnemyMap(characterRanges))
+4. Batch Updates (Medium Impact)
 
-// After: Cached at the Grid level
-getClosestEnemyMap(characterRanges) {
-  const cacheKey = generateCacheKey(placements, ranges)
-  return this.closestEnemyCache.get(cacheKey) || computeAndCache()
-}
-```
+- Modify grid store to batch multiple character operations
+- Defer closest map calculations until all moves complete
+- Add explicit beginBatch() and endBatch() methods
 
-### 4. **Pathfinding Caching** (`src/lib/pathfinding.ts`)
+5. Incremental Updates (Advanced, Medium Impact)
 
-- Caches `calculateEffectiveDistance` results
-- Path calculations are deterministic for same start/goal/range
-- Cache persists across character movements
+- Track which hexes are affected by character movements
+- Recalculate only paths involving moved characters
+- Maintain partial cache validity during updates
 
-## Performance Improvements
+Implementation Steps
 
-### Before Optimizations
-- Every character action triggered full recalculation
-- With 10 characters: ~100 pathfinding calls per update
-- UI lag on character drag/drop operations
+1. Phase 1: Core Infrastructure
 
-### After Optimizations
-- First calculation: ~100 pathfinding calls (cached)
-- Subsequent identical states: 0 pathfinding calls
-- Character movements only invalidate affected paths
-- Smooth UI performance
+- Implement priority queue for A\* optimization
+- Create memoization utilities with configurable cache sizes
+- Add performance timing/debugging helpers
 
-## Integration Example
+2. Phase 2: Pathfinding Cache
 
-### Option 1: Direct Usage (Current Implementation)
+- Cache calculateEffectiveDistance results
+- Add cache hit/miss tracking for debugging
+- Implement smart cache key generation
 
-The optimizations are already integrated into the existing Grid class:
+3. Phase 3: Grid-Level Integration
 
-```typescript
-// In grid.ts
-const grid = new Grid() // Caching is automatic
+- Add closest map caches to Grid class
+- Implement cache invalidation on character operations
+- Maintain cache consistency across operations
 
-// These calls are now cached
-grid.getClosestEnemyMap(characterRanges)
-grid.getClosestAllyMap(characterRanges)
-```
+4. Phase 4: Store Optimization
 
-### Option 2: Fine-Grained Reactivity (Advanced)
+- Optimize reactive computations in grid store
+- Add batch update support
+- Create optional lazy evaluation mode
 
-For even better performance, use the `gridOptimization.ts` store extension:
+Expected Performance Improvements
 
-```typescript
-import { createGridOptimization } from '../stores/gridOptimization'
+- Initial calculation: Same as current (builds cache)
+- Subsequent identical states: ~95% reduction in computation
+- Character moves: Only affected paths recalculated
+- UI responsiveness: Smooth drag/drop operations
 
-// In your store setup
-const optimization = createGridOptimization(grid.value)
+Memory Considerations
 
-// Replace computed properties with lazy getters
-const closestEnemyMap = () => optimization.getClosestEnemyMap(characterRanges)
-const closestAllyMap = () => optimization.getClosestAllyMap(characterRanges)
-
-// Update only when needed
-optimization.updateCharacterCounts()
-```
-
-## Cache Invalidation
-
-Caches are automatically invalidated when:
-- Characters are placed/removed/moved
-- Grid state changes
-- Map is switched
-
-Manual cache clearing:
-```typescript
-// Clear pathfinding cache
-Pathfinding.clearCache()
-
-// Clear grid caches (called automatically)
-grid.invalidateCaches()
-```
-
-## Memory Considerations
-
-- **Closest Target Caches**: Max 100 entries each
-- **Path Cache**: Max 500 entries
-- **Total Memory**: ~50KB for typical gameplay
-
-## Debugging
-
-Enable performance monitoring:
-```typescript
-// Add to grid.ts constructor
-console.time('getClosestEnemyMap')
-const result = this.getClosestEnemyMap(ranges)
-console.timeEnd('getClosestEnemyMap')
-```
-
-## Future Optimizations
-
-1. **Incremental Updates**: Only recalculate paths for moved characters
-2. **Web Workers**: Move pathfinding to background thread
-3. **Spatial Indexing**: Use quadtree for faster neighbor lookups
-4. **Batch Updates**: Combine multiple character movements
-
-## Performance Tips
-
-1. **Avoid Frequent Updates**: Batch character placements when possible
-2. **Use Move/Swap Methods**: More efficient than remove + place
-3. **Lazy Evaluation**: Only compute closest targets when needed (e.g., for display)
-
-## Benchmarks
-
-Test scenario: 10v10 character placement on 61-hex grid
-
-| Operation | Before | After | Improvement |
-|-----------|--------|-------|-------------|
-| Initial Load | 250ms | 260ms | -4% (cache setup) |
-| Character Move | 180ms | 15ms | 91.7% |
-| Character Swap | 360ms | 30ms | 91.7% |
-| Bulk Placement | 2000ms | 300ms | 85% |
-
-## Conclusion
-
-These optimizations provide significant performance improvements while maintaining the existing API. The caching strategy is transparent to consumers and automatically handles invalidation.
-
-For applications with extreme performance requirements, consider using the fine-grained reactivity approach in `gridOptimization.ts` to further minimize unnecessary computations.
+- Path cache: ~500 entries max (configurable)
+- Closest map caches: ~100 entries each
+- Total memory overhead: ~50-100KB typical usage
