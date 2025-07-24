@@ -8,6 +8,7 @@ import { getMapByKey, type MapConfig } from '../lib/maps'
 import type { Hex } from '../lib/hex'
 import { Team } from '../lib/types/team'
 import { loadAllData } from '../utils/dataLoader'
+import { getGridStateFromCurrentUrl } from '../utils/urlStateManager'
 import type { CharacterType } from '../lib/types/character'
 import type { ArtifactType } from '../lib/types/artifact'
 
@@ -59,8 +60,56 @@ export const useGridStore = defineStore('grid', () => {
 
       dataLoaded.value = true
       characterUpdateTrigger.value++ // Trigger reactivity
+
+      // After data is loaded, try to restore state from URL
+      restoreStateFromUrl()
     } catch (error) {
       console.error('Failed to initialize data:', error)
+    }
+  }
+
+  // Restore grid state from URL parameters
+  const restoreStateFromUrl = () => {
+    try {
+      const urlState = getGridStateFromCurrentUrl()
+      if (!urlState) {
+        return // No state in URL
+      }
+
+      console.log('Restoring grid state from URL:', urlState)
+
+      // Switch to the specified map
+      if (urlState.map !== currentMap.value) {
+        const success = switchMap(urlState.map)
+        if (!success) {
+          console.warn(`Failed to switch to map: ${urlState.map}`)
+          return
+        }
+      }
+
+      // Clear existing placements
+      clearAllCharacters()
+      clearAllArtifacts()
+
+      // Restore character placements
+      urlState.characters.forEach(({ hexId, characterId, team }) => {
+        const success = placeCharacterOnHex(hexId, characterId, team)
+        if (!success) {
+          console.warn(`Failed to place character ${characterId} on hex ${hexId}`)
+        }
+      })
+
+      // Restore artifacts
+      if (urlState.artifacts.ally) {
+        placeArtifact(urlState.artifacts.ally, Team.ALLY)
+      }
+      if (urlState.artifacts.enemy) {
+        placeArtifact(urlState.artifacts.enemy, Team.ENEMY)
+      }
+
+      console.log('Successfully restored grid state from URL')
+    } catch (error) {
+      console.error('Failed to restore state from URL:', error)
     }
   }
 

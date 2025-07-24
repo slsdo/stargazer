@@ -8,6 +8,7 @@ import DragDropProvider from '../components/DragDropProvider.vue'
 import { Team } from '../lib/types/team'
 import { useGridStore } from '../stores/grid'
 import { getMapNames } from '../lib/maps'
+import { generateShareableUrl } from '../utils/urlStateManager'
 import { ref } from 'vue'
 
 // Use Pinia grid store
@@ -41,10 +42,22 @@ gridStore.initializeData()
 
 // Action button handlers
 
-// Placeholder handlers for action buttons
-const handleCopyLink = () => {
-  // TODO: Implement copy link functionality
-  console.log('Copy Link clicked - implementation coming soon')
+const handleCopyLink = async () => {
+  try {
+    // Generate shareable URL with current grid state
+    const shareableUrl = generateShareableUrl(
+      gridStore.currentMap,
+      gridStore.getTilesWithCharacters(),
+      gridStore.allyArtifact,
+      gridStore.enemyArtifact
+    )
+
+    // Copy URL to clipboard
+    await navigator.clipboard.writeText(shareableUrl)
+    console.log('Grid link copied to clipboard!')
+  } catch (error) {
+    console.error('Failed to copy grid link:', error)
+  }
 }
 
 const handleCopyImage = async () => {
