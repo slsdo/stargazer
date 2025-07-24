@@ -124,6 +124,7 @@ Centralized event system using composables and provide/inject:
 - **Event namespacing**: Events like `hex:click`, `character:remove`, `artifact:remove`
 - **Direct store integration**: Events handled directly in grid store where appropriate
 - **Type-safe events**: Full TypeScript support for event parameters
+- **Consistent patterns**: All game interactions (hex, character, artifact) use the same event system
 
 ### Usage Pattern
 
@@ -135,6 +136,7 @@ const events = useGridEvents()
 // Emit events
 events.emit('hex:click', hex)
 events.emit('character:remove', hexId)
+events.emit('artifact:remove', team)
 
 // Listen to events (if needed for custom logic)
 events.on('hex:hover', (hexId) => {
@@ -247,17 +249,39 @@ const handleDownload = async () => {
   // Create and trigger download
 }
 
+// Copy grid image to clipboard
+const handleCopyImage = async () => {
+  const { toPng } = await import('html-to-image')
+  const mapElement = document.getElementById('map')
+  const dataUrl = await toPng(mapElement, { /* same options */ })
+  const response = await fetch(dataUrl)
+  const blob = await response.blob()
+  await navigator.clipboard.write([
+    new ClipboardItem({ 'image/png': blob })
+  ])
+}
+
 // Placeholder handlers for future implementation
 const handleCopyLink = () => { /* TODO */ }
-const handleCopyImage = () => { /* TODO */ }  
 ```
 
-**Grid Export Feature:**
+**Grid Export Features:**
+
+**Download:**
 - Downloads the entire grid (everything inside `id="map"`) as a PNG image
 - Uses `html-to-image` library for high-quality export
 - Transparent background for easy compositing
 - Includes characters, tiles, arrows, and all visual elements
 - Filename format: `stargazer-YYYYMMDD-HHMMSSMMM.png`
+- Features download arrow icon for clear visual indication
+
+**Copy to Clipboard:**
+- Generates the same high-quality PNG image
+- Copies directly to system clipboard using Clipboard API
+- Works in modern browsers that support `navigator.clipboard.write()`
+- Users can paste the image into other applications (Discord, Slack, documents, etc.)
+- Graceful fallback with console warning for unsupported browsers
+- Features clipboard icon for intuitive UX
 
 ## BUILD COMMANDS
 

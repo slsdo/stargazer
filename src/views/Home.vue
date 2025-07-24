@@ -39,10 +39,7 @@ const handleMapChange = (mapKey: string) => {
 // Initialize data immediately (synchronous)
 gridStore.initializeData()
 
-// Event handlers
-const handleArtifactGridClick = (team: Team) => {
-  gridStore.removeArtifact(team)
-}
+// Action button handlers
 
 // Placeholder handlers for action buttons
 const handleCopyLink = () => {
@@ -50,9 +47,45 @@ const handleCopyLink = () => {
   console.log('Copy Link clicked - implementation coming soon')
 }
 
-const handleCopyImage = () => {
-  // TODO: Implement copy image functionality
-  console.log('Copy Image clicked - implementation coming soon')
+const handleCopyImage = async () => {
+  try {
+    // Import html-to-image dynamically
+    const { toPng } = await import('html-to-image')
+    
+    // Get the map element
+    const mapElement = document.getElementById('map')
+    if (!mapElement) {
+      console.error('Map element not found')
+      return
+    }
+
+    // Generate PNG from the map element
+    const dataUrl = await toPng(mapElement, {
+      quality: 1.0,
+      pixelRatio: 2, // Higher quality export
+      backgroundColor: 'transparent', // Transparent background
+    })
+
+    // Convert data URL to blob
+    const response = await fetch(dataUrl)
+    const blob = await response.blob()
+
+    // Copy to clipboard using Clipboard API
+    if (navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob
+        })
+      ])
+      console.log('Grid image copied to clipboard!')
+    } else {
+      // Fallback: show message for manual copy
+      console.warn('Clipboard API not supported. Image generated but not copied.')
+      // Could show a modal with the image for manual copying
+    }
+  } catch (error) {
+    console.error('Failed to copy grid image:', error)
+  }
 }
 
 const handleDownload = async () => {
@@ -107,7 +140,6 @@ const handleDownload = async () => {
             :show-arrows="showArrows"
             :show-hex-ids="showHexIds"
             :show-debug="showDebug"
-            @artifact-click="handleArtifactGridClick"
           />
 
           <!-- Grid Display Toggle -->

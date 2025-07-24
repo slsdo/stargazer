@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Team } from '../lib/types/team'
+import { useGridEvents } from '../composables/useGridEvents'
 
 const props = defineProps<{
   allyArtifact?: string | null
@@ -7,12 +8,10 @@ const props = defineProps<{
   artifactImages: Record<string, string>
 }>()
 
-const emit = defineEmits<{
-  artifactClick: [team: Team]
-}>()
+const gridEvents = useGridEvents()
 
 const handleArtifactClick = (team: Team) => {
-  emit('artifactClick', team)
+  gridEvents.emit('artifact:remove', team)
 }
 </script>
 

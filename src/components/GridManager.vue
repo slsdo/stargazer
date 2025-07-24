@@ -29,10 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   showDebug: false,
 })
 
-// Emits
-const emit = defineEmits<{
-  'artifact-click': [team: Team]
-}>()
+// No emits needed
 
 // Use stores and inject drag/drop API
 const gridStore = useGridStore()
@@ -116,11 +113,6 @@ const isPointInPolygon = (
   }
 
   return inside
-}
-
-// Event handlers - simplified
-const handleArtifactGridClick = (team: Team) => {
-  emit('artifact-click', team)
 }
 
 // Grid character drag handlers
@@ -295,7 +287,6 @@ defineExpose({
         :allyArtifact="gridStore.allyArtifact"
         :enemyArtifact="gridStore.enemyArtifact"
         :artifactImages="artifactImages"
-        @artifact-click="handleArtifactGridClick"
       />
     </div>
 

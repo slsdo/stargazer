@@ -9,9 +9,9 @@ const emit = defineEmits<{
   'update:showDebug': [value: boolean]
   'update:showArrows': [value: boolean]
   'update:showHexIds': [value: boolean]
-  'copyLink': []
-  'copyImage': []
-  'download': []
+  copyLink: []
+  copyImage: []
+  download: []
 }>()
 
 const handleDebugChange = (event: Event) => {
@@ -58,15 +58,42 @@ const handleDownload = () => {
       />
       <span class="grid-toggle-text">Show Details</span>
     </label>
-    
+
     <!-- Action Buttons -->
-    <button @click="handleCopyLink" class="action-btn">
-      Copy Link
-    </button>
+    <button @click="handleCopyLink" class="action-btn">Copy Link</button>
     <button @click="handleCopyImage" class="action-btn">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="btn-icon"
+      >
+        <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+        <path d="m4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+      </svg>
       Copy Image
     </button>
     <button @click="handleDownload" class="action-btn">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="btn-icon"
+      >
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7,10 12,15 17,10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
       Download
     </button>
   </div>
@@ -125,10 +152,18 @@ const handleDownload = () => {
   transition: all var(--transition-fast);
   user-select: none;
   height: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
 .action-btn:hover {
   background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
+}
+
+.btn-icon {
+  flex-shrink: 0;
+  margin-right: 2px;
 }
 </style>

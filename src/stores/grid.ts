@@ -276,7 +276,7 @@ export const useGridStore = defineStore('grid', () => {
     return layout.getArrowPath(startHex, endHex, characterRadius, invertCurve)
   }
 
-  // Static methods that don't need reactivity - moved above
+  // Static utility methods
   const getHexById = (id: number): Hex => {
     return grid.value.getHexById(id)
   }

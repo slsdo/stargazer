@@ -7,7 +7,6 @@ import { Team } from '../lib/types/team'
 // Access Pinia grid store
 const gridStore = useGridStore()
 
-// Removed internal collapse state - now handled by parent component
 
 // Helper function to extract image name from path
 const getImageName = (imageSrc: string): string => {

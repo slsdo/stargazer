@@ -55,7 +55,6 @@ const props = withDefaults(defineProps<Props>(), {
   hexStrokeColor: '#ccc',
 })
 
-// Remove emit since we'll use grid events directly
 const gridEvents = useGridEvents()
 
 const {
