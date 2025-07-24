@@ -168,15 +168,10 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
 
       // Swap if target is occupied, otherwise move
       if (gridStore.isHexOccupied(targetHexId)) {
-        const swapped = gridStore.swapCharacters(sourceHexId, targetHexId)
-        if (swapped) {
-        } else {
-        }
+        gridStore.swapCharacters(sourceHexId, targetHexId)
       } else {
         // Empty target - regular move
-        const moved = gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
-        if (moved) {
-        }
+        gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
       }
     } else {
       // Character selection placement
@@ -205,8 +200,6 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       }
     }
 
-    // Drop handling is now done by DragDropProvider/GridManager
-  } else {
   }
 }
 

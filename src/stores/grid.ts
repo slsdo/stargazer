@@ -39,13 +39,8 @@ export const useGridStore = defineStore('grid', () => {
   // Character ranges - now managed internally
   let characterRanges = new Map<string, number>()
 
-  // Function to update character ranges from external source (deprecated)
-  const setCharacterRanges = (ranges: Map<string, number>) => {
-    characterRanges = ranges
-    characterUpdateTrigger.value++ // Trigger reactivity
-  }
 
-  // Initialize all data using DataManager
+  // Initialize all data using dataLoader
   const initializeData = () => {
     if (dataLoaded.value) {
       return // Already loaded
@@ -442,7 +437,6 @@ export const useGridStore = defineStore('grid', () => {
 
     // Data management
     initializeData,
-    setCharacterRanges, // Deprecated but kept for backward compatibility
 
     // Artifact management
     allyArtifact: readonly(allyArtifact),

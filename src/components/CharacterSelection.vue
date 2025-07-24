@@ -44,10 +44,7 @@ const handleCharacterClick = (character: CharacterType) => {
   }
 
   // Attempt to auto-place the character
-  const success = gridStore.autoPlaceCharacter(character.id, selectedTeam.value)
-  if (success) {
-  } else {
-  }
+  gridStore.autoPlaceCharacter(character.id, selectedTeam.value)
 }
 
 const removeCharacterFromGrid = (characterId: string) => {
@@ -59,7 +56,6 @@ const removeCharacterFromGrid = (characterId: string) => {
 
   if (characterTile) {
     gridStore.removeCharacterFromHex(characterTile.hex.getId())
-  } else {
   }
 }
 </script>

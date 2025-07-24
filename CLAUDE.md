@@ -124,14 +124,9 @@ Hybrid detection system supporting multiple drag sources:
 ### Asset Loading
 
 ```typescript
-import { loadAssetsDict } from '../utils/assetLoader'
+import { loadCharacterImages } from '../utils/dataLoader'
 
-const images = loadAssetsDict(
-  import.meta.glob('../assets/images/*.png', {
-    eager: true,
-    import: 'default',
-  }) as Record<string, string>,
-)
+const images = loadCharacterImages()
 ```
 
 ### Grid Operations
