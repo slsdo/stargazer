@@ -40,7 +40,6 @@ export const useGridStore = defineStore('grid', () => {
   // Character ranges - now managed internally
   let characterRanges = new Map<string, number>()
 
-
   // Initialize all data using dataLoader
   const initializeData = () => {
     if (dataLoaded.value) {

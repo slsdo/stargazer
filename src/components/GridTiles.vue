@@ -198,7 +198,6 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
         return
       }
     }
-
   }
 }
 

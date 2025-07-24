@@ -8,10 +8,10 @@ export function encodeGridStateToUrl(gridState: GridState): string {
   try {
     // Convert to JSON and compress by removing whitespace
     const jsonString = JSON.stringify(gridState)
-    
+
     // Base64 encode for URL safety
     const encoded = btoa(jsonString)
-    
+
     return encoded
   } catch (error) {
     console.error('Failed to encode grid state:', error)
@@ -26,16 +26,16 @@ export function decodeGridStateFromUrl(encodedState: string): GridState | null {
   try {
     // Base64 decode
     const jsonString = atob(encodedState)
-    
+
     // Parse JSON
     const state = JSON.parse(jsonString)
-    
+
     // Validate structure
     if (!validateGridState(state)) {
       console.warn('Invalid grid state structure in URL')
       return null
     }
-    
+
     return state
   } catch (error) {
     console.warn('Failed to decode grid state from URL:', error)
@@ -52,18 +52,13 @@ export function generateShareableUrl(
   allyArtifact: string | null,
   enemyArtifact: string | null,
 ): string {
-  const gridState = serializeGridState(
-    currentMap,
-    tilesWithCharacters,
-    allyArtifact,
-    enemyArtifact
-  )
-  
+  const gridState = serializeGridState(currentMap, tilesWithCharacters, allyArtifact, enemyArtifact)
+
   const encodedState = encodeGridStateToUrl(gridState)
-  
+
   // Generate full URL with current origin and path
   const baseUrl = `${window.location.origin}${window.location.pathname}`
-  return `${baseUrl}?state=${encodedState}`
+  return `${baseUrl}?g=${encodedState}`
 }
 
 /**
@@ -71,12 +66,12 @@ export function generateShareableUrl(
  */
 export function getGridStateFromCurrentUrl(): GridState | null {
   const urlParams = new URLSearchParams(window.location.search)
-  const stateParam = urlParams.get('state')
-  
+  const stateParam = urlParams.get('g')
+
   if (!stateParam) {
     return null
   }
-  
+
   return decodeGridStateFromUrl(stateParam)
 }
 
@@ -95,9 +90,9 @@ export function updateUrlWithGridState(
       currentMap,
       tilesWithCharacters,
       allyArtifact,
-      enemyArtifact
+      enemyArtifact,
     )
-    
+
     // Update URL without triggering navigation
     window.history.replaceState({}, '', shareableUrl)
   } catch (error) {

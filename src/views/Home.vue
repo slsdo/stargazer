@@ -49,7 +49,7 @@ const handleCopyLink = async () => {
       gridStore.currentMap,
       gridStore.getTilesWithCharacters(),
       gridStore.allyArtifact,
-      gridStore.enemyArtifact
+      gridStore.enemyArtifact,
     )
 
     // Copy URL to clipboard
@@ -64,7 +64,7 @@ const handleCopyImage = async () => {
   try {
     // Import html-to-image dynamically
     const { toPng } = await import('html-to-image')
-    
+
     // Get the map element
     const mapElement = document.getElementById('map')
     if (!mapElement) {
@@ -87,8 +87,8 @@ const handleCopyImage = async () => {
     if (navigator.clipboard && window.ClipboardItem) {
       await navigator.clipboard.write([
         new ClipboardItem({
-          'image/png': blob
-        })
+          'image/png': blob,
+        }),
       ])
       console.log('Grid image copied to clipboard!')
     } else {
@@ -123,7 +123,9 @@ const handleDownload = async () => {
     // Create download link
     const now = new Date()
     const dateStr = now.toISOString().split('T')[0].replace(/-/g, '')
-    const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '') + now.getMilliseconds().toString().padStart(3, '0')
+    const timeStr =
+      now.toTimeString().split(' ')[0].replace(/:/g, '') +
+      now.getMilliseconds().toString().padStart(3, '0')
     const link = document.createElement('a')
     link.download = `stargazer-${dateStr}-${timeStr}.png`
     link.href = dataUrl

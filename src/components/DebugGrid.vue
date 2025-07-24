@@ -7,7 +7,6 @@ import { Team } from '../lib/types/team'
 // Access Pinia grid store
 const gridStore = useGridStore()
 
-
 // Helper function to extract image name from path
 const getImageName = (imageSrc: string): string => {
   return extractFileName(imageSrc)
