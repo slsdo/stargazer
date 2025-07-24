@@ -14,9 +14,9 @@ The `grid.ts` store is functional but has a few architectural smells that could 
 
 ### Detailed Ideas
 
-**a) Eliminate the Manual Reactivity Trigger**
+#### Eliminate the Manual Reactivity Trigger
 
-The `characterUpdateTrigger.value++` is a workaround indicating that Pinia isn't detecting changes properly. This typically happens when mutating a non-reactive object (like your `Grid` class instance) inside a `ref`.
+The `characterUpdateTrigger.value++` is a workaround indicating that Pinia isn't detecting changes properly. This typically happens when mutating a non-reactive object (like the `Grid` class instance) inside a `ref`.
 
 **Recommendation: Refactor the `Grid` Class and Store Interaction**
 
@@ -49,16 +49,3 @@ const removeCharacterFromHex = (hexId: number) => {
   grid.value = Grid.clone(grid.value) // Assuming you add a clone method to the Grid class
 }
 ```
-
-The ideal long-term solution is to move away from a stateful `Grid` class and use plain JavaScript objects and utility functions for your grid logic, which fits more naturally with Pinia's reactivity system.
-
-**b) Split the Store by Concern**
-
-The grid store manages grid state, character state, artifact state, and UI state.
-
-**Recommendation: Create Specialized Stores**
-
-- `useGridStore`: Manages the core hex grid, layout, and tile states.
-- `useTeamStore`: Manages character placements, team composition, and rules (e.g., `MAX_TEAM_SIZE`).
-- `useArtifactStore`: Manages artifact state (`allyArtifact`, `enemyArtifact`).
-- `useUIStore`: Manages UI state like the selected map, debug flags, etc.
