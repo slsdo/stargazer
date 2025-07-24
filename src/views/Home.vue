@@ -43,6 +43,22 @@ gridStore.initializeData()
 const handleArtifactGridClick = (team: Team) => {
   gridStore.removeArtifact(team)
 }
+
+// Placeholder handlers for action buttons
+const handleCopyLink = () => {
+  // TODO: Implement copy link functionality
+  console.log('Copy Link clicked - implementation coming soon')
+}
+
+const handleCopyImage = () => {
+  // TODO: Implement copy image functionality
+  console.log('Copy Image clicked - implementation coming soon')
+}
+
+const handleDownload = () => {
+  // TODO: Implement download functionality
+  console.log('Download clicked - implementation coming soon')
+}
 </script>
 
 <template>
@@ -69,6 +85,9 @@ const handleArtifactGridClick = (team: Team) => {
             @update:showDebug="showDebug = $event"
             @update:showArrows="showArrows = $event"
             @update:showHexIds="showHexIds = $event"
+            @copyLink="handleCopyLink"
+            @copyImage="handleCopyImage"
+            @download="handleDownload"
           />
         </div>
 
@@ -97,6 +116,13 @@ const handleArtifactGridClick = (team: Team) => {
               :artifactImages="gridStore.artifactImages"
               :icons="gridStore.icons"
             />
+          </div>
+          <!-- Map Editor Tab -->
+          <div v-show="activeTab === 'mapEditor'" class="tab-panel">
+            <div class="map-editor-placeholder">
+              <h3>Map Editor</h3>
+              <p>Map editor functionality coming soon...</p>
+            </div>
           </div>
         </TabNavigation>
       </div>
@@ -130,5 +156,20 @@ main {
 .tab-panel {
   padding: var(--spacing-2xl);
   color: var(--color-text-muted);
+}
+
+.map-editor-placeholder {
+  text-align: center;
+  padding: var(--spacing-4xl);
+}
+
+.map-editor-placeholder h3 {
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.map-editor-placeholder p {
+  color: var(--color-text-secondary);
+  font-style: italic;
 }
 </style>

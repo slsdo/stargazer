@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   showDebug: boolean
   showArrows: boolean
   showHexIds: boolean
@@ -9,6 +9,9 @@ const emit = defineEmits<{
   'update:showDebug': [value: boolean]
   'update:showArrows': [value: boolean]
   'update:showHexIds': [value: boolean]
+  'copyLink': []
+  'copyImage': []
+  'download': []
 }>()
 
 const handleDebugChange = (event: Event) => {
@@ -20,6 +23,18 @@ const handleArrowsChange = (event: Event) => {
   const target = event.target as HTMLInputElement
   emit('update:showArrows', target.checked)
   emit('update:showHexIds', target.checked) // Keep hex IDs in sync with arrows
+}
+
+const handleCopyLink = () => {
+  emit('copyLink')
+}
+
+const handleCopyImage = () => {
+  emit('copyImage')
+}
+
+const handleDownload = () => {
+  emit('download')
 }
 </script>
 
@@ -43,6 +58,17 @@ const handleArrowsChange = (event: Event) => {
       />
       <span class="grid-toggle-text">Show Details</span>
     </label>
+    
+    <!-- Action Buttons -->
+    <button @click="handleCopyLink" class="action-btn">
+      Copy Link
+    </button>
+    <button @click="handleCopyImage" class="action-btn">
+      Copy Image
+    </button>
+    <button @click="handleDownload" class="action-btn">
+      Download
+    </button>
   </div>
 </template>
 
@@ -92,12 +118,13 @@ const handleArrowsChange = (event: Event) => {
   color: white;
   border: 2px solid var(--color-primary);
   border-radius: var(--radius-medium);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  font-size: 0.9rem;
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
   user-select: none;
+  height: auto;
 }
 
 .action-btn:hover {

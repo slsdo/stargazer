@@ -65,6 +65,12 @@ onUnmounted(() => {
       >
         Artifacts
       </button>
+      <button
+        @click="setActiveTab('mapEditor')"
+        :class="['tab-btn', { active: activeTab === 'mapEditor' }]"
+      >
+        Map Editor
+      </button>
       <div class="tab-dropdown">
         <button @click="toggleMapDropdown" class="tab-btn dropdown-btn">
           Map: {{ availableMaps.find((m) => m.key === selectedMap)?.name || 'Arena 1' }} ▼

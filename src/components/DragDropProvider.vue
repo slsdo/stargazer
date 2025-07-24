@@ -124,7 +124,6 @@ onUnmounted(() => {
 
 <style scoped>
 .drag-drop-provider {
-  width: 100%;
-  height: 100%;
+  display: contents;
 }
 </style>
