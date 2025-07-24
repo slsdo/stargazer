@@ -57,9 +57,6 @@ export class Grid {
     return `${hex.q},${hex.r},${hex.s}`
   }
 
-  /**
-   * Resolve a Hex or hexId to a Hex object
-   */
   private resolveHex(hexOrId: Hex | number): Hex {
     if (typeof hexOrId === 'number') {
       return this.getHexById(hexOrId)
@@ -88,9 +85,6 @@ export class Grid {
     return hex
   }
 
-  /**
-   * Get GridTile by hex or hexId
-   */
   getTile(hexOrId: Hex | number): GridTile {
     const hex = this.resolveHex(hexOrId)
     const tile = this.storage.get(Grid.key(hex))
@@ -132,9 +126,6 @@ export class Grid {
     return state === availableState || state === occupiedState
   }
 
-  /**
-   * Place a character on a hex tile
-   */
   placeCharacter(hexOrId: Hex | number, characterId: string, team: Team = Team.ALLY): boolean {
     if (!this.canPlaceCharacterOnTile(hexOrId, team)) return false
     if (!this.canPlaceCharacter(characterId, team)) return false
@@ -163,9 +154,6 @@ export class Grid {
     return currentState
   }
 
-  /**
-   * Remove a character from a hex tile
-   */
   removeCharacter(hexOrId: Hex | number): void {
     const tile = this.getTile(hexOrId)
     if (tile.character) {
@@ -177,16 +165,10 @@ export class Grid {
     }
   }
 
-  /**
-   * Get character on a hex tile
-   */
   getCharacter(hexOrId: Hex | number): string | undefined {
     return this.getTile(hexOrId).character
   }
 
-  /**
-   * Check if a hex tile has a character
-   */
   hasCharacter(hexOrId: Hex | number): boolean {
     return this.getTile(hexOrId).character !== undefined
   }
@@ -211,9 +193,6 @@ export class Grid {
     this.teamCharacters.get(Team.ENEMY)?.clear()
   }
 
-  /**
-   * Get team of a character on a hex tile
-   */
   getCharacterTeam(hexOrId: Hex | number): Team | undefined {
     return this.getTile(hexOrId).team
   }
@@ -228,27 +207,22 @@ export class Grid {
     return count
   }
 
-  /**
-   * Traversal function for finding paths to enemies (allows moving through all non-blocked tiles)
-   */
+  /* Traversal function for finding paths to enemies (allows moving through all non-blocked tiles) */
   private canTraverseToEnemy(tile: GridTile): boolean {
     // Only blocked tiles are impassable
     return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
   }
 
-  /**
-   * Traversal function for finding paths to allies (allows moving through all non-blocked tiles)
-   */
+  /* Traversal function for finding paths to allies (allows moving through all non-blocked tiles) */
   private canTraverseToAlly(tile: GridTile): boolean {
     // Only blocked tiles are impassable
     return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
   }
 
-  /**
-   * Find the closest target from a source tile among a list of target tiles
+  /* Find the closest target from a source tile among a list of target tiles
    * Uses A* pathfinding to account for obstacles and character range
-   * Tie-breaking: if multiple targets at same effective distance, choose the one with lowest hex ID
-   */
+   * Tie-breaking: if multiple targets at same effective distance, choose the one with lowest hex ID */
+  
   private findClosestTarget(
     sourceTile: GridTile,
     targetTiles: GridTile[],
@@ -305,12 +279,10 @@ export class Grid {
     return closest
   }
 
-  /**
-   * Calculate closest enemy for each ally character
+  /* Calculate closest enemy for each ally character
    * Returns a map of ally hex IDs to their closest enemy info
-   * Uses pathfinding to account for obstacles and character range
-   * @param characterRanges Map of character IDs to their range values
-   */
+   * Uses pathfinding to account for obstacles and character range */
+  
   getClosestEnemyMap(
     characterRanges: Map<string, number> = new Map(),
   ): Map<number, { enemyHexId: number; distance: number }> {
@@ -339,12 +311,10 @@ export class Grid {
     return result
   }
 
-  /**
-   * Calculate closest ally character for each enemy
+  /* Calculate closest ally character for each enemy
    * Returns a map of enemy hex IDs to their closest ally character info
-   * Uses pathfinding to account for obstacles and character range
-   * @param characterRanges Map of character IDs to their range values
-   */
+   * Uses pathfinding to account for obstacles and character range */
+  
   getClosestAllyMap(
     characterRanges: Map<string, number> = new Map(),
   ): Map<number, { allyHexId: number; distance: number }> {

@@ -1,17 +1,11 @@
 import type { CharacterType } from '../lib/types/character'
 import type { ArtifactType } from '../lib/types/artifact'
 
-/**
- * Extract filename from a full path
- */
 export function extractFileName(path: string, removeExtension = true): string {
   const fileName = path.split('/').pop() || 'Unknown'
   return removeExtension ? fileName.replace(/\.\w+$/, '') : fileName
 }
 
-/**
- * Load assets and return them as a dictionary keyed by filename
- */
 function loadAssetsDict<T>(assets: Record<string, T>): Record<string, T> {
   return Object.fromEntries(
     Object.entries(assets).map(([path, asset]) => {
@@ -29,9 +23,6 @@ let artifactImagesCache: Record<string, string> | null = null
 let iconsCache: Record<string, string> | null = null
 let characterRangesCache: Map<string, number> | null = null
 
-/**
- * Load all character data from JSON files
- */
 export function loadCharacters(): CharacterType[] {
   if (charactersCache) {
     return charactersCache
@@ -54,9 +45,6 @@ export function loadCharacters(): CharacterType[] {
   return characters
 }
 
-/**
- * Load all artifact data from JSON files
- */
 export function loadArtifacts(): ArtifactType[] {
   if (artifactsCache) {
     return artifactsCache
@@ -72,9 +60,6 @@ export function loadArtifacts(): ArtifactType[] {
   return artifacts
 }
 
-/**
- * Load character images
- */
 export function loadCharacterImages(): Record<string, string> {
   if (characterImagesCache) {
     return characterImagesCache
@@ -91,9 +76,6 @@ export function loadCharacterImages(): Record<string, string> {
   return images
 }
 
-/**
- * Load artifact images
- */
 export function loadArtifactImages(): Record<string, string> {
   if (artifactImagesCache) {
     return artifactImagesCache
@@ -110,9 +92,6 @@ export function loadArtifactImages(): Record<string, string> {
   return images
 }
 
-/**
- * Load icon images
- */
 export function loadIcons(): Record<string, string> {
   if (iconsCache) {
     return iconsCache
@@ -129,9 +108,6 @@ export function loadIcons(): Record<string, string> {
   return icons
 }
 
-/**
- * Get character ranges map
- */
 export function getCharacterRanges(): Map<string, number> {
   if (!characterRangesCache) {
     // Ensure characters are loaded first
@@ -140,9 +116,6 @@ export function getCharacterRanges(): Map<string, number> {
   return characterRangesCache!
 }
 
-/**
- * Load all data at once
- */
 export function loadAllData() {
   const characters = loadCharacters()
   const artifacts = loadArtifacts()
@@ -160,9 +133,6 @@ export function loadAllData() {
   }
 }
 
-/**
- * Clear all cached data (useful for testing)
- */
 export function clearCache() {
   charactersCache = null
   artifactsCache = null

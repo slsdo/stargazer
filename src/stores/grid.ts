@@ -180,15 +180,11 @@ export const useGridStore = defineStore('grid', () => {
     return grid.value.getCharacterTeam(hexId)
   }
 
-  /**
-   * Moves a character with automatic team switching based on target tile state.
+  /* Moves a character with automatic team switching based on target tile state.
    * Characters can be moved to any valid tile and will automatically join the
-   * appropriate team (ally/enemy). Restores original position on failure.
-   */
+   * appropriate team (ally/enemy). Restores original position on failure. */
 
-  /**
-   * Swaps positions of two characters, handling cross-team moves if necessary.
-   */
+  /* Swaps positions of two characters, handling cross-team moves if necessary. */
   const swapCharacters = (fromHexId: number, toHexId: number): boolean => {
     // Don't swap if same hex
     if (fromHexId === toHexId) {

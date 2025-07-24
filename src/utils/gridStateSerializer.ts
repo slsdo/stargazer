@@ -1,9 +1,7 @@
 import type { GridTile } from '../lib/grid'
 import type { Team } from '../lib/types/team'
 
-/**
- * Represents the minimal state needed to reconstruct a grid configuration
- */
+/* Represents the minimal state needed to reconstruct a grid configuration */
 export interface GridState {
   version: number
   map: string
@@ -18,9 +16,6 @@ export interface GridState {
   }
 }
 
-/**
- * Serializes the current grid state to a compact, shareable format
- */
 export function serializeGridState(
   currentMap: string,
   tilesWithCharacters: GridTile[],
@@ -46,9 +41,6 @@ export function serializeGridState(
   }
 }
 
-/**
- * Validates that a grid state has the expected structure
- */
 export function validateGridState(state: any): state is GridState {
   return (
     typeof state === 'object' &&

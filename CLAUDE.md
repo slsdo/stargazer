@@ -6,6 +6,7 @@
 - Use TypeScript strictly - avoid `any` types
 - Refactor repeated functionality (DRY principle)
 - Keep comments concise and focused on design concepts
+- Don't add comments if it just repeats a function name
 - Use functional and stateless approaches when possible
 - Test changes: `npm run build` and `npm run type-check`
 - Do no run `npm run dev` to test dev server
@@ -109,7 +110,7 @@ Centralized drag/drop system using provide/inject pattern:
 ### Implementation Notes
 
 - **Provide/inject pattern**: DragDropProvider provides API to all child components
-- **HTML overlays**: Enable dragging SVG elements 
+- **HTML overlays**: Enable dragging SVG elements
 - **Position-based detection**: Handles blocked tile events
 - **Unified visual feedback**: Uses `hoveredHexId` for consistent hover states
 - **Custom MIME types**: Prevent drag conflicts between different drag sources
@@ -177,11 +178,11 @@ events.on('hex:hover', (hexId) => {
 All data loading is handled by the consolidated `dataLoader` utility:
 
 ```typescript
-import { 
-  loadCharacters, 
-  loadArtifacts, 
+import {
+  loadCharacters,
+  loadArtifacts,
   loadCharacterImages,
-  loadAllData 
+  loadAllData,
 } from '../utils/dataLoader'
 
 // Load specific data types
@@ -228,8 +229,9 @@ const handleTabChange = (tab: string) => {
 ```
 
 **Available tabs:**
+
 - **Characters**: Character selection and placement
-- **Artifacts**: Artifact management 
+- **Artifacts**: Artifact management
 - **Map Editor**: Map editing functionality (placeholder for future implementation)
 
 ### Action Buttons
@@ -253,21 +255,24 @@ const handleDownload = async () => {
 const handleCopyImage = async () => {
   const { toPng } = await import('html-to-image')
   const mapElement = document.getElementById('map')
-  const dataUrl = await toPng(mapElement, { /* same options */ })
+  const dataUrl = await toPng(mapElement, {
+    /* same options */
+  })
   const response = await fetch(dataUrl)
   const blob = await response.blob()
-  await navigator.clipboard.write([
-    new ClipboardItem({ 'image/png': blob })
-  ])
+  await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
 }
 
 // Placeholder handlers for future implementation
-const handleCopyLink = () => { /* TODO */ }
+const handleCopyLink = () => {
+  /* TODO */
+}
 ```
 
 **Grid Export Features:**
 
 **Download:**
+
 - Downloads the entire grid (everything inside `id="map"`) as a PNG image
 - Uses `html-to-image` library for high-quality export
 - Transparent background for easy compositing
@@ -276,6 +281,7 @@ const handleCopyLink = () => { /* TODO */ }
 - Features download arrow icon for clear visual indication
 
 **Copy to Clipboard:**
+
 - Generates the same high-quality PNG image
 - Copies directly to system clipboard using Clipboard API
 - Works in modern browsers that support `navigator.clipboard.write()`

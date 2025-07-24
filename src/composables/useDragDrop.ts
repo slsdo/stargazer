@@ -1,5 +1,4 @@
-/**
- * Global drag and drop state management for character movement.
+/* Global drag and drop state management for character movement.
  *
  * Coordinates drag operations between character selection and grid placement,
  * providing unified state for both SVG and HTML drag sources. Uses position-based

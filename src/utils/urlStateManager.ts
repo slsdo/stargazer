@@ -1,9 +1,6 @@
 import { serializeGridState, validateGridState, type GridState } from './gridStateSerializer'
 import type { GridTile } from '../lib/grid'
 
-/**
- * Encodes grid state into a compact URL-safe string using base64 and compression
- */
 export function encodeGridStateToUrl(gridState: GridState): string {
   try {
     // Convert to JSON and compress by removing whitespace
@@ -19,9 +16,6 @@ export function encodeGridStateToUrl(gridState: GridState): string {
   }
 }
 
-/**
- * Decodes a URL-encoded grid state string back to GridState object
- */
 export function decodeGridStateFromUrl(encodedState: string): GridState | null {
   try {
     // Base64 decode
@@ -43,9 +37,6 @@ export function decodeGridStateFromUrl(encodedState: string): GridState | null {
   }
 }
 
-/**
- * Generates a complete shareable URL with the current grid state
- */
 export function generateShareableUrl(
   currentMap: string,
   tilesWithCharacters: GridTile[],
@@ -61,9 +52,6 @@ export function generateShareableUrl(
   return `${baseUrl}?g=${encodedState}`
 }
 
-/**
- * Extracts grid state from current URL parameters
- */
 export function getGridStateFromCurrentUrl(): GridState | null {
   const urlParams = new URLSearchParams(window.location.search)
   const stateParam = urlParams.get('g')
@@ -75,10 +63,7 @@ export function getGridStateFromCurrentUrl(): GridState | null {
   return decodeGridStateFromUrl(stateParam)
 }
 
-/**
- * Updates the current URL with grid state (for browser history)
- * Uses replaceState to avoid creating new history entries
- */
+/* Uses replaceState to avoid creating new history entries */
 export function updateUrlWithGridState(
   currentMap: string,
   tilesWithCharacters: GridTile[],
