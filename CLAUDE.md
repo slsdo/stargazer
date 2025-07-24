@@ -44,14 +44,23 @@ src/
 
 **Components (`src/components/`)**
 
+- `GridManager.vue` - Centralized grid management and rendering coordination
 - `GridTiles.vue` - Hex grid rendering with drag/drop
 - `GridCharacters.vue` - Character overlay system
 - `CharacterSelection.vue` - Character roster
+- `DragDropProvider.vue` - Drag/drop context provider using provide/inject
 - `DragPreview.vue` - Visual drag feedback
+- `TabNavigation.vue` - Tab system for Characters/Artifacts/Map Editor
+- `GridControls.vue` - Grid display toggles and action buttons
 
 **Composables (`src/composables/`)**
 
 - `useDragDrop.ts` - Global drag/drop state management
+- `useGridEvents.ts` - Centralized event system with namespacing
+
+**Utilities (`src/utils/`)**
+
+- `dataLoader.ts` - Consolidated data loading for characters, artifacts, and assets
 
 ## DESIGN PRINCIPLES
 
@@ -81,11 +90,12 @@ grid.removeCharacter(hexOrId)
 
 ### Architecture
 
-Hybrid detection system supporting multiple drag sources:
+Centralized drag/drop system using provide/inject pattern:
 
-- **useDragDrop**: Global state management for all drag operations
+- **DragDropProvider**: Top-level provider component managing global drag/drop state
+- **useDragDrop**: Composable for drag/drop state management
+- **GridManager**: Registers hex detection and drop handling with provider
 - **GridTiles**: SVG events + position-based mouse detection
-- **Home**: HTML overlay system for grid character dragging
 - **Automatic team assignment**: Characters join teams based on drop tile
 
 ### Key Features
@@ -98,10 +108,49 @@ Hybrid detection system supporting multiple drag sources:
 
 ### Implementation Notes
 
-- HTML overlays enable dragging SVG elements
-- Position-based detection handles blocked tile events
-- Uses `hoveredHexId` for unified visual feedback
-- Custom MIME types prevent drag conflicts
+- **Provide/inject pattern**: DragDropProvider provides API to all child components
+- **HTML overlays**: Enable dragging SVG elements 
+- **Position-based detection**: Handles blocked tile events
+- **Unified visual feedback**: Uses `hoveredHexId` for consistent hover states
+- **Custom MIME types**: Prevent drag conflicts between different drag sources
+
+## EVENT SYSTEM
+
+### Architecture
+
+Centralized event system using composables and provide/inject:
+
+- **useGridEvents**: Composable providing namespaced event system
+- **Event namespacing**: Events like `hex:click`, `character:remove`, `artifact:remove`
+- **Direct store integration**: Events handled directly in grid store where appropriate
+- **Type-safe events**: Full TypeScript support for event parameters
+
+### Usage Pattern
+
+```typescript
+import { useGridEvents } from '../composables/useGridEvents'
+
+const events = useGridEvents()
+
+// Emit events
+events.emit('hex:click', hex)
+events.emit('character:remove', hexId)
+
+// Listen to events (if needed for custom logic)
+events.on('hex:hover', (hexId) => {
+  // Custom hover handling
+})
+```
+
+## COMPONENT ARCHITECTURE
+
+### Separation of Concerns
+
+- **Home.vue**: Layout and data initialization only (~170 lines, down from 500+)
+- **GridManager.vue**: Grid rendering coordination and drag/drop registration
+- **DragDropProvider.vue**: Global drag/drop state management
+- **Store integration**: Business logic centralized in Pinia stores
+- **Modular design**: Each component has single, focused responsibility
 
 ## DEVELOPMENT WORKFLOW
 
@@ -121,12 +170,24 @@ Hybrid detection system supporting multiple drag sources:
 
 ## COMMON PATTERNS
 
-### Asset Loading
+### Data Loading
+
+All data loading is handled by the consolidated `dataLoader` utility:
 
 ```typescript
-import { loadCharacterImages } from '../utils/dataLoader'
+import { 
+  loadCharacters, 
+  loadArtifacts, 
+  loadCharacterImages,
+  loadAllData 
+} from '../utils/dataLoader'
 
+// Load specific data types
+const characters = loadCharacters()
 const images = loadCharacterImages()
+
+// Load everything at once (used in store initialization)
+const allData = loadAllData()
 ```
 
 ### Grid Operations
@@ -149,6 +210,35 @@ const isOccupied = gridStore.isHexOccupied(hexId)
 ```typescript
 import { getHexFillColor } from '../utils/stateFormatting'
 const fillColor = getHexFillColor(state)
+```
+
+### Tab System
+
+The application uses a centralized tab navigation system:
+
+```typescript
+// Tab state management in Home.vue
+const activeTab = ref('characters') // 'characters' | 'artifacts' | 'mapEditor'
+
+const handleTabChange = (tab: string) => {
+  activeTab.value = tab
+}
+```
+
+**Available tabs:**
+- **Characters**: Character selection and placement
+- **Artifacts**: Artifact management 
+- **Map Editor**: Map editing functionality (placeholder for future implementation)
+
+### Action Buttons
+
+GridControls provides action buttons for various operations:
+
+```typescript
+// Placeholder handlers for future implementation
+const handleCopyLink = () => { /* TODO */ }
+const handleCopyImage = () => { /* TODO */ }  
+const handleDownload = () => { /* TODO */ }
 ```
 
 ## BUILD COMMANDS
