@@ -1,5 +1,6 @@
 import { inject, provide, type InjectionKey } from 'vue'
 import type { Hex } from '../lib/hex'
+import { Team } from '../lib/types/team'
 import { useGridStore } from '../stores/grid'
 
 /**
@@ -15,7 +16,7 @@ export interface GridEvents {
   'character:dragStart': (hexId: number, characterId: string) => void
 
   // Artifact interactions
-  'artifact:remove': (team: string) => void
+  'artifact:remove': (team: Team) => void
 }
 
 /**
@@ -56,8 +57,8 @@ export function createGridEvents(): GridEventAPI {
         break
 
       case 'artifact:remove':
-        const team = args[0] as string
-        gridStore.removeArtifact(team as any)
+        const team = args[0] as Team
+        gridStore.removeArtifact(team)
         break
     }
   }

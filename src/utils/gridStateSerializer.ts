@@ -28,7 +28,7 @@ export function serializeGridState(
   enemyArtifact: string | null,
 ): GridState {
   const characters = tilesWithCharacters
-    .filter(tile => tile.character && tile.team)
+    .filter(tile => tile.character && tile.team !== undefined)
     .map(tile => ({
       hexId: tile.hex.getId(),
       characterId: tile.character!,
@@ -59,7 +59,7 @@ export function validateGridState(state: any): state is GridState {
     state.characters.every((char: any) => 
       typeof char.hexId === 'number' &&
       typeof char.characterId === 'string' &&
-      typeof char.team === 'string'
+      typeof char.team === 'number'
     ) &&
     typeof state.artifacts === 'object' &&
     state.artifacts !== null &&

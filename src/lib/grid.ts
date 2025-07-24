@@ -374,7 +374,7 @@ export class Grid {
   }
 
   private removeCharacterFromTeam(characterId: string, team: Team | undefined): void {
-    if (team) {
+    if (team !== undefined) {
       this.teamCharacters.get(team)?.delete(characterId)
     }
   }

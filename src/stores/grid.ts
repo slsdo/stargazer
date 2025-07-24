@@ -203,7 +203,7 @@ export const useGridStore = defineStore('grid', () => {
     const toTeam = grid.value.getCharacterTeam(toHexId)
 
     // Validate both hexes have characters
-    if (!fromCharacterId || !toCharacterId || !fromTeam || !toTeam) {
+    if (!fromCharacterId || !toCharacterId || fromTeam === undefined || toTeam === undefined) {
       return false
     }
 
@@ -227,7 +227,7 @@ export const useGridStore = defineStore('grid', () => {
       toTargetTeam = Team.ENEMY
     }
 
-    if (!fromTargetTeam || !toTargetTeam) {
+    if (fromTargetTeam === null || toTargetTeam === null) {
       return false
     }
 
@@ -263,7 +263,7 @@ export const useGridStore = defineStore('grid', () => {
 
     // Get the team from the source hex - needed for restoration if move fails
     const fromTile = grid.value.getTile(fromHexId)
-    const team = fromTile.team || Team.ALLY
+    const team = fromTile.team ?? Team.ALLY
 
     // Get target tile to determine what team the character should join
     const targetTile = grid.value.getTile(toHexId)
@@ -278,7 +278,7 @@ export const useGridStore = defineStore('grid', () => {
     }
 
     // If target tile doesn't support character placement, fail the move
-    if (!targetTeam) {
+    if (targetTeam === null) {
       return false
     }
 

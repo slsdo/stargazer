@@ -1,4 +1,4 @@
 export enum Team {
-  ALLY = 'Ally',
-  ENEMY = 'Enemy',
+  ALLY = 0,
+  ENEMY = 1,
 }
