@@ -75,7 +75,7 @@ const handleDownload = () => {
         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
       </svg>
-      Copy Link
+      Link
     </button>
     <button @click="handleCopyImage" class="action-btn">
       <svg
@@ -92,7 +92,7 @@ const handleDownload = () => {
         <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
         <path d="m4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
       </svg>
-      Copy Image
+      Copy
     </button>
     <button @click="handleDownload" class="action-btn">
       <svg
@@ -180,6 +180,5 @@ const handleDownload = () => {
 
 .btn-icon {
   flex-shrink: 0;
-  margin-right: 2px;
 }
 </style>
