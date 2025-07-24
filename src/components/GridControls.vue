@@ -9,9 +9,6 @@ const emit = defineEmits<{
   'update:showDebug': [value: boolean]
   'update:showArrows': [value: boolean]
   'update:showHexIds': [value: boolean]
-  link: []
-  copyImage: []
-  download: []
 }>()
 
 const handleDebugChange = (event: Event) => {
@@ -24,10 +21,6 @@ const handleArrowsChange = (event: Event) => {
   emit('update:showArrows', target.checked)
   emit('update:showHexIds', target.checked) // Keep hex IDs in sync with arrows
 }
-
-const handleLink = () => emit('link')
-const handleCopyImage = () => emit('copyImage')
-const handleDownload = () => emit('download')
 </script>
 
 <template>
@@ -50,11 +43,6 @@ const handleDownload = () => emit('download')
       />
       <span class="grid-toggle-text">Show Details</span>
     </label>
-
-    <!-- Action buttons -->
-    <button class="action-btn" @click="handleLink">Copy Link</button>
-    <button class="action-btn" @click="handleCopyImage">Copy Image</button>
-    <button class="action-btn" @click="handleDownload">Download</button>
   </div>
 </template>
 

@@ -53,7 +53,7 @@ export const useGridStore = defineStore('grid', () => {
 
     try {
       const data = loadAllData()
-      
+
       // Update reactive state
       characters.value = data.characters
       artifacts.value = data.artifacts
@@ -61,7 +61,7 @@ export const useGridStore = defineStore('grid', () => {
       artifactImages.value = data.artifactImages
       icons.value = data.icons
       characterRanges = data.characterRanges
-      
+
       dataLoaded.value = true
       characterUpdateTrigger.value++ // Trigger reactivity
     } catch (error) {

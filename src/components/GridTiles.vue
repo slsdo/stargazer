@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import type { Hex } from '../lib/hex'
 import type { Layout } from '../lib/layout'
 import { useDragDrop } from '../composables/useDragDrop'
@@ -7,7 +7,7 @@ import { useGridStore } from '../stores/grid'
 import { State } from '../lib/types/state'
 import { getHexFillColor } from '../utils/stateFormatting'
 import { Team } from '../lib/types/team'
-import { watch } from 'vue'
+import { useGridEvents } from '../composables/useGridEvents'
 
 interface Props {
   hexes: Hex[]
@@ -55,10 +55,8 @@ const props = withDefaults(defineProps<Props>(), {
   hexStrokeColor: '#ccc',
 })
 
-const emit = defineEmits<{
-  hexClick: [hex: Hex]
-  characterDropped: [hex: Hex, character: any, characterId: string]
-}>()
+// Remove emit since we'll use grid events directly
+const gridEvents = useGridEvents()
 
 const {
   handleDragOver,
@@ -207,8 +205,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       }
     }
 
-    // Notify parent components
-    emit('characterDropped', hex, character, characterId)
+    // Drop handling is now done by DragDropProvider/GridManager
   } else {
   }
 }
@@ -385,7 +382,7 @@ onUnmounted(() => {
           fill="transparent"
           stroke="transparent"
           stroke-width="0"
-          @click="$emit('hexClick', hex)"
+          @click="gridEvents.emit('hex:click', hex)"
           @mouseenter="handleHexMouseEnter(hex)"
           @mouseleave="handleHexMouseLeave(hex)"
           @dragover="handleHexDragOver($event, hex)"

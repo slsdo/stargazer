@@ -44,7 +44,7 @@ export function loadCharacters(): CharacterType[] {
   ).sort((a, b) => a.faction.localeCompare(b.faction))
 
   charactersCache = characters
-  
+
   // Build character ranges map
   characterRangesCache = new Map<string, number>()
   characters.forEach((char) => {
@@ -119,9 +119,9 @@ export function loadIcons(): Record<string, string> {
   }
 
   const icons = loadAssetsDict(
-    import.meta.glob('../assets/images/icons/*.png', { 
-      eager: true, 
-      import: 'default' 
+    import.meta.glob('../assets/images/icons/*.png', {
+      eager: true,
+      import: 'default',
     }) as Record<string, string>,
   )
 

@@ -22,9 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   id: '',
 })
 
-const emit = defineEmits<{
-  arrowClick: [startHexId: number, endHexId: number]
-}>()
+// Arrow clicks are not currently used
 
 const gridStore = useGridStore()
 
@@ -79,7 +77,6 @@ const pathData = computed(() => {
       fill="none"
       opacity="0.8"
       :marker-end="`url(#${markerId})`"
-      @click="$emit('arrowClick', startHexId, endHexId)"
     />
   </g>
 </template>

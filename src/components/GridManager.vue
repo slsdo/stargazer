@@ -11,6 +11,7 @@ import { State } from '../lib/types/state'
 import { useGridStore } from '../stores/grid'
 import { computed, onMounted, inject } from 'vue'
 import type { DragDropAPI } from './DragDropProvider.vue'
+import { provideGridEvents } from '../composables/useGridEvents'
 
 // Props
 interface Props {
@@ -35,6 +36,9 @@ const emit = defineEmits<{
 
 // Use stores and inject drag/drop API
 const gridStore = useGridStore()
+
+// Provide grid events to children
+const gridEvents = provideGridEvents()
 
 // Inject the drag/drop API from provider
 const dragDropAPI = inject<DragDropAPI>('dragDrop')
@@ -114,19 +118,7 @@ const isPointInPolygon = (
   return inside
 }
 
-// Event handlers
-const handleHexClick = (hex: Hex) => {
-  gridStore.handleHexClick(hex)
-}
-
-const handleCharacterClick = (hexId: number) => {
-  gridStore.removeCharacterFromHex(hexId)
-}
-
-const handleArrowClick = () => {
-  // Arrow clicked - could add targeting logic here
-}
-
+// Event handlers - simplified
 const handleArtifactGridClick = (team: Team) => {
   emit('artifact-click', team)
 }
@@ -147,7 +139,7 @@ const handleCharacterDragEnd = (event: DragEvent) => {
 
 // Remove character when clicking on overlay
 const handleCharacterOverlayClick = (hexId: number) => {
-  gridStore.handleHexClick(gridStore.getHexById(hexId))
+  gridEvents.emit('character:remove', hexId)
 }
 
 // Handle drops on detected hexes
@@ -243,7 +235,6 @@ defineExpose({
             :color="'#36958e'"
             :stroke-width="3"
             :arrowhead-size="6"
-            @arrow-click="handleArrowClick"
           />
           <!-- Enemy to Ally arrows (red) -->
           <GridArrow
@@ -255,7 +246,6 @@ defineExpose({
             :stroke-width="3"
             :arrowhead-size="6"
             :invert-curve="true"
-            @arrow-click="handleArrowClick"
           />
         </g>
       </svg>
@@ -270,7 +260,6 @@ defineExpose({
         :text-rotation="30"
         :show-hex-ids="showHexIds"
         :show-coordinates="showDebug"
-        @hex-click="handleHexClick"
       >
         <!-- Character placements -->
         <GridCharacters
@@ -279,7 +268,6 @@ defineExpose({
           :layout="gridStore.layout"
           :character-images="characterImages"
           :characters="characters"
-          @character-click="handleCharacterClick"
         />
       </GridTiles>
 
