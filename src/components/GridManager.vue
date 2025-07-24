@@ -4,6 +4,7 @@ import GridCharacters from './GridCharacters.vue'
 import GridArrow from './GridArrow.vue'
 import GridArtifacts from './GridArtifacts.vue'
 import DebugGrid from './DebugGrid.vue'
+import PathfindingDebug from './PathfindingDebug.vue'
 import type { CharacterType } from '../lib/types/character'
 import type { Hex } from '../lib/hex'
 import { Team } from '../lib/types/team'
@@ -240,6 +241,9 @@ defineExpose({
             :invert-curve="true"
           />
         </g>
+        
+        <!-- Debug pathfinding paths -->
+        <PathfindingDebug v-if="showDebug" />
       </svg>
       <GridTiles
         :hexes="gridStore.hexes"
