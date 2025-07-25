@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import Artifact from './Artifact.vue'
-import TeamToggle from './TeamToggle.vue'
-import ClearButton from './ClearButton.vue'
+import SelectionContainer from './SelectionContainer.vue'
 import type { ArtifactType } from '../lib/types/artifact'
 import { Team } from '../lib/types/team'
-import { ref } from 'vue'
-import { useCharacterStore } from '../stores/character'
-import { useArtifactStore } from '../stores/artifact'
+import { useSelectionState } from '../composables/useSelectionState'
 
 const props = defineProps<{
   artifacts: readonly ArtifactType[]
@@ -14,13 +11,7 @@ const props = defineProps<{
   icons: Readonly<Record<string, string>>
 }>()
 
-const selectedTeam = ref<Team>(Team.ALLY)
-const characterStore = useCharacterStore()
-const artifactStore = useArtifactStore()
-
-const handleTeamChange = (team: Team) => {
-  selectedTeam.value = team
-}
+const { selectedTeam, artifactStore } = useSelectionState()
 
 const handleArtifactClick = (artifact: ArtifactType) => {
   // Check if this artifact is already placed for the selected team
@@ -37,28 +28,13 @@ const handleArtifactClick = (artifact: ArtifactType) => {
   }
 }
 
-const handleClearAll = () => {
-  characterStore.clearAllCharacters()
-  artifactStore.clearAllArtifacts()
-}
-
 const isArtifactPlaced = (artifactId: string): boolean => {
   return artifactStore.allyArtifact === artifactId || artifactStore.enemyArtifact === artifactId
 }
 </script>
 
 <template>
-  <div class="artifact-selection">
-    <!-- Team Toggle -->
-    <div class="controls-row">
-      <TeamToggle
-        :selectedTeam="selectedTeam"
-        :showCounts="false"
-        @team-change="handleTeamChange"
-      />
-      <ClearButton @click="handleClearAll" />
-    </div>
-
+  <SelectionContainer containerClass="artifact-selection" :showCounts="false">
     <!-- Artifacts Grid -->
     <div class="artifacts">
       <div v-for="artifact in props.artifacts" :key="artifact.id" class="artifact-profile">
@@ -70,20 +46,13 @@ const isArtifactPlaced = (artifactId: string): boolean => {
         />
       </div>
     </div>
-  </div>
+  </SelectionContainer>
 </template>
 
 <style scoped>
 .artifact-selection {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.controls-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   gap: var(--spacing-lg);
 }
 

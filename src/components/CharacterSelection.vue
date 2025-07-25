@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import Character from './Character.vue'
-import TeamToggle from './TeamToggle.vue'
-import ClearButton from './ClearButton.vue'
+import SelectionContainer from './SelectionContainer.vue'
 import type { CharacterType } from '../lib/types/character'
-import { Team } from '../lib/types/team'
-import { ref } from 'vue'
-import { useCharacterStore } from '../stores/character'
-import { useArtifactStore } from '../stores/artifact'
+import { useSelectionState } from '../composables/useSelectionState'
 
 defineProps<{
   characters: readonly CharacterType[]
@@ -15,18 +11,7 @@ defineProps<{
   isDraggable?: boolean
 }>()
 
-const selectedTeam = ref<Team>(Team.ALLY)
-const characterStore = useCharacterStore()
-const artifactStore = useArtifactStore()
-
-const handleTeamChange = (team: Team) => {
-  selectedTeam.value = team
-}
-
-const handleClearAll = () => {
-  characterStore.clearAllCharacters()
-  artifactStore.clearAllArtifacts()
-}
+const { selectedTeam, characterStore } = useSelectionState()
 
 const isCharacterPlaced = (characterId: string): boolean => {
   // Get all tiles with characters
@@ -63,20 +48,13 @@ const removeCharacterFromGrid = (characterId: string) => {
 </script>
 
 <template>
-  <div class="character-selection">
-    <!-- Team Toggle with Availability -->
-    <div class="controls-row">
-      <TeamToggle
-        :selectedTeam="selectedTeam"
-        :showCounts="true"
-        :allyCount="characterStore.availableAlly"
-        :enemyCount="characterStore.availableEnemy"
-        :maxCount="5"
-        @team-change="handleTeamChange"
-      />
-      <ClearButton @click="handleClearAll" />
-    </div>
-
+  <SelectionContainer
+    containerClass="character-selection"
+    :showCounts="true"
+    :allyCount="characterStore.availableAlly"
+    :enemyCount="characterStore.availableEnemy"
+    :maxCount="5"
+  >
     <!-- Characters Grid -->
     <div class="characters">
       <Character
@@ -90,20 +68,13 @@ const removeCharacterFromGrid = (characterId: string) => {
         @character-click="handleCharacterClick"
       />
     </div>
-  </div>
+  </SelectionContainer>
 </template>
 
 <style scoped>
 .character-selection {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.controls-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   gap: var(--spacing-lg);
 }
 
