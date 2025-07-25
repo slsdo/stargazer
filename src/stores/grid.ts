@@ -609,6 +609,30 @@ export const useGridStore = defineStore('grid', () => {
     characterUpdateTrigger.value++ // Trigger UI reactivity
   }
 
+  const resetToCurrentMap = () => {
+    // Clear all characters first
+    clearAllCharacters()
+    
+    // Get the current map configuration
+    const mapConfig = getMapByKey(currentMap.value)
+    if (!mapConfig) return
+
+    // Reset all hexes to default first
+    for (const hex of hexes.value) {
+      grid.value.setState(hex, State.DEFAULT)
+    }
+
+    // Apply the original map states
+    mapConfig.grid.forEach((mapState) => {
+      mapState.hex.forEach((hexId) => {
+        const hex = grid.value.getHexById(hexId)
+        grid.value.setState(hex, mapState.type)
+      })
+    })
+
+    characterUpdateTrigger.value++ // Trigger UI reactivity
+  }
+
   return {
     // Core grid data (readonly)
     grid: readonly(grid),
@@ -674,5 +698,6 @@ export const useGridStore = defineStore('grid', () => {
     // Map Editor
     setHexState,
     clearAllHexStates,
+    resetToCurrentMap,
   }
 })

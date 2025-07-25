@@ -34,13 +34,7 @@ const selectState = (state: State) => {
 }
 
 const handleClearMap = () => {
-  if (
-    confirm(
-      'Are you sure you want to reset all tiles to default state and remove all characters? This cannot be undone.',
-    )
-  ) {
-    emit('clearMap')
-  }
+  emit('clearMap')
 }
 </script>
 
@@ -71,7 +65,7 @@ const handleClearMap = () => {
     </div>
 
     <div class="map-editor-actions">
-      <button class="clear-button" @click="handleClearMap">Clear Map</button>
+      <button class="clear-button" @click="handleClearMap">Reset</button>
     </div>
   </div>
 </template>
@@ -146,11 +140,11 @@ const handleClearMap = () => {
 
 .clear-button {
   padding: 0.5rem 1.25rem;
-  background: #dc2626;
+  background: #c05b4d;
   color: white;
   border: none;
   border-radius: 0.375rem;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;

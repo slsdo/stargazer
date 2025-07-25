@@ -160,7 +160,7 @@ const handleMapEditorStateSelected = (state: State) => {
 }
 
 const handleClearMap = () => {
-  gridStore.clearAllHexStates()
+  gridStore.resetToCurrentMap()
 }
 </script>
 
