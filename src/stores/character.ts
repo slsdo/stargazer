@@ -42,22 +42,17 @@ export const useCharacterStore = defineStore('character', () => {
   ): boolean => {
     const grid = gridStore._getGrid()
     const success = grid.placeCharacter(hexId, characterId, team)
-    if (success) {
-      gridStore._triggerGridUpdate()
-    }
     return success
   }
 
   const removeCharacterFromHex = (hexId: number) => {
     const grid = gridStore._getGrid()
     grid.removeCharacter(hexId)
-    gridStore._triggerGridUpdate()
   }
 
   const clearAllCharacters = () => {
     const grid = gridStore._getGrid()
     grid.clearAllCharacters()
-    gridStore._triggerGridUpdate()
   }
 
   const getCharacterOnHex = (hexId: number): string | undefined => {
@@ -151,7 +146,6 @@ export const useCharacterStore = defineStore('character', () => {
 
     // Final cache invalidation after all operations complete
     grid.invalidateCaches()
-    gridStore._triggerGridUpdate()
     return true
   }
 
@@ -197,7 +191,6 @@ export const useCharacterStore = defineStore('character', () => {
         grid.placeCharacter(fromHexId, characterId, team)
       }
 
-      gridStore._triggerGridUpdate()
       return success
     } else {
       // Same team move - use the original logic
@@ -208,7 +201,6 @@ export const useCharacterStore = defineStore('character', () => {
         grid.placeCharacter(fromHexId, characterId, team)
       }
 
-      gridStore._triggerGridUpdate()
       return success
     }
   }

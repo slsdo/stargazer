@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, readonly, shallowRef, triggerRef } from 'vue'
+import { ref, computed, readonly, reactive } from 'vue'
 import { Grid, type GridTile } from '../lib/grid'
 import { Layout, POINTY } from '../lib/layout'
 import { State } from '../lib/types/state'
@@ -8,41 +8,29 @@ import { getMapByKey, type MapConfig } from '../lib/maps'
 import type { Hex } from '../lib/hex'
 
 export const useGridStore = defineStore('grid', () => {
-  // Core grid instance - using shallowRef for performance
-  // We'll manually trigger reactivity when needed
-  const grid = shallowRef(new Grid())
+  // Core grid instance - using reactive for automatic reactivity
+  const grid = reactive(new Grid())
   const gridOrigin = { x: 300, y: 300 }
   const layout = new Layout(POINTY, { x: 40, y: 40 }, gridOrigin)
   const currentMap = ref('arena1')
 
-  // Version counter to trigger reactivity - replaces characterUpdateTrigger
-  const gridVersion = ref(0)
-  
-  // Internal helper to trigger grid reactivity
-  const triggerGridUpdate = () => {
-    gridVersion.value++
-    triggerRef(grid)
-  }
-
   // Computed hexes that updates when grid changes
   const hexes = computed(() => {
-    gridVersion.value // dependency
-    return grid.value.keys()
+    return grid.keys()
   })
 
-  // Core grid operations that properly trigger reactivity
+  // Core grid operations
   const setState = (hex: Hex, state: State): void => {
-    grid.value.setState(hex, state)
-    triggerGridUpdate()
+    grid.setState(hex, state)
   }
 
   const getState = (hex: Hex): State => {
-    return grid.value.getState(hex)
+    return grid.getState(hex)
   }
 
   // Grid utility functions
   const getHexById = (id: number): Hex => {
-    return grid.value.getHexById(id)
+    return grid.getHexById(id)
   }
 
   const getHexPosition = (hexId: number) => {
@@ -56,12 +44,11 @@ export const useGridStore = defineStore('grid', () => {
 
   // GridTile-specific methods
   const getTile = (hexOrId: Hex | number): GridTile => {
-    return grid.value.getTile(hexOrId)
+    return grid.getTile(hexOrId)
   }
 
   const getAllTiles = computed(() => {
-    gridVersion.value // dependency
-    return grid.value.getAllTiles()
+    return grid.getAllTiles()
   })
 
   const switchMap = (mapKey: string): boolean => {
@@ -71,11 +58,10 @@ export const useGridStore = defineStore('grid', () => {
     }
 
     // Create new grid with the selected map
-    grid.value = new Grid(FULL_GRID, mapConfig)
+    const newGrid = new Grid(FULL_GRID, mapConfig)
+    // Copy properties to maintain reactivity
+    Object.assign(grid, newGrid)
     currentMap.value = mapKey
-    
-    // Trigger reactivity
-    triggerGridUpdate()
     
     return true
   }
@@ -91,8 +77,8 @@ export const useGridStore = defineStore('grid', () => {
     characterRadius: number = 30,
     invertCurve: boolean = false,
   ): string => {
-    const startHex = grid.value.getHexById(startHexId)
-    const endHex = grid.value.getHexById(endHexId)
+    const startHex = grid.getHexById(startHexId)
+    const endHex = grid.getHexById(endHexId)
     return layout.getArrowPath(startHex, endHex, characterRadius, invertCurve)
   }
 
@@ -116,7 +102,6 @@ export const useGridStore = defineStore('grid', () => {
     getArrowPath,
     
     // Internal use by other stores
-    _triggerGridUpdate: triggerGridUpdate,
-    _getGrid: () => grid.value, // Direct access for character store
+    _getGrid: () => grid, // Direct access for character store
   }
 })
