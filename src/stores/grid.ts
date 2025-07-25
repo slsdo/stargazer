@@ -577,7 +577,7 @@ export const useGridStore = defineStore('grid', () => {
     enemyArtifact.value = null
   }
 
-  // Map Editor methods - NEW functionality for editing hex states
+  // Map Editor methods
 
   /**
    * Sets a hex to the specified state (used by map editor)

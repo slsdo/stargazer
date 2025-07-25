@@ -31,8 +31,8 @@ interface Props {
   textRotation?: number
   hexFillColor?: string
   hexStrokeColor?: string
-  isMapEditorMode?: boolean // NEW: Enables map editor mode
-  selectedMapEditorState?: State // NEW: State to paint hexes with
+  isMapEditorMode?: boolean
+  selectedMapEditorState?: State
 }
 
 const props = withDefaults(defineProps<Props>(), {

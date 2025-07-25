@@ -191,8 +191,8 @@ emit('stateSelected', state)    // When user selects a state to paint with
 emit('clearMap')               // When user clicks "Clear Map" button
 
 // GridManager.vue - Integration layer
-isMapEditorMode: boolean       // NEW prop to enable map editor functionality
-selectedMapEditorState: State // NEW prop for current painting state
+isMapEditorMode: boolean       // Enable map editor functionality
+selectedMapEditorState: State // Current painting state
 
 // GridTiles.vue - Drag-to-paint implementation
 handleMapEditorMouseDown()     // Start drag-to-paint session
@@ -202,7 +202,7 @@ handleMapEditorMouseUp()       // End drag-to-paint session
 ### Grid Store Methods
 
 ```typescript
-// NEW map editor methods in grid store
+// Map editor methods in grid store
 setHexState(hexId, state)      // Paint single hex (removes characters, resets tile)
 clearAllHexStates()           // Reset all hexes to DEFAULT (removes all characters)
 ```

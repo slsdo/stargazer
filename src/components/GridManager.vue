@@ -22,8 +22,8 @@ interface Props {
   showArrows?: boolean
   showHexIds?: boolean
   showDebug?: boolean
-  isMapEditorMode?: boolean // NEW: Enables map editor functionality
-  selectedMapEditorState?: State // NEW: Current state to paint with
+  isMapEditorMode?: boolean
+  selectedMapEditorState?: State
 }
 
 const props = withDefaults(defineProps<Props>(), {
