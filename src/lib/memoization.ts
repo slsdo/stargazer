@@ -97,16 +97,6 @@ export class MemoCache<K, V> {
     return this.cache.size
   }
 
-  /**
-   * Get cache statistics for debugging
-   */
-  getStats(): { size: number; maxSize: number; hitRate: number } {
-    return {
-      size: this.cache.size,
-      maxSize: this.maxSize,
-      hitRate: 0, // Would need to track hits/misses for this
-    }
-  }
 
   private updateAccessOrder(key: K): void {
     const index = this.accessOrder.indexOf(key)
@@ -153,41 +143,3 @@ export function generatePathCacheKey(
   return `${startHexId}-${goalHexId}-${range}`
 }
 
-/**
- * Performance monitoring utility
- */
-export class PerformanceMonitor {
-  private timings = new Map<string, number[]>()
-
-  startTimer(label: string): () => void {
-    const start = performance.now()
-    return () => {
-      const duration = performance.now() - start
-      const times = this.timings.get(label) || []
-      times.push(duration)
-      this.timings.set(label, times)
-    }
-  }
-
-  getAverageTime(label: string): number {
-    const times = this.timings.get(label) || []
-    if (times.length === 0) return 0
-    return times.reduce((sum, time) => sum + time, 0) / times.length
-  }
-
-  logStats(): void {
-    console.log('Performance Statistics:')
-    for (const [label, times] of this.timings) {
-      const avg = this.getAverageTime(label)
-      const min = Math.min(...times)
-      const max = Math.max(...times)
-      console.log(
-        `  ${label}: avg=${avg.toFixed(2)}ms, min=${min.toFixed(2)}ms, max=${max.toFixed(2)}ms, count=${times.length}`,
-      )
-    }
-  }
-
-  clear(): void {
-    this.timings.clear()
-  }
-}

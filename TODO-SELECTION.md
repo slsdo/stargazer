@@ -34,6 +34,7 @@ Both `CharacterSelection.vue` and `ArtifactSelection.vue` share identical templa
 ### 2. **Script Logic Duplication (~80% Duplicate)**
 
 **Common Script Patterns:**
+
 ```typescript
 // Both components have identical team management
 const selectedTeam = ref<Team>(Team.ALLY)
@@ -54,6 +55,7 @@ const gridStore = useGridStore()
 ### 3. **CSS Styling Duplication (~90% Identical)**
 
 **Identical CSS Classes:**
+
 ```css
 .{component}-selection {
   display: flex;
@@ -83,6 +85,7 @@ const gridStore = useGridStore()
 ### 4. **Individual Item Components (~70% Similar)**
 
 **Character.vue vs Artifact.vue Similarities:**
+
 - Circular/rounded display containers
 - Similar sizing patterns (70px vs 50px)
 - Placement state styling (`.placed` class)
@@ -100,6 +103,7 @@ const gridStore = useGridStore()
 **Location:** `/src/components/BaseSelection.vue`
 
 **Features:**
+
 - Generic template with slot for item rendering
 - Built-in team selection state management
 - Clear all functionality
@@ -107,6 +111,7 @@ const gridStore = useGridStore()
 - Configurable props for customization
 
 **Usage:**
+
 ```vue
 <BaseSelection
   :items="characters"
@@ -128,19 +133,16 @@ const gridStore = useGridStore()
 **Location:** `/src/composables/useSelectionState.ts`
 
 **Features:**
+
 - Team selection state (`selectedTeam`)
 - Team change handler
 - Clear all functionality
 - Grid store integration
 
 **API:**
+
 ```typescript
-const {
-  selectedTeam,
-  gridStore,
-  handleTeamChange,
-  handleClearAll
-} = useSelectionState()
+const { selectedTeam, gridStore, handleTeamChange, handleClearAll } = useSelectionState()
 ```
 
 ### 3. **Create useItemDisplay Composable**
@@ -150,19 +152,16 @@ const {
 **Location:** `/src/composables/useItemDisplay.ts`
 
 **Features:**
+
 - Mouse interaction handling (click threshold)
 - CSS class generation utilities
 - Common interaction states
 - Drag and drop integration helpers
 
 **API:**
+
 ```typescript
-const {
-  isMouseDown,
-  handleMouseDown,
-  handleMouseUp,
-  getItemDisplayClasses
-} = useItemDisplay()
+const { isMouseDown, handleMouseDown, handleMouseUp, getItemDisplayClasses } = useItemDisplay()
 ```
 
 ### 4. **Create Shared Item Styles**
@@ -172,6 +171,7 @@ const {
 **Location:** `/src/styles/item-display.css`
 
 **Features:**
+
 - Base item display styling
 - Hover and interaction states
 - Placement state indicators
@@ -181,6 +181,7 @@ const {
 ### 5. **Enhanced Individual Item Components**
 
 **Improvements for Character.vue and Artifact.vue:**
+
 - Use shared base styles
 - Leverage common interaction logic
 - Maintain unique styling while sharing base patterns
@@ -189,21 +190,25 @@ const {
 ## Implementation Plan
 
 ### Phase 1: Create Shared Infrastructure
+
 1. **Create `useSelectionState.ts`** - Team selection logic
 2. **Create `useItemDisplay.ts`** - Item interaction patterns
 3. **Create `item-display.css`** - Shared styling
 
 ### Phase 2: Create Base Component
+
 4. **Create `BaseSelection.vue`** - Generic selection container
 5. **Test base component** with sample data
 
 ### Phase 3: Refactor Existing Components
+
 6. **Refactor `CharacterSelection.vue`** to use BaseSelection
 7. **Refactor `ArtifactSelection.vue`** to use BaseSelection
 8. **Update `Character.vue`** to use shared composables and styles
 9. **Update `Artifact.vue`** to use shared composables and styles
 
 ### Phase 4: Validation
+
 10. **Run build and type checks**
 11. **Test drag and drop functionality**
 12. **Verify team switching behavior**
@@ -213,18 +218,21 @@ const {
 ## Expected Benefits
 
 ### **Immediate Benefits:**
+
 - **~60% reduction** in template and script duplication
 - **~150+ lines** of duplicate code elimination
 - **Single source of truth** for selection patterns
 - **Improved consistency** across selection components
 
 ### **Long-term Benefits:**
+
 - **Easier maintenance** - Changes apply to all selection components
 - **Faster development** - New selection components can reuse infrastructure
 - **Better testing** - Test shared logic once instead of multiple times
 - **Enhanced consistency** - Unified behavior and styling
 
 ### **Architecture Benefits:**
+
 - **Follows DRY principle** - Don't Repeat Yourself
 - **Aligns with project's layered architecture**
 - **Composable-first approach** - Reusable logic
@@ -233,12 +241,14 @@ const {
 ## Files That Would Benefit
 
 ### **Primary Targets:**
+
 - `/src/components/CharacterSelection.vue` - Major refactoring
 - `/src/components/ArtifactSelection.vue` - Major refactoring
 - `/src/components/Character.vue` - Minor improvements
 - `/src/components/Artifact.vue` - Minor improvements
 
 ### **New Files Created:**
+
 - `/src/components/BaseSelection.vue` - New generic component
 - `/src/composables/useSelectionState.ts` - New composable
 - `/src/composables/useItemDisplay.ts` - New composable
@@ -247,6 +257,7 @@ const {
 ## Code Examples
 
 ### **Before (Duplicated):**
+
 ```vue
 <!-- CharacterSelection.vue -->
 <div class="character-selection">
@@ -257,7 +268,7 @@ const {
   <div class="characters">...</div>
 </div>
 
-<!-- ArtifactSelection.vue -->  
+<!-- ArtifactSelection.vue -->
 <div class="artifact-selection">
   <div class="controls-row">
     <TeamToggle :selectedTeam="selectedTeam" @team-change="handleTeamChange" />
@@ -268,6 +279,7 @@ const {
 ```
 
 ### **After (Refactored):**
+
 ```vue
 <!-- CharacterSelection.vue -->
 <BaseSelection
@@ -282,11 +294,7 @@ const {
 </BaseSelection>
 
 <!-- ArtifactSelection.vue -->
-<BaseSelection
-  :items="artifacts"
-  :images="artifactImages"
-  @itemClick="handleArtifactClick"
->
+<BaseSelection :items="artifacts" :images="artifactImages" @itemClick="handleArtifactClick">
   <template #items="{ items, selectedTeam, images }">
     <!-- Artifact-specific rendering -->
   </template>
@@ -296,12 +304,14 @@ const {
 ## Risk Assessment
 
 ### **Low Risk:**
+
 - **No breaking changes** to existing functionality
 - **Incremental refactoring** - can be done step by step
 - **Existing tests** will validate behavior is preserved
 - **TypeScript** will catch any integration issues
 
 ### **Considerations:**
+
 - **Requires testing** drag and drop behavior
 - **Need to verify** team switching still works correctly
 - **Should validate** character/artifact placement logic
@@ -310,6 +320,7 @@ const {
 ## Future Extensions
 
 This refactoring sets the foundation for:
+
 - **Additional selection components** (e.g., map selection, preset selection)
 - **Enhanced filtering/search** across all selection types
 - **Consistent keyboard navigation** for all selection components
