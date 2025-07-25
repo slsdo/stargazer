@@ -40,6 +40,7 @@ export class Grid {
     [Team.ENEMY, new Set()],
   ])
   private readonly MAX_TEAM_SIZE = 5
+  private readonly gridPreset: GridPreset
 
   // Caches for expensive calculations
   private closestEnemyCache = new MemoCache<
@@ -56,6 +57,7 @@ export class Grid {
   private cachingEnabled = true
 
   constructor(layout = FULL_GRID, map = ARENA_1) {
+    this.gridPreset = layout
     this.storage = new Map()
     iniGrid(layout).forEach((hex) => {
       this.storage.set(Grid.key(hex), { hex, state: State.DEFAULT })
@@ -240,21 +242,37 @@ export class Grid {
     return count
   }
 
-  /* Traversal function for finding paths to enemies (allows moving through all non-blocked tiles) */
+  // Pathfinding allows movement through all tiles except blocked ones
   private canTraverseToEnemy(tile: GridTile): boolean {
-    // Only blocked tiles are impassable
     return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
   }
 
-  /* Traversal function for finding paths to allies (allows moving through all non-blocked tiles) */
   private canTraverseToAlly(tile: GridTile): boolean {
-    // Only blocked tiles are impassable
     return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
   }
 
-  /* Find the closest target from a source tile among a list of target tiles
-   * Uses A* pathfinding to account for obstacles and character range
-   * Tie-breaking: if multiple targets at same effective distance, choose the one with lowest hex ID */
+  // Check if two hexes share the same row in the grid preset
+  private areHexesInSameRow(hexId1: number, hexId2: number): boolean {
+    for (const row of this.gridPreset.hex) {
+      if (row.includes(hexId1) && row.includes(hexId2)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  // Check vertical alignment (same q coordinate = straight line, no turns)
+  private isVerticallyAligned(sourceHex: Hex, targetHex: Hex): boolean {
+    return sourceHex.q === targetHex.q
+  }
+
+  /**
+   * Find the closest reachable target using A* pathfinding.
+   * 
+   * Tie-breaking for equal distances:
+   * 1. Prefer vertical alignment (straight line, no turns)
+   * 2. Within same row, prefer lower hex ID
+   */
 
   private findClosestTarget(
     sourceTile: GridTile,
@@ -298,14 +316,33 @@ export class Grid {
       // Use movement distance for comparison (tiles needed to move)
       const distance = effectiveDistance.movementDistance
 
-      if (
-        !closest ||
-        distance < closest.distance ||
-        (distance === closest.distance && targetTile.hex.getId() < closest.hexId)
-      ) {
+      if (!closest || distance < closest.distance) {
         closest = {
           hexId: targetTile.hex.getId(),
           distance: distance,
+        }
+      } else if (distance === closest.distance) {
+        // Apply tie-breaking rules
+        const closestHex = this.getHexById(closest.hexId)
+        const currentIsVertical = this.isVerticallyAligned(sourceTile.hex, targetTile.hex)
+        const closestIsVertical = this.isVerticallyAligned(sourceTile.hex, closestHex)
+        
+        if (currentIsVertical && !closestIsVertical) {
+          // Prefer vertical alignment
+          closest = {
+            hexId: targetTile.hex.getId(),
+            distance: distance,
+          }
+        } else if (!currentIsVertical && closestIsVertical) {
+          // Keep current (already vertical)
+        } else if (this.areHexesInSameRow(targetTile.hex.getId(), closest.hexId)) {
+          // Same row: prefer lower ID
+          if (targetTile.hex.getId() < closest.hexId) {
+            closest = {
+              hexId: targetTile.hex.getId(),
+              distance: distance,
+            }
+          }
         }
       }
     }
@@ -313,9 +350,10 @@ export class Grid {
     return closest
   }
 
-  /* Calculate closest enemy for each ally character
-   * Returns a map of ally hex IDs to their closest enemy info
-   * Uses pathfinding to account for obstacles and character range */
+  /**
+   * Calculate closest enemy for each ally character.
+   * Returns map: ally hex ID -> {enemy hex ID, distance}
+   */
 
   getClosestEnemyMap(
     characterRanges: Map<string, number> = new Map(),
@@ -362,9 +400,10 @@ export class Grid {
     return result
   }
 
-  /* Calculate closest ally character for each enemy
-   * Returns a map of enemy hex IDs to their closest ally character info
-   * Uses pathfinding to account for obstacles and character range */
+  /**
+   * Calculate closest ally for each enemy character.
+   * Returns map: enemy hex ID -> {ally hex ID, distance}
+   */
 
   getClosestAllyMap(
     characterRanges: Map<string, number> = new Map(),
