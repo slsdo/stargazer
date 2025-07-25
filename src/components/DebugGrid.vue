@@ -23,9 +23,11 @@ const getImageName = (imageSrc: string): string => {
   <div class="grid-stats">
     <h3>Debug Grid</h3>
     <p>
-      Total Hexes: {{ gridStore.hexes.length }}; Characters Placed: {{ characterStore.charactersPlaced }};
-      Grid Origin: ({{ gridStore.gridOrigin.x }}, {{ gridStore.gridOrigin.y }}); Hex Size:
-      {{ gridStore.layout.size.x }}×{{ gridStore.layout.size.y }}
+      Total Hexes: {{ gridStore.hexes.length }}; Characters Placed:
+      {{ characterStore.charactersPlaced }}; Grid Origin: ({{ gridStore.gridOrigin.x }},
+      {{ gridStore.gridOrigin.y }}); Hex Size: {{ gridStore.layout.size.x }}×{{
+        gridStore.layout.size.y
+      }}
     </p>
 
     <div v-if="characterStore.charactersPlaced > 0">
@@ -50,7 +52,9 @@ const getImageName = (imageSrc: string): string => {
               </span>
               <!-- Show closest enemy info for Ally characters -->
               <span
-                v-if="tile.team === Team.ALLY && pathfindingStore.closestEnemyMap.has(tile.hex.getId())"
+                v-if="
+                  tile.team === Team.ALLY && pathfindingStore.closestEnemyMap.has(tile.hex.getId())
+                "
                 class="closest-enemy"
               >
                 → Enemy at Hex
@@ -59,7 +63,9 @@ const getImageName = (imageSrc: string): string => {
               </span>
               <!-- Show closest ally info for Enemy characters -->
               <span
-                v-if="tile.team === Team.ENEMY && pathfindingStore.closestAllyMap.has(tile.hex.getId())"
+                v-if="
+                  tile.team === Team.ENEMY && pathfindingStore.closestAllyMap.has(tile.hex.getId())
+                "
                 class="closest-ally"
               >
                 → Ally at Hex
@@ -68,7 +74,10 @@ const getImageName = (imageSrc: string): string => {
               </span>
             </div>
           </div>
-          <button @click="characterStore.removeCharacterFromHex(tile.hex.getId())" class="remove-btn">
+          <button
+            @click="characterStore.removeCharacterFromHex(tile.hex.getId())"
+            class="remove-btn"
+          >
             ×
           </button>
         </li>

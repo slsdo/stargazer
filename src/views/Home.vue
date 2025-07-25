@@ -1,6 +1,4 @@
-/**
- * Home.vue - Main application layout
- */
+/** * Home.vue - Main application layout */
 <script setup lang="ts">
 import CharacterSelection from '../components/CharacterSelection.vue'
 import ArtifactSelection from '../components/ArtifactSelection.vue'
@@ -44,6 +42,12 @@ const selectedMapEditorState = ref<State>(State.DEFAULT)
 
 const handleTabChange = (tab: string) => {
   activeTab.value = tab
+
+  // When entering Map Editor mode, hide details to prevent flashing
+  if (tab === 'mapEditor') {
+    showArrows.value = false
+    showHexIds.value = false
+  }
 }
 
 const handleMapChange = (mapKey: string) => {

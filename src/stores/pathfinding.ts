@@ -32,7 +32,7 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
   // Debug pathfinding results for visualization
   const debugPathfindingResults = computed(() => {
     const grid = gridStore._getGrid()
-    
+
     // Only compute when there are characters on the grid
     if (characterStore.charactersPlaced === 0) {
       return []
@@ -103,8 +103,8 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
 
     // Get paths from allies to closest enemies
     for (const allyTile of allyTiles) {
-      const range = allyTile.character 
-        ? (gameDataStore.getCharacterRange(allyTile.character) ?? 1) 
+      const range = allyTile.character
+        ? (gameDataStore.getCharacterRange(allyTile.character) ?? 1)
         : 1
       const closestEnemy = findClosestTarget(
         allyTile,
@@ -136,7 +136,7 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
 
     // Get paths from enemies to closest allies
     for (const enemyTile of enemyTiles) {
-      const range = enemyTile.character 
+      const range = enemyTile.character
         ? (gameDataStore.getCharacterRange(enemyTile.character) ?? 1)
         : 1
       const closestAlly = findClosestTarget(

@@ -62,7 +62,7 @@ export const useGridStore = defineStore('grid', () => {
     // Copy properties to maintain reactivity
     Object.assign(grid, newGrid)
     currentMap.value = mapKey
-    
+
     return true
   }
 
@@ -89,7 +89,7 @@ export const useGridStore = defineStore('grid', () => {
     hexes,
     gridOrigin: readonly(gridOrigin),
     currentMap: readonly(currentMap),
-    
+
     // Core grid operations
     setState,
     getState,
@@ -100,7 +100,7 @@ export const useGridStore = defineStore('grid', () => {
     switchMap,
     getCurrentMapConfig,
     getArrowPath,
-    
+
     // Internal use by other stores
     _getGrid: () => grid, // Direct access for character store
   }

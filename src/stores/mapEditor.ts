@@ -11,7 +11,7 @@ export const useMapEditorStore = defineStore('mapEditor', () => {
   const setHexState = (hexId: number, state: State): boolean => {
     const gridStore = useGridStore()
     const characterStore = useCharacterStore()
-    
+
     const hex = gridStore.getHexById(hexId)
     if (!hex) return false
 
@@ -34,7 +34,7 @@ export const useMapEditorStore = defineStore('mapEditor', () => {
   const clearAllHexStates = () => {
     const gridStore = useGridStore()
     const characterStore = useCharacterStore()
-    
+
     // Clear all characters first
     characterStore.clearAllCharacters()
 
@@ -47,7 +47,7 @@ export const useMapEditorStore = defineStore('mapEditor', () => {
   const resetToCurrentMap = () => {
     const gridStore = useGridStore()
     const characterStore = useCharacterStore()
-    
+
     // Clear all characters first
     characterStore.clearAllCharacters()
 
