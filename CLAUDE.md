@@ -171,6 +171,49 @@ events.on('hex:hover', (hexId) => {
 3. Test in development mode
 4. Update documentation if needed
 
+## MAP EDITOR SYSTEM
+
+### Architecture
+
+New map editing functionality allows users to paint hex states directly on the grid:
+
+- **MapEditor Component**: State selection UI with visual previews and clear map functionality
+- **Click-to-Paint**: Single-click hex state changes when map editor mode is active
+- **Drag-to-Paint**: Hold and drag mouse to paint multiple hexes continuously
+- **Complete Reset**: Painting over any tile removes characters and replaces the state entirely
+- **Performance**: Throttled updates (50ms) to prevent lag during drag operations
+
+### Key Components
+
+```typescript
+// MapEditor.vue - State selection UI
+emit('stateSelected', state)    // When user selects a state to paint with
+emit('clearMap')               // When user clicks "Clear Map" button
+
+// GridManager.vue - Integration layer
+isMapEditorMode: boolean       // NEW prop to enable map editor functionality
+selectedMapEditorState: State // NEW prop for current painting state
+
+// GridTiles.vue - Drag-to-paint implementation
+handleMapEditorMouseDown()     // Start drag-to-paint session
+handleMapEditorMouseUp()       // End drag-to-paint session
+```
+
+### Grid Store Methods
+
+```typescript
+// NEW map editor methods in grid store
+setHexState(hexId, state)      // Paint single hex (removes characters, resets tile)
+clearAllHexStates()           // Reset all hexes to DEFAULT (removes all characters)
+```
+
+### Usage Flow
+
+1. User selects 'Map Editor' tab → `activeTab = 'mapEditor'`
+2. User clicks state button → `selectedMapEditorState` updates
+3. User clicks/drags on grid → `setHexState()` called for each hex
+4. Any existing characters are removed and tile is reset to selected state
+
 ## COMMON PATTERNS
 
 ### Data Loading

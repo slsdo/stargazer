@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch, onBeforeUnmount } from 'vue'
 import type { Hex } from '../lib/hex'
 import type { Layout } from '../lib/layout'
 import { useDragDrop } from '../composables/useDragDrop'
@@ -31,6 +31,8 @@ interface Props {
   textRotation?: number
   hexFillColor?: string
   hexStrokeColor?: string
+  isMapEditorMode?: boolean        // NEW: Enables map editor mode
+  selectedMapEditorState?: State   // NEW: State to paint hexes with
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -53,6 +55,8 @@ const props = withDefaults(defineProps<Props>(), {
   textRotation: 0,
   hexFillColor: '#fff',
   hexStrokeColor: '#ccc',
+  isMapEditorMode: false,
+  selectedMapEditorState: State.DEFAULT,
 })
 
 const gridEvents = useGridEvents()
@@ -71,6 +75,13 @@ const gridStore = useGridStore()
 
 // Track which hex is currently being hovered (non-drag)
 const hoveredHex = ref<number | null>(null)
+
+// Map editor drag-to-paint state
+// Enables continuous painting while dragging mouse across hexes
+const isMapEditorDragging = ref(false)
+const paintedHexes = ref(new Set<number>())      // Tracks painted hexes to avoid duplicates
+let lastPaintTime = 0
+const PAINT_THROTTLE_MS = 50 // Performance: throttle painting to every 50ms
 
 // Watch for changes in position-based hex detection
 watch(hoveredHexId, (newHexId) => {
@@ -118,6 +129,20 @@ const shouldShowHexId = (hex: Hex) => {
 // Mouse hover handling functions
 const handleHexMouseEnter = (hex: Hex) => {
   hoveredHex.value = hex.getId()
+  
+  // Map editor drag-to-paint with throttling
+  if (props.isMapEditorMode && isMapEditorDragging.value) {
+    const hexId = hex.getId()
+    const now = Date.now()
+    
+    if (!paintedHexes.value.has(hexId) && now - lastPaintTime >= PAINT_THROTTLE_MS) {
+      const success = gridStore.setHexState(hexId, props.selectedMapEditorState)
+      if (success) {
+        paintedHexes.value.add(hexId)
+        lastPaintTime = now
+      }
+    }
+  }
 }
 
 const handleHexMouseLeave = (hex: Hex) => {
@@ -125,6 +150,28 @@ const handleHexMouseLeave = (hex: Hex) => {
     hoveredHex.value = null
   }
 }
+
+// Map editor mouse handlers for drag-to-paint functionality
+// Enables painting multiple hexes by holding mouse button and dragging
+const handleMapEditorMouseDown = () => {
+  if (props.isMapEditorMode) {
+    isMapEditorDragging.value = true
+    paintedHexes.value.clear()  // Reset painted hexes for new drag session
+  }
+}
+
+const handleMapEditorMouseUp = () => {
+  if (props.isMapEditorMode) {
+    isMapEditorDragging.value = false
+    paintedHexes.value.clear()  // Cleanup after drag session
+  }
+}
+
+// Clean up map editor state on unmount
+onBeforeUnmount(() => {
+  isMapEditorDragging.value = false
+  paintedHexes.value.clear()
+})
 
 /**
  * Hybrid drag detection: combines SVG events with position-based detection
@@ -266,7 +313,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <svg :width="width" :height="height" class="grid-tiles">
+  <svg 
+    :width="width" 
+    :height="height" 
+    class="grid-tiles"
+    :class="{ 'map-editor-mode': isMapEditorMode }"
+    @mousedown="handleMapEditorMouseDown"
+    @mouseup="handleMapEditorMouseUp"
+    @mouseleave="handleMapEditorMouseUp"
+  >
     <defs>
       <slot name="defs" />
     </defs>
@@ -389,6 +444,10 @@ onUnmounted(() => {
 .grid-tiles {
   max-width: 100%;
   height: auto;
+}
+
+.grid-tiles.map-editor-mode {
+  cursor: crosshair;
 }
 
 .grid-tile {

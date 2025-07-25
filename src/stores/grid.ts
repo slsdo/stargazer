@@ -571,6 +571,44 @@ export const useGridStore = defineStore('grid', () => {
     enemyArtifact.value = null
   }
 
+  // Map Editor methods - NEW functionality for editing hex states
+  
+  /**
+   * Sets a hex to the specified state (used by map editor)
+   * Removes any existing character and resets the tile completely
+   */
+  const setHexState = (hexId: number, state: State) => {
+    const hex = grid.value.getHexById(hexId)
+    if (!hex) return false
+
+    const tile = grid.value.getTile(hexId)
+    
+    // Remove character if hex is occupied
+    if (tile.state === State.OCCUPIED_ALLY || tile.state === State.OCCUPIED_ENEMY) {
+      removeCharacterFromHex(hexId)
+    }
+
+    // Set the new state
+    grid.value.setState(hex, state)
+    characterUpdateTrigger.value++ // Trigger UI reactivity
+    return true
+  }
+
+  /**
+   * Resets all hexes to DEFAULT state (used by "Clear Map" button)
+   * Removes all characters and resets all tiles completely
+   */
+  const clearAllHexStates = () => {
+    // Clear all characters first
+    clearAllCharacters()
+    
+    // Reset all hexes to default state
+    for (const hex of hexes.value) {
+      grid.value.setState(hex, State.DEFAULT)
+    }
+    characterUpdateTrigger.value++ // Trigger UI reactivity
+  }
+
   return {
     // Core grid data (readonly)
     grid: readonly(grid),
@@ -632,5 +670,9 @@ export const useGridStore = defineStore('grid', () => {
     placeArtifact,
     removeArtifact,
     clearAllArtifacts,
+
+    // Map Editor
+    setHexState,
+    clearAllHexStates,
   }
 })

@@ -14,7 +14,7 @@ import { computed, onMounted, inject } from 'vue'
 import type { DragDropAPI } from './DragDropProvider.vue'
 import { provideGridEvents } from '../composables/useGridEvents'
 
-// Props
+// Props - Added map editor support
 interface Props {
   characters: readonly CharacterType[]
   characterImages: Readonly<Record<string, string>>
@@ -22,12 +22,16 @@ interface Props {
   showArrows?: boolean
   showHexIds?: boolean
   showDebug?: boolean
+  isMapEditorMode?: boolean        // NEW: Enables map editor functionality
+  selectedMapEditorState?: State   // NEW: Current state to paint with
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showArrows: true,
   showHexIds: true,
   showDebug: false,
+  isMapEditorMode: false,
+  selectedMapEditorState: State.DEFAULT,
 })
 
 // No emits needed
@@ -58,6 +62,15 @@ const {
 
 // Computed
 const hasCharacters = computed(() => gridStore.characterPlacements.size > 0)
+
+// Map editor integration - handle hex clicks for painting tiles
+// When in map editor mode, clicking a hex changes its state to the selected state
+gridEvents.on('hex:click', (hex: Hex) => {
+  if (props.isMapEditorMode) {
+    const hexId = hex.getId()
+    gridStore.setHexState(hexId, props.selectedMapEditorState)
+  }
+})
 
 /**
  * Utility function to find which hex is under the given screen coordinates
@@ -256,6 +269,8 @@ defineExpose({
         :text-rotation="30"
         :show-hex-ids="showHexIds"
         :show-coordinates="showDebug"
+        :is-map-editor-mode="isMapEditorMode"
+        :selected-map-editor-state="selectedMapEditorState"
       >
         <!-- Character placements -->
         <GridCharacters
@@ -273,13 +288,14 @@ defineExpose({
           v-for="[hexId, characterId] in gridStore.characterPlacements"
           :key="hexId"
           class="character-drag-handle"
+          :class="{ 'map-editor-disabled': props.isMapEditorMode }"
           :style="{
             left: `${gridStore.getHexPosition(hexId).x - 30}px`,
             top: `${gridStore.getHexPosition(hexId).y - 30}px`,
             width: '60px',
             height: '60px',
           }"
-          :draggable="true"
+          :draggable="!props.isMapEditorMode"
           @dragstart="handleCharacterDragStart($event, hexId, characterId)"
           @dragend="handleCharacterDragEnd($event)"
           @click="handleCharacterOverlayClick(hexId)"
@@ -335,6 +351,12 @@ defineExpose({
 
 .character-drag-handle:active {
   cursor: grabbing;
+}
+
+/* Disable character overlays in map editor mode to allow hex painting */
+.character-drag-handle.map-editor-disabled {
+  pointer-events: none;
+  cursor: default;
 }
 
 .debug-panel {

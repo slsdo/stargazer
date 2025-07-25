@@ -1,3 +1,12 @@
+/**
+ * Home.vue - Main application layout
+ * 
+ * Recent Changes:
+ * - Added MapEditor component integration (NEW)
+ * - Added map editor state management (selectedMapEditorState)
+ * - Added handleMapEditorStateSelected() and handleClearMap() handlers
+ * - Passes isMapEditorMode and selectedMapEditorState to GridManager
+ */
 <script setup lang="ts">
 import CharacterSelection from '../components/CharacterSelection.vue'
 import ArtifactSelection from '../components/ArtifactSelection.vue'
@@ -5,11 +14,13 @@ import GridManager from '../components/GridManager.vue'
 import TabNavigation from '../components/TabNavigation.vue'
 import GridControls from '../components/GridControls.vue'
 import DragDropProvider from '../components/DragDropProvider.vue'
+import MapEditor from '../components/MapEditor.vue'  // NEW: Map editor component
 import { Team } from '../lib/types/team'
 import { useGridStore } from '../stores/grid'
 import { getMapNames } from '../lib/maps'
 import { generateShareableUrl } from '../utils/urlStateManager'
 import { ref } from 'vue'
+import { State } from '../lib/types/state'  // NEW: For map editor state types
 
 // Use Pinia grid store
 const gridStore = useGridStore()
@@ -25,6 +36,9 @@ const selectedMap = ref('arena1')
 // Grid display toggles
 const showArrows = ref(true)
 const showHexIds = ref(true)
+
+// Map editor state
+const selectedMapEditorState = ref<State>(State.DEFAULT)
 
 const handleTabChange = (tab: string) => {
   activeTab.value = tab
@@ -140,6 +154,14 @@ const handleDownload = async () => {
     console.error('Failed to export grid:', error)
   }
 }
+
+const handleMapEditorStateSelected = (state: State) => {
+  selectedMapEditorState.value = state
+}
+
+const handleClearMap = () => {
+  gridStore.clearAllHexStates()
+}
 </script>
 
 <template>
@@ -155,6 +177,8 @@ const handleDownload = async () => {
             :show-arrows="showArrows"
             :show-hex-ids="showHexIds"
             :show-debug="showDebug"
+            :is-map-editor-mode="activeTab === 'mapEditor'"
+            :selected-map-editor-state="selectedMapEditorState"
           />
 
           <!-- Grid Display Toggle -->
@@ -199,10 +223,10 @@ const handleDownload = async () => {
           </div>
           <!-- Map Editor Tab -->
           <div v-show="activeTab === 'mapEditor'" class="tab-panel">
-            <div class="map-editor-placeholder">
-              <h3>Map Editor</h3>
-              <p>Map editor functionality coming soon...</p>
-            </div>
+            <MapEditor 
+              @state-selected="handleMapEditorStateSelected" 
+              @clear-map="handleClearMap"
+            />
           </div>
         </TabNavigation>
       </div>
