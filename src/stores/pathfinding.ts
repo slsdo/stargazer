@@ -10,6 +10,7 @@ import { useCharacterStore } from './character'
 import { useGameDataStore } from './gameData'
 
 export const usePathfindingStore = defineStore('pathfinding', () => {
+  // Store instances created once at store level
   const gridStore = useGridStore()
   const characterStore = useCharacterStore()
   const gameDataStore = useGameDataStore()

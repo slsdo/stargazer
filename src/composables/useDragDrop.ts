@@ -123,24 +123,19 @@ export const useDragDrop = () => {
     event: DragEvent,
   ): { character: CharacterType; characterId: string } | null => {
     event.preventDefault()
-    console.log('handleDrop called')
 
     if (!event.dataTransfer) {
-      console.log('No dataTransfer')
       return null
     }
 
     try {
       const dragData = event.dataTransfer.getData(CHARACTER_MIME_TYPE)
-      console.log('Drag data:', dragData)
 
       if (!dragData) {
-        console.log('No drag data found')
         return null
       }
 
       const { character, characterId } = JSON.parse(dragData)
-      console.log('Parsed character:', character.id)
       return { character, characterId }
     } catch (error) {
       console.error('Error parsing drag data:', error)

@@ -3,11 +3,12 @@ import { ARENA_2 } from './arena/arena2'
 import { ARENA_3 } from './arena/arena3'
 import { ARENA_4 } from './arena/arena4'
 import { ARENA_5 } from './arena/arena5'
+import { State } from './types/state'
 
 export interface MapConfig {
   name: string
   grid: Array<{
-    type: any
+    type: State
     hex: number[]
   }>
 }

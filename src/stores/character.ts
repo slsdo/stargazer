@@ -140,7 +140,10 @@ export const useCharacterStore = defineStore('character', () => {
 
       // Restore original positions
       grid.placeCharacter(fromHexId, fromCharacterId, fromTeam, true) // Skip cache invalidation
-      grid.placeCharacter(toHexId, toCharacterId, toTeam) // Final operation - invalidate caches
+      grid.placeCharacter(toHexId, toCharacterId, toTeam, true) // Skip cache invalidation
+      
+      // Single cache invalidation before returning false
+      grid.invalidateCaches()
       return false
     }
 

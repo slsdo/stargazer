@@ -2,10 +2,17 @@ import { defineStore } from 'pinia'
 import { useGridStore } from './grid'
 import { useCharacterStore } from './character'
 import { useArtifactStore } from './artifact'
+import { useStateReset } from '../composables/useStateReset'
 import { Team } from '../lib/types/team'
 import { getGridStateFromCurrentUrl } from '../utils/urlStateManager'
 
 export const useUrlStateStore = defineStore('urlState', () => {
+  // Store instances created once at store level
+  const gridStore = useGridStore()
+  const characterStore = useCharacterStore()
+  const artifactStore = useArtifactStore()
+  const { clearAllState } = useStateReset()
+
   // Restore grid state from URL parameters
   const restoreStateFromUrl = () => {
     try {
@@ -14,15 +21,8 @@ export const useUrlStateStore = defineStore('urlState', () => {
         return // No state in URL
       }
 
-      console.log('Restoring grid state from URL:', urlState)
-
-      const gridStore = useGridStore()
-      const characterStore = useCharacterStore()
-      const artifactStore = useArtifactStore()
-
-      // Clear existing state first
-      characterStore.clearAllCharacters()
-      artifactStore.clearAllArtifacts()
+      // Clear existing state first using shared utility
+      clearAllState()
 
       // Restore all tile states from the URL
       urlState.tiles.forEach(({ hexId, state }) => {
@@ -50,7 +50,7 @@ export const useUrlStateStore = defineStore('urlState', () => {
         artifactStore.placeArtifact(urlState.artifacts.enemy, Team.ENEMY)
       }
 
-      console.log('Successfully restored grid state from URL')
+      // URL state restoration completed successfully
     } catch (error) {
       console.error('Failed to restore state from URL:', error)
     }
