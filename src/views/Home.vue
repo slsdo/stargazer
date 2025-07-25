@@ -11,13 +11,21 @@ import DragDropProvider from '../components/DragDropProvider.vue'
 import MapEditor from '../components/MapEditor.vue'
 import { Team } from '../lib/types/team'
 import { useGridStore } from '../stores/grid'
+import { useGameDataStore } from '../stores/gameData'
+import { useUrlStateStore } from '../stores/urlState'
+import { useArtifactStore } from '../stores/artifact'
+import { useMapEditorStore } from '../stores/mapEditor'
 import { getMapNames } from '../lib/maps'
 import { generateShareableUrl } from '../utils/urlStateManager'
 import { ref } from 'vue'
 import { State } from '../lib/types/state'
 
-// Use Pinia grid store
+// Use Pinia stores
 const gridStore = useGridStore()
+const gameDataStore = useGameDataStore()
+const urlStateStore = useUrlStateStore()
+const artifactStore = useArtifactStore()
+const mapEditorStore = useMapEditorStore()
 
 // Tab state management
 const activeTab = ref('characters')
@@ -46,7 +54,11 @@ const handleMapChange = (mapKey: string) => {
 }
 
 // Initialize data immediately (synchronous)
-gridStore.initializeData()
+gameDataStore.initializeData()
+// After data is loaded, try to restore state from URL
+if (gameDataStore.dataLoaded) {
+  urlStateStore.restoreStateFromUrl()
+}
 
 // Action button handlers
 
@@ -54,9 +66,9 @@ const handleCopyLink = async () => {
   try {
     // Generate shareable URL with current grid state exactly as it appears
     const shareableUrl = generateShareableUrl(
-      gridStore.getAllTiles(),
-      gridStore.allyArtifact,
-      gridStore.enemyArtifact,
+      gridStore.getAllTiles,
+      artifactStore.allyArtifact,
+      artifactStore.enemyArtifact,
     )
 
     // Copy URL to clipboard
@@ -153,7 +165,7 @@ const handleMapEditorStateSelected = (state: State) => {
 }
 
 const handleClearMap = () => {
-  gridStore.resetToCurrentMap()
+  mapEditorStore.resetToCurrentMap()
 }
 </script>
 
@@ -164,9 +176,9 @@ const handleClearMap = () => {
         <div class="section">
           <!-- Grid Manager Component -->
           <GridManager
-            :characters="gridStore.characters"
-            :character-images="gridStore.characterImages"
-            :artifact-images="gridStore.artifactImages"
+            :characters="gameDataStore.characters"
+            :character-images="gameDataStore.characterImages"
+            :artifact-images="gameDataStore.artifactImages"
             :show-arrows="showArrows"
             :show-hex-ids="showHexIds"
             :show-debug="showDebug"
@@ -200,18 +212,18 @@ const handleClearMap = () => {
           <!-- Characters Tab -->
           <div v-show="activeTab === 'characters'" class="tab-panel">
             <CharacterSelection
-              :characters="gridStore.characters"
-              :characterImages="gridStore.characterImages"
-              :icons="gridStore.icons"
+              :characters="gameDataStore.characters"
+              :characterImages="gameDataStore.characterImages"
+              :icons="gameDataStore.icons"
               :isDraggable="true"
             />
           </div>
           <!-- Artifacts Tab -->
           <div v-show="activeTab === 'artifacts'" class="tab-panel">
             <ArtifactSelection
-              :artifacts="gridStore.artifacts"
-              :artifactImages="gridStore.artifactImages"
-              :icons="gridStore.icons"
+              :artifacts="gameDataStore.artifacts"
+              :artifactImages="gameDataStore.artifactImages"
+              :icons="gameDataStore.icons"
             />
           </div>
           <!-- Map Editor Tab -->

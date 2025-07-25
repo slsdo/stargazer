@@ -1,7 +1,8 @@
 import { inject, provide, type InjectionKey } from 'vue'
 import type { Hex } from '../lib/hex'
 import { Team } from '../lib/types/team'
-import { useGridStore } from '../stores/grid'
+import { useCharacterStore } from '../stores/character'
+import { useArtifactStore } from '../stores/artifact'
 
 /**
  * Grid event types with namespacing
@@ -35,7 +36,8 @@ export const GridEventKey: InjectionKey<GridEventAPI> = Symbol('grid-events')
  * Create grid event system (for provider)
  */
 export function createGridEvents(): GridEventAPI {
-  const gridStore = useGridStore()
+  const characterStore = useCharacterStore()
+  const artifactStore = useArtifactStore()
   const handlers = new Map<keyof GridEvents, Set<Function>>()
 
   const emit: GridEventAPI['emit'] = (event, ...args) => {
@@ -48,17 +50,17 @@ export function createGridEvents(): GridEventAPI {
     switch (event) {
       case 'hex:click':
         const hex = args[0] as Hex
-        gridStore.handleHexClick(hex)
+        characterStore.handleHexClick(hex)
         break
 
       case 'character:remove':
         const hexId = args[0] as number
-        gridStore.removeCharacterFromHex(hexId)
+        characterStore.removeCharacterFromHex(hexId)
         break
 
       case 'artifact:remove':
         const team = args[0] as Team
-        gridStore.removeArtifact(team)
+        artifactStore.removeArtifact(team)
         break
     }
   }

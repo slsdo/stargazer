@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useGridStore } from '../stores/grid'
+import { usePathfindingStore } from '../stores/pathfinding'
 import { Team } from '../lib/types/team'
 
 const gridStore = useGridStore()
+const pathfindingStore = usePathfindingStore()
 
 // Get debug pathfinding results from the store
-const pathfindingResults = computed(() => gridStore.debugPathfindingResults)
+const pathfindingResults = computed(() => pathfindingStore.debugPathfindingResults)
 
 // Generate SVG path strings for each pathfinding result
 const pathElements = computed(() => {

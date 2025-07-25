@@ -5,7 +5,8 @@ import ClearButton from './ClearButton.vue'
 import type { ArtifactType } from '../lib/types/artifact'
 import { Team } from '../lib/types/team'
 import { ref } from 'vue'
-import { useGridStore } from '../stores/grid'
+import { useCharacterStore } from '../stores/character'
+import { useArtifactStore } from '../stores/artifact'
 
 const props = defineProps<{
   artifacts: readonly ArtifactType[]
@@ -14,7 +15,8 @@ const props = defineProps<{
 }>()
 
 const selectedTeam = ref<Team>(Team.ALLY)
-const gridStore = useGridStore()
+const characterStore = useCharacterStore()
+const artifactStore = useArtifactStore()
 
 const handleTeamChange = (team: Team) => {
   selectedTeam.value = team
@@ -23,25 +25,25 @@ const handleTeamChange = (team: Team) => {
 const handleArtifactClick = (artifact: ArtifactType) => {
   // Check if this artifact is already placed for the selected team
   const isAlreadyPlaced =
-    (selectedTeam.value === Team.ALLY && gridStore.allyArtifact === artifact.id) ||
-    (selectedTeam.value === Team.ENEMY && gridStore.enemyArtifact === artifact.id)
+    (selectedTeam.value === Team.ALLY && artifactStore.allyArtifact === artifact.id) ||
+    (selectedTeam.value === Team.ENEMY && artifactStore.enemyArtifact === artifact.id)
 
   if (isAlreadyPlaced) {
     // Remove the artifact if it's already placed
-    gridStore.removeArtifact(selectedTeam.value)
+    artifactStore.removeArtifact(selectedTeam.value)
   } else {
     // Place artifact for the selected team
-    gridStore.placeArtifact(artifact.id, selectedTeam.value)
+    artifactStore.placeArtifact(artifact.id, selectedTeam.value)
   }
 }
 
 const handleClearAll = () => {
-  gridStore.clearAllCharacters()
-  gridStore.clearAllArtifacts()
+  characterStore.clearAllCharacters()
+  artifactStore.clearAllArtifacts()
 }
 
 const isArtifactPlaced = (artifactId: string): boolean => {
-  return gridStore.allyArtifact === artifactId || gridStore.enemyArtifact === artifactId
+  return artifactStore.allyArtifact === artifactId || artifactStore.enemyArtifact === artifactId
 }
 </script>
 

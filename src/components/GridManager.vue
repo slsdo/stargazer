@@ -10,6 +10,10 @@ import type { Hex } from '../lib/hex'
 import { Team } from '../lib/types/team'
 import { State } from '../lib/types/state'
 import { useGridStore } from '../stores/grid'
+import { useCharacterStore } from '../stores/character'
+import { useMapEditorStore } from '../stores/mapEditor'
+import { usePathfindingStore } from '../stores/pathfinding'
+import { useArtifactStore } from '../stores/artifact'
 import { computed, onMounted, inject } from 'vue'
 import type { DragDropAPI } from './DragDropProvider.vue'
 import { provideGridEvents } from '../composables/useGridEvents'
@@ -38,6 +42,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Use stores and inject drag/drop API
 const gridStore = useGridStore()
+const characterStore = useCharacterStore()
+const mapEditorStore = useMapEditorStore()
+const pathfindingStore = usePathfindingStore()
+const artifactStore = useArtifactStore()
 
 // Provide grid events to children
 const gridEvents = provideGridEvents()
@@ -61,14 +69,14 @@ const {
 } = dragDropAPI
 
 // Computed
-const hasCharacters = computed(() => gridStore.characterPlacements.size > 0)
+const hasCharacters = computed(() => characterStore.characterPlacements.size > 0)
 
 // Map editor integration - handle hex clicks for painting tiles
 // When in map editor mode, clicking a hex changes its state to the selected state
 gridEvents.on('hex:click', (hex: Hex) => {
   if (props.isMapEditorMode) {
     const hexId = hex.getId()
-    gridStore.setHexState(hexId, props.selectedMapEditorState)
+    mapEditorStore.setHexState(hexId, props.selectedMapEditorState)
   }
 })
 
@@ -174,11 +182,11 @@ const triggerHexDrop = (event: DragEvent, hex: any) => {
       const targetHexId = hex.getId()
 
       // Check if target hex is occupied - if so, swap characters
-      if (gridStore.isHexOccupied(targetHexId)) {
-        gridStore.swapCharacters(sourceHexId, targetHexId)
+      if (characterStore.isHexOccupied(targetHexId)) {
+        characterStore.swapCharacters(sourceHexId, targetHexId)
       } else {
         // Target hex is empty, use regular move
-        gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
+        characterStore.moveCharacter(sourceHexId, targetHexId, characterId)
       }
     } else {
       // This is a new character placement from the character selection
@@ -197,11 +205,11 @@ const triggerHexDrop = (event: DragEvent, hex: any) => {
       }
 
       // Check if the team has space for this character
-      if (!gridStore.canPlaceCharacter(characterId, team)) {
+      if (!characterStore.canPlaceCharacter(characterId, team)) {
         return
       }
 
-      const success = gridStore.placeCharacterOnHex(hexId, characterId, team)
+      const success = characterStore.placeCharacterOnHex(hexId, characterId, team)
       if (!success) {
         return
       }
@@ -234,7 +242,7 @@ defineExpose({
         <g class="arrows-layer" style="pointer-events: auto">
           <!-- Ally to Enemy arrows (teal) -->
           <GridArrow
-            v-for="[allyHexId, enemyInfo] in gridStore.closestEnemyMap"
+            v-for="[allyHexId, enemyInfo] in pathfindingStore.closestEnemyMap"
             :key="`arrow-ally-${allyHexId}-${enemyInfo.enemyHexId}`"
             :start-hex-id="allyHexId"
             :end-hex-id="enemyInfo.enemyHexId"
@@ -244,7 +252,7 @@ defineExpose({
           />
           <!-- Enemy to Ally arrows (red) -->
           <GridArrow
-            v-for="[enemyHexId, allyInfo] in gridStore.closestAllyMap"
+            v-for="[enemyHexId, allyInfo] in pathfindingStore.closestAllyMap"
             :key="`arrow-enemy-${enemyHexId}-${allyInfo.allyHexId}`"
             :start-hex-id="enemyHexId"
             :end-hex-id="allyInfo.allyHexId"
@@ -274,7 +282,7 @@ defineExpose({
       >
         <!-- Character placements -->
         <GridCharacters
-          :character-placements="gridStore.characterPlacements"
+          :character-placements="characterStore.characterPlacements"
           :hexes="gridStore.hexes"
           :layout="gridStore.layout"
           :character-images="characterImages"
@@ -285,7 +293,7 @@ defineExpose({
       <!-- HTML overlay system for dragging grid characters -->
       <div class="character-drag-overlay" v-if="hasCharacters">
         <div
-          v-for="[hexId, characterId] in gridStore.characterPlacements"
+          v-for="[hexId, characterId] in characterStore.characterPlacements"
           :key="hexId"
           class="character-drag-handle"
           :class="{ 'map-editor-disabled': props.isMapEditorMode }"
@@ -304,8 +312,8 @@ defineExpose({
 
       <!-- Artifact Display -->
       <GridArtifacts
-        :allyArtifact="gridStore.allyArtifact"
-        :enemyArtifact="gridStore.enemyArtifact"
+        :allyArtifact="artifactStore.allyArtifact"
+        :enemyArtifact="artifactStore.enemyArtifact"
         :artifactImages="artifactImages"
       />
     </div>

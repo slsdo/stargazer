@@ -4,6 +4,8 @@ import type { Hex } from '../lib/hex'
 import type { Layout } from '../lib/layout'
 import { useDragDrop } from '../composables/useDragDrop'
 import { useGridStore } from '../stores/grid'
+import { useCharacterStore } from '../stores/character'
+import { useMapEditorStore } from '../stores/mapEditor'
 import { State } from '../lib/types/state'
 import { getHexFillColor } from '../utils/stateFormatting'
 import { Team } from '../lib/types/team'
@@ -72,6 +74,8 @@ const {
   setDropHandled,
 } = useDragDrop()
 const gridStore = useGridStore()
+const characterStore = useCharacterStore()
+const mapEditorStore = useMapEditorStore()
 
 // Track which hex is currently being hovered (non-drag)
 const hoveredHex = ref<number | null>(null)
@@ -136,7 +140,7 @@ const handleHexMouseEnter = (hex: Hex) => {
     const now = Date.now()
 
     if (!paintedHexes.value.has(hexId) && now - lastPaintTime >= PAINT_THROTTLE_MS) {
-      const success = gridStore.setHexState(hexId, props.selectedMapEditorState)
+      const success = mapEditorStore.setHexState(hexId, props.selectedMapEditorState)
       if (success) {
         paintedHexes.value.add(hexId)
         lastPaintTime = now
@@ -213,11 +217,11 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       const targetHexId = hex.getId()
 
       // Swap if target is occupied, otherwise move
-      if (gridStore.isHexOccupied(targetHexId)) {
-        gridStore.swapCharacters(sourceHexId, targetHexId)
+      if (characterStore.isHexOccupied(targetHexId)) {
+        characterStore.swapCharacters(sourceHexId, targetHexId)
       } else {
         // Empty target - regular move
-        gridStore.moveCharacter(sourceHexId, targetHexId, characterId)
+        characterStore.moveCharacter(sourceHexId, targetHexId, characterId)
       }
     } else {
       // Character selection placement
@@ -236,11 +240,11 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       }
 
       // Validate team capacity
-      if (!gridStore.canPlaceCharacter(characterId, team)) {
+      if (!characterStore.canPlaceCharacter(characterId, team)) {
         return
       }
 
-      const success = gridStore.placeCharacterOnHex(hexId, characterId, team)
+      const success = characterStore.placeCharacterOnHex(hexId, characterId, team)
       if (!success) {
         return
       }
@@ -250,7 +254,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
 
 const getHexDropClass = (hex: Hex) => {
   const hexId = hex.getId()
-  const isOccupied = gridStore.isHexOccupied(hexId)
+  const isOccupied = characterStore.isHexOccupied(hexId)
   // Use position-based hover detection instead of SVG event-based detection
   const isDragHover = isDragging.value && hoveredHexId.value === hexId
 
@@ -277,7 +281,7 @@ const getHexDropClass = (hex: Hex) => {
         validDropZone = true
       } else {
         // Character selection: check team capacity
-        validDropZone = gridStore.canPlaceCharacter(draggedCharacter.value.id, tileTeam)
+        validDropZone = characterStore.canPlaceCharacter(draggedCharacter.value.id, tileTeam)
       }
     }
   }
@@ -292,7 +296,7 @@ const getHexDropClass = (hex: Hex) => {
 }
 
 const isElevated = (hex: Hex) => {
-  return gridStore.isHexOccupied(hex.getId())
+  return characterStore.isHexOccupied(hex.getId())
 }
 
 const regularHexes = computed(() => props.hexes.filter((hex) => !isElevated(hex)))

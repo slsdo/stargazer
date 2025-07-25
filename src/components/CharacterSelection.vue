@@ -5,7 +5,8 @@ import ClearButton from './ClearButton.vue'
 import type { CharacterType } from '../lib/types/character'
 import { Team } from '../lib/types/team'
 import { ref } from 'vue'
-import { useGridStore } from '../stores/grid'
+import { useCharacterStore } from '../stores/character'
+import { useArtifactStore } from '../stores/artifact'
 
 defineProps<{
   characters: readonly CharacterType[]
@@ -15,20 +16,21 @@ defineProps<{
 }>()
 
 const selectedTeam = ref<Team>(Team.ALLY)
-const gridStore = useGridStore()
+const characterStore = useCharacterStore()
+const artifactStore = useArtifactStore()
 
 const handleTeamChange = (team: Team) => {
   selectedTeam.value = team
 }
 
 const handleClearAll = () => {
-  gridStore.clearAllCharacters()
-  gridStore.clearAllArtifacts()
+  characterStore.clearAllCharacters()
+  artifactStore.clearAllArtifacts()
 }
 
 const isCharacterPlaced = (characterId: string): boolean => {
   // Get all tiles with characters
-  const tilesWithCharacters = gridStore.getTilesWithCharacters()
+  const tilesWithCharacters = characterStore.getTilesWithCharacters()
 
   // Check if this character is placed for the current selected team
   return tilesWithCharacters.some(
@@ -44,18 +46,18 @@ const handleCharacterClick = (character: CharacterType) => {
   }
 
   // Attempt to auto-place the character
-  gridStore.autoPlaceCharacter(character.id, selectedTeam.value)
+  characterStore.autoPlaceCharacter(character.id, selectedTeam.value)
 }
 
 const removeCharacterFromGrid = (characterId: string) => {
   // Find the hex where this character is placed for the current team
-  const tilesWithCharacters = gridStore.getTilesWithCharacters()
+  const tilesWithCharacters = characterStore.getTilesWithCharacters()
   const characterTile = tilesWithCharacters.find(
     (tile) => tile.character === characterId && tile.team === selectedTeam.value,
   )
 
   if (characterTile) {
-    gridStore.removeCharacterFromHex(characterTile.hex.getId())
+    characterStore.removeCharacterFromHex(characterTile.hex.getId())
   }
 }
 </script>
@@ -67,8 +69,8 @@ const removeCharacterFromGrid = (characterId: string) => {
       <TeamToggle
         :selectedTeam="selectedTeam"
         :showCounts="true"
-        :allyCount="gridStore.availableAlly"
-        :enemyCount="gridStore.availableEnemy"
+        :allyCount="characterStore.availableAlly"
+        :enemyCount="characterStore.availableEnemy"
         :maxCount="5"
         @team-change="handleTeamChange"
       />

@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { useGridStore } from '../stores/grid'
+import { useCharacterStore } from '../stores/character'
+import { usePathfindingStore } from '../stores/pathfinding'
+import { useArtifactStore } from '../stores/artifact'
 import { getStateName, getStateClass } from '../utils/stateFormatting'
 import { extractFileName } from '../utils/dataLoader'
 import { Team } from '../lib/types/team'
 
-// Access Pinia grid store
+// Access Pinia stores
 const gridStore = useGridStore()
+const characterStore = useCharacterStore()
+const pathfindingStore = usePathfindingStore()
+const artifactStore = useArtifactStore()
 
 // Helper function to extract image name from path
 const getImageName = (imageSrc: string): string => {
@@ -17,15 +23,15 @@ const getImageName = (imageSrc: string): string => {
   <div class="grid-stats">
     <h3>Debug Grid</h3>
     <p>
-      Total Hexes: {{ gridStore.totalHexes }}; Characters Placed: {{ gridStore.charactersPlaced }};
+      Total Hexes: {{ gridStore.hexes.length }}; Characters Placed: {{ characterStore.charactersPlaced }};
       Grid Origin: ({{ gridStore.gridOrigin.x }}, {{ gridStore.gridOrigin.y }}); Hex Size:
       {{ gridStore.layout.size.x }}×{{ gridStore.layout.size.y }}
     </p>
 
-    <div v-if="gridStore.charactersPlaced > 0">
+    <div v-if="characterStore.charactersPlaced > 0">
       <ul>
         <li
-          v-for="tile in gridStore.getTilesWithCharacters()"
+          v-for="tile in characterStore.getTilesWithCharacters()"
           :key="tile.hex.getId()"
           class="character-tile"
           :class="{
@@ -44,25 +50,25 @@ const getImageName = (imageSrc: string): string => {
               </span>
               <!-- Show closest enemy info for Ally characters -->
               <span
-                v-if="tile.team === Team.ALLY && gridStore.closestEnemyMap.has(tile.hex.getId())"
+                v-if="tile.team === Team.ALLY && pathfindingStore.closestEnemyMap.has(tile.hex.getId())"
                 class="closest-enemy"
               >
                 → Enemy at Hex
-                {{ gridStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} (distance:
-                {{ gridStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
+                {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} (distance:
+                {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
               </span>
               <!-- Show closest ally info for Enemy characters -->
               <span
-                v-if="tile.team === Team.ENEMY && gridStore.closestAllyMap.has(tile.hex.getId())"
+                v-if="tile.team === Team.ENEMY && pathfindingStore.closestAllyMap.has(tile.hex.getId())"
                 class="closest-ally"
               >
                 → Ally at Hex
-                {{ gridStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} (distance:
-                {{ gridStore.closestAllyMap.get(tile.hex.getId())?.distance }})
+                {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} (distance:
+                {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.distance }})
               </span>
             </div>
           </div>
-          <button @click="gridStore.removeCharacterFromHex(tile.hex.getId())" class="remove-btn">
+          <button @click="characterStore.removeCharacterFromHex(tile.hex.getId())" class="remove-btn">
             ×
           </button>
         </li>
@@ -75,13 +81,13 @@ const getImageName = (imageSrc: string): string => {
       <div class="artifact-info">
         <div class="artifact-team ally">
           <span class="team-label">Artifact (Ally):</span>
-          <span class="artifact-name" v-if="gridStore.allyArtifact">
-            {{ gridStore.allyArtifact }}
+          <span class="artifact-name" v-if="artifactStore.allyArtifact">
+            {{ artifactStore.allyArtifact }}
           </span>
           <span class="artifact-name" v-else>n/a</span>
           <button
-            v-if="gridStore.allyArtifact"
-            @click="gridStore.removeArtifact(Team.ALLY)"
+            v-if="artifactStore.allyArtifact"
+            @click="artifactStore.removeArtifact(Team.ALLY)"
             class="remove-artifact-btn"
           >
             ×
@@ -89,13 +95,13 @@ const getImageName = (imageSrc: string): string => {
         </div>
         <div class="artifact-team enemy">
           <span class="team-label">Artifact (Enemy):</span>
-          <span class="artifact-name" v-if="gridStore.enemyArtifact">
-            {{ gridStore.enemyArtifact }}
+          <span class="artifact-name" v-if="artifactStore.enemyArtifact">
+            {{ artifactStore.enemyArtifact }}
           </span>
           <span class="artifact-name" v-else>n/a</span>
           <button
-            v-if="gridStore.enemyArtifact"
-            @click="gridStore.removeArtifact(Team.ENEMY)"
+            v-if="artifactStore.enemyArtifact"
+            @click="artifactStore.removeArtifact(Team.ENEMY)"
             class="remove-artifact-btn"
           >
             ×
