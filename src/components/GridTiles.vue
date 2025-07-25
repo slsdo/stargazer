@@ -31,8 +31,8 @@ interface Props {
   textRotation?: number
   hexFillColor?: string
   hexStrokeColor?: string
-  isMapEditorMode?: boolean        // NEW: Enables map editor mode
-  selectedMapEditorState?: State   // NEW: State to paint hexes with
+  isMapEditorMode?: boolean // NEW: Enables map editor mode
+  selectedMapEditorState?: State // NEW: State to paint hexes with
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -79,7 +79,7 @@ const hoveredHex = ref<number | null>(null)
 // Map editor drag-to-paint state
 // Enables continuous painting while dragging mouse across hexes
 const isMapEditorDragging = ref(false)
-const paintedHexes = ref(new Set<number>())      // Tracks painted hexes to avoid duplicates
+const paintedHexes = ref(new Set<number>()) // Tracks painted hexes to avoid duplicates
 let lastPaintTime = 0
 const PAINT_THROTTLE_MS = 50 // Performance: throttle painting to every 50ms
 
@@ -129,12 +129,12 @@ const shouldShowHexId = (hex: Hex) => {
 // Mouse hover handling functions
 const handleHexMouseEnter = (hex: Hex) => {
   hoveredHex.value = hex.getId()
-  
+
   // Map editor drag-to-paint with throttling
   if (props.isMapEditorMode && isMapEditorDragging.value) {
     const hexId = hex.getId()
     const now = Date.now()
-    
+
     if (!paintedHexes.value.has(hexId) && now - lastPaintTime >= PAINT_THROTTLE_MS) {
       const success = gridStore.setHexState(hexId, props.selectedMapEditorState)
       if (success) {
@@ -156,14 +156,14 @@ const handleHexMouseLeave = (hex: Hex) => {
 const handleMapEditorMouseDown = () => {
   if (props.isMapEditorMode) {
     isMapEditorDragging.value = true
-    paintedHexes.value.clear()  // Reset painted hexes for new drag session
+    paintedHexes.value.clear() // Reset painted hexes for new drag session
   }
 }
 
 const handleMapEditorMouseUp = () => {
   if (props.isMapEditorMode) {
     isMapEditorDragging.value = false
-    paintedHexes.value.clear()  // Cleanup after drag session
+    paintedHexes.value.clear() // Cleanup after drag session
   }
 }
 
@@ -313,9 +313,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <svg 
-    :width="width" 
-    :height="height" 
+  <svg
+    :width="width"
+    :height="height"
     class="grid-tiles"
     :class="{ 'map-editor-mode': isMapEditorMode }"
     @mousedown="handleMapEditorMouseDown"

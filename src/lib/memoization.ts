@@ -181,7 +181,9 @@ export class PerformanceMonitor {
       const avg = this.getAverageTime(label)
       const min = Math.min(...times)
       const max = Math.max(...times)
-      console.log(`  ${label}: avg=${avg.toFixed(2)}ms, min=${min.toFixed(2)}ms, max=${max.toFixed(2)}ms, count=${times.length}`)
+      console.log(
+        `  ${label}: avg=${avg.toFixed(2)}ms, min=${min.toFixed(2)}ms, max=${max.toFixed(2)}ms, count=${times.length}`,
+      )
     }
   }
 

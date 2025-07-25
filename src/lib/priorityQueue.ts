@@ -107,9 +107,10 @@ export class PriorityQueue<T> {
         smallest = rightChild
       }
 
-      if (smallest === index) break
+      if (smallest === index)
+        break
 
-      // Swap with smallest child
+        // Swap with smallest child
       ;[this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]]
       index = smallest
     }

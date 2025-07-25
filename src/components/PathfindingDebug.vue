@@ -10,18 +10,20 @@ const pathfindingResults = computed(() => gridStore.debugPathfindingResults)
 
 // Generate SVG path strings for each pathfinding result
 const pathElements = computed(() => {
-  return pathfindingResults.value.map(result => {
-    const pathPoints = result.path.map(hex => {
-      const position = gridStore.layout.hexToPixel(hex)
-      return `${position.x},${position.y}`
-    }).join(' ')
+  return pathfindingResults.value.map((result) => {
+    const pathPoints = result.path
+      .map((hex) => {
+        const position = gridStore.layout.hexToPixel(hex)
+        return `${position.x},${position.y}`
+      })
+      .join(' ')
 
     return {
       id: `path-${result.fromHexId}-${result.toHexId}`,
       points: pathPoints,
       team: result.team,
       fromHexId: result.fromHexId,
-      toHexId: result.toHexId
+      toHexId: result.toHexId,
     }
   })
 })
@@ -32,10 +34,7 @@ const pathElements = computed(() => {
     <template v-for="pathElement in pathElements" :key="pathElement.id">
       <polyline
         :points="pathElement.points"
-        :class="[
-          'debug-path',
-          pathElement.team === Team.ALLY ? 'ally-path' : 'enemy-path'
-        ]"
+        :class="['debug-path', pathElement.team === Team.ALLY ? 'ally-path' : 'enemy-path']"
         fill="none"
         stroke-width="3"
         stroke-dasharray="8,4"
@@ -53,10 +52,10 @@ const pathElements = computed(() => {
 }
 
 .ally-path {
-  stroke: #4CAF50;
+  stroke: #4caf50;
 }
 
 .enemy-path {
-  stroke: #F44336;
+  stroke: #f44336;
 }
 </style>

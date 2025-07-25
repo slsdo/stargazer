@@ -29,7 +29,6 @@ export const useGridStore = defineStore('grid', () => {
   // Artifact tracking
   const allyArtifact = ref<string | null>(null)
   const enemyArtifact = ref<string | null>(null)
-  
 
   // Data state
   const characters = ref<CharacterType[]>([])
@@ -79,18 +78,19 @@ export const useGridStore = defineStore('grid', () => {
 
       console.log('Restoring grid state from URL:', urlState)
 
-      // Switch to the specified map
-      if (urlState.map !== currentMap.value) {
-        const success = switchMap(urlState.map)
-        if (!success) {
-          console.warn(`Failed to switch to map: ${urlState.map}`)
-          return
-        }
-      }
-
-      // Clear existing placements
+      // Clear existing state first
       clearAllCharacters()
       clearAllArtifacts()
+
+      // Restore all tile states from the URL
+      urlState.tiles.forEach(({ hexId, state }) => {
+        try {
+          const hex = grid.value.getHexById(hexId)
+          grid.value.setState(hex, state)
+        } catch (error) {
+          console.warn(`Failed to restore tile state for hex ${hexId}:`, error)
+        }
+      })
 
       // Restore character placements
       urlState.characters.forEach(({ hexId, characterId, team }) => {
@@ -134,14 +134,14 @@ export const useGridStore = defineStore('grid', () => {
   const characterPlacements = computed(() => characterState.value.placements)
   const availableAlly = computed(() => characterState.value.availableAlly)
   const availableEnemy = computed(() => characterState.value.availableEnemy)
-  
+
   // Lazy evaluation for expensive computations - only compute when accessed
   // This prevents slowdowns during character placement/movement operations
   const closestEnemyMap = computed(() => {
     characterUpdateTrigger.value // Ensure reactivity
     return grid.value.getClosestEnemyMap(characterRanges)
   })
-  
+
   const closestAllyMap = computed(() => {
     characterUpdateTrigger.value // Ensure reactivity
     return grid.value.getClosestAllyMap(characterRanges)
@@ -221,25 +221,28 @@ export const useGridStore = defineStore('grid', () => {
     // Get paths from allies to closest enemies
     for (const allyTile of allyTiles) {
       const range = allyTile.character ? (characterRanges.get(allyTile.character) ?? 1) : 1
-      const closestEnemy = findClosestTarget(allyTile, enemyTiles, range, (tile) =>
-        tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE,
+      const closestEnemy = findClosestTarget(
+        allyTile,
+        enemyTiles,
+        range,
+        (tile) => tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE,
       )
 
       if (closestEnemy) {
-        const targetTile = enemyTiles.find(t => t.hex.getId() === closestEnemy.hexId)
+        const targetTile = enemyTiles.find((t) => t.hex.getId() === closestEnemy.hexId)
         if (targetTile) {
           const path = Pathfinding.findPath(
             allyTile.hex,
             targetTile.hex,
             getTileHelper,
-            (tile) => tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
+            (tile) => tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE,
           )
           if (path) {
             results.push({
               fromHexId: allyTile.hex.getId(),
               toHexId: closestEnemy.hexId,
               path,
-              team: Team.ALLY
+              team: Team.ALLY,
             })
           }
         }
@@ -249,25 +252,28 @@ export const useGridStore = defineStore('grid', () => {
     // Get paths from enemies to closest allies
     for (const enemyTile of enemyTiles) {
       const range = enemyTile.character ? (characterRanges.get(enemyTile.character) ?? 1) : 1
-      const closestAlly = findClosestTarget(enemyTile, allyTiles, range, (tile) =>
-        tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE,
+      const closestAlly = findClosestTarget(
+        enemyTile,
+        allyTiles,
+        range,
+        (tile) => tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE,
       )
 
       if (closestAlly) {
-        const targetTile = allyTiles.find(t => t.hex.getId() === closestAlly.hexId)
+        const targetTile = allyTiles.find((t) => t.hex.getId() === closestAlly.hexId)
         if (targetTile) {
           const path = Pathfinding.findPath(
             enemyTile.hex,
             targetTile.hex,
             getTileHelper,
-            (tile) => tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
+            (tile) => tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE,
           )
           if (path) {
             results.push({
               fromHexId: enemyTile.hex.getId(),
               toHexId: closestAlly.hexId,
               path,
-              team: Team.ENEMY
+              team: Team.ENEMY,
             })
           }
         }
@@ -427,7 +433,7 @@ export const useGridStore = defineStore('grid', () => {
       grid.value.removeCharacter(fromHexId, true) // Skip cache invalidation
 
       // For cross-team moves, we should always be able to place the character
-      // since we're switching teams (capacity shouldn't be an issue)  
+      // since we're switching teams (capacity shouldn't be an issue)
       const success = grid.value.placeCharacter(toHexId, characterId, targetTeam) // Final operation - invalidate caches
 
       if (!success) {
@@ -572,7 +578,7 @@ export const useGridStore = defineStore('grid', () => {
   }
 
   // Map Editor methods - NEW functionality for editing hex states
-  
+
   /**
    * Sets a hex to the specified state (used by map editor)
    * Removes any existing character and resets the tile completely
@@ -582,7 +588,7 @@ export const useGridStore = defineStore('grid', () => {
     if (!hex) return false
 
     const tile = grid.value.getTile(hexId)
-    
+
     // Remove character if hex is occupied
     if (tile.state === State.OCCUPIED_ALLY || tile.state === State.OCCUPIED_ENEMY) {
       removeCharacterFromHex(hexId)
@@ -601,7 +607,7 @@ export const useGridStore = defineStore('grid', () => {
   const clearAllHexStates = () => {
     // Clear all characters first
     clearAllCharacters()
-    
+
     // Reset all hexes to default state
     for (const hex of hexes.value) {
       grid.value.setState(hex, State.DEFAULT)
@@ -612,7 +618,7 @@ export const useGridStore = defineStore('grid', () => {
   const resetToCurrentMap = () => {
     // Clear all characters first
     clearAllCharacters()
-    
+
     // Get the current map configuration
     const mapConfig = getMapByKey(currentMap.value)
     if (!mapConfig) return

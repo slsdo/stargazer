@@ -40,11 +40,17 @@ export class Grid {
     [Team.ENEMY, new Set()],
   ])
   private readonly MAX_TEAM_SIZE = 5
-  
+
   // Caches for expensive calculations
-  private closestEnemyCache = new MemoCache<string, Map<number, { enemyHexId: number; distance: number }>>(100)
-  private closestAllyCache = new MemoCache<string, Map<number, { allyHexId: number; distance: number }>>(100)
-  
+  private closestEnemyCache = new MemoCache<
+    string,
+    Map<number, { enemyHexId: number; distance: number }>
+  >(100)
+  private closestAllyCache = new MemoCache<
+    string,
+    Map<number, { allyHexId: number; distance: number }>
+  >(100)
+
   // Caching configuration - set to false for debugging performance issues
   // When false, all pathfinding and grid calculations run without memoization
   private cachingEnabled = true
@@ -136,10 +142,10 @@ export class Grid {
   }
 
   placeCharacter(
-    hexOrId: Hex | number, 
-    characterId: string, 
+    hexOrId: Hex | number,
+    characterId: string,
     team: Team = Team.ALLY,
-    skipCacheInvalidation: boolean = false
+    skipCacheInvalidation: boolean = false,
   ): boolean {
     if (!this.canPlaceCharacterOnTile(hexOrId, team)) return false
     if (!this.canPlaceCharacter(characterId, team)) return false
@@ -151,7 +157,7 @@ export class Grid {
     }
 
     this.setCharacterOnTile(tile, characterId, team)
-    
+
     // Only invalidate caches if not skipping invalidation
     if (!skipCacheInvalidation) {
       this.invalidateCaches()
@@ -181,7 +187,7 @@ export class Grid {
 
       this.removeCharacterFromTeam(characterId, team)
       this.clearCharacterFromTile(tile, hexOrId)
-      
+
       // Only invalidate caches if not skipping invalidation
       if (!skipCacheInvalidation) {
         this.invalidateCaches()
@@ -215,7 +221,7 @@ export class Grid {
     }
     this.teamCharacters.get(Team.ALLY)?.clear()
     this.teamCharacters.get(Team.ENEMY)?.clear()
-    
+
     // Invalidate caches when all characters are cleared
     this.invalidateCaches()
   }
@@ -249,7 +255,7 @@ export class Grid {
   /* Find the closest target from a source tile among a list of target tiles
    * Uses A* pathfinding to account for obstacles and character range
    * Tie-breaking: if multiple targets at same effective distance, choose the one with lowest hex ID */
-  
+
   private findClosestTarget(
     sourceTile: GridTile,
     targetTiles: GridTile[],
@@ -310,13 +316,13 @@ export class Grid {
   /* Calculate closest enemy for each ally character
    * Returns a map of ally hex IDs to their closest enemy info
    * Uses pathfinding to account for obstacles and character range */
-  
+
   getClosestEnemyMap(
     characterRanges: Map<string, number> = new Map(),
   ): Map<number, { enemyHexId: number; distance: number }> {
     // Generate cache key based on current grid state
     const tilesWithCharacters = this.getTilesWithCharacters()
-    
+
     // Check cache first if caching is enabled
     // Cache key includes character positions and ranges for accurate memoization
     if (this.cachingEnabled) {
@@ -359,13 +365,13 @@ export class Grid {
   /* Calculate closest ally character for each enemy
    * Returns a map of enemy hex IDs to their closest ally character info
    * Uses pathfinding to account for obstacles and character range */
-  
+
   getClosestAllyMap(
     characterRanges: Map<string, number> = new Map(),
   ): Map<number, { allyHexId: number; distance: number }> {
     // Generate cache key based on current grid state
     const tilesWithCharacters = this.getTilesWithCharacters()
-    
+
     // Check cache first if caching is enabled
     if (this.cachingEnabled) {
       const cacheKey = generateGridCacheKey(tilesWithCharacters, characterRanges)
@@ -432,7 +438,4 @@ export class Grid {
     // Also clear pathfinding caches
     Pathfinding.clearCache()
   }
-
-
-
 }

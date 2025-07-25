@@ -1,12 +1,7 @@
-/**
- * Home.vue - Main application layout
- * 
- * Recent Changes:
- * - Added MapEditor component integration (NEW)
- * - Added map editor state management (selectedMapEditorState)
- * - Added handleMapEditorStateSelected() and handleClearMap() handlers
- * - Passes isMapEditorMode and selectedMapEditorState to GridManager
- */
+/** * Home.vue - Main application layout * * Recent Changes: * - Added MapEditor component
+integration (NEW) * - Added map editor state management (selectedMapEditorState) * - Added
+handleMapEditorStateSelected() and handleClearMap() handlers * - Passes isMapEditorMode and
+selectedMapEditorState to GridManager */
 <script setup lang="ts">
 import CharacterSelection from '../components/CharacterSelection.vue'
 import ArtifactSelection from '../components/ArtifactSelection.vue'
@@ -14,13 +9,13 @@ import GridManager from '../components/GridManager.vue'
 import TabNavigation from '../components/TabNavigation.vue'
 import GridControls from '../components/GridControls.vue'
 import DragDropProvider from '../components/DragDropProvider.vue'
-import MapEditor from '../components/MapEditor.vue'  // NEW: Map editor component
+import MapEditor from '../components/MapEditor.vue' // NEW: Map editor component
 import { Team } from '../lib/types/team'
 import { useGridStore } from '../stores/grid'
 import { getMapNames } from '../lib/maps'
 import { generateShareableUrl } from '../utils/urlStateManager'
 import { ref } from 'vue'
-import { State } from '../lib/types/state'  // NEW: For map editor state types
+import { State } from '../lib/types/state' // NEW: For map editor state types
 
 // Use Pinia grid store
 const gridStore = useGridStore()
@@ -58,10 +53,9 @@ gridStore.initializeData()
 
 const handleCopyLink = async () => {
   try {
-    // Generate shareable URL with current grid state
+    // Generate shareable URL with current grid state exactly as it appears
     const shareableUrl = generateShareableUrl(
-      gridStore.currentMap,
-      gridStore.getTilesWithCharacters(),
+      gridStore.getAllTiles(),
       gridStore.allyArtifact,
       gridStore.enemyArtifact,
     )
@@ -223,10 +217,7 @@ const handleClearMap = () => {
           </div>
           <!-- Map Editor Tab -->
           <div v-show="activeTab === 'mapEditor'" class="tab-panel">
-            <MapEditor 
-              @state-selected="handleMapEditorStateSelected" 
-              @clear-map="handleClearMap"
-            />
+            <MapEditor @state-selected="handleMapEditorStateSelected" @clear-map="handleClearMap" />
           </div>
         </TabNavigation>
       </div>

@@ -38,12 +38,11 @@ export function decodeGridStateFromUrl(encodedState: string): GridState | null {
 }
 
 export function generateShareableUrl(
-  currentMap: string,
-  tilesWithCharacters: GridTile[],
+  allTiles: GridTile[],
   allyArtifact: string | null,
   enemyArtifact: string | null,
 ): string {
-  const gridState = serializeGridState(currentMap, tilesWithCharacters, allyArtifact, enemyArtifact)
+  const gridState = serializeGridState(allTiles, allyArtifact, enemyArtifact)
 
   const encodedState = encodeGridStateToUrl(gridState)
 
@@ -65,18 +64,12 @@ export function getGridStateFromCurrentUrl(): GridState | null {
 
 /* Uses replaceState to avoid creating new history entries */
 export function updateUrlWithGridState(
-  currentMap: string,
-  tilesWithCharacters: GridTile[],
+  allTiles: GridTile[],
   allyArtifact: string | null,
   enemyArtifact: string | null,
 ): void {
   try {
-    const shareableUrl = generateShareableUrl(
-      currentMap,
-      tilesWithCharacters,
-      allyArtifact,
-      enemyArtifact,
-    )
+    const shareableUrl = generateShareableUrl(allTiles, allyArtifact, enemyArtifact)
 
     // Update URL without triggering navigation
     window.history.replaceState({}, '', shareableUrl)
