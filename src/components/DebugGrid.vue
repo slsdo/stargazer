@@ -29,6 +29,13 @@ const getCharacterName = (characterId: number): string => {
   return gameDataStore.getCharacterNameById(characterId) || 'Unknown'
 }
 
+// Helper function to get artifact name by ID
+const getArtifactName = (artifactId: number | null): string => {
+  if (artifactId === null) return 'n/a'
+  const artifact = gameDataStore.getArtifactById(artifactId)
+  return artifact?.name || 'Unknown'
+}
+
 // Toggle visibility of debug lines for a character
 const toggleCharacterDebugLines = (hexId: number) => {
   if (hiddenCharacters.value.has(hexId)) {
@@ -164,12 +171,11 @@ defineExpose({
       <div class="artifact-info">
         <div class="artifact-team ally">
           <span class="team-label">Artifact (Ally):</span>
-          <span class="artifact-name" v-if="artifactStore.allyArtifact">
-            {{ artifactStore.allyArtifact }}
+          <span class="artifact-name">
+            {{ getArtifactName(artifactStore.allyArtifactId) }}
           </span>
-          <span class="artifact-name" v-else>n/a</span>
           <button
-            v-if="artifactStore.allyArtifact"
+            v-if="artifactStore.allyArtifactId !== null"
             @click="artifactStore.removeArtifact(Team.ALLY)"
             class="remove-artifact-btn"
           >
@@ -178,12 +184,11 @@ defineExpose({
         </div>
         <div class="artifact-team enemy">
           <span class="team-label">Artifact (Enemy):</span>
-          <span class="artifact-name" v-if="artifactStore.enemyArtifact">
-            {{ artifactStore.enemyArtifact }}
+          <span class="artifact-name">
+            {{ getArtifactName(artifactStore.enemyArtifactId) }}
           </span>
-          <span class="artifact-name" v-else>n/a</span>
           <button
-            v-if="artifactStore.enemyArtifact"
+            v-if="artifactStore.enemyArtifactId !== null"
             @click="artifactStore.removeArtifact(Team.ENEMY)"
             class="remove-artifact-btn"
           >

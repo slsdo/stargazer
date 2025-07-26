@@ -3,46 +3,46 @@ import { ref, readonly } from 'vue'
 import { Team } from '../lib/types/team'
 
 export const useArtifactStore = defineStore('artifact', () => {
-  // Artifact tracking
-  const allyArtifact = ref<string | null>(null)
-  const enemyArtifact = ref<string | null>(null)
+  // Artifact tracking using numeric IDs
+  const allyArtifactId = ref<number | null>(null)
+  const enemyArtifactId = ref<number | null>(null)
 
   // Actions
-  const placeArtifact = (artifactId: string, team: Team): boolean => {
+  const placeArtifact = (artifactId: number, team: Team): boolean => {
     if (team === Team.ALLY) {
-      allyArtifact.value = artifactId
+      allyArtifactId.value = artifactId
     } else {
-      enemyArtifact.value = artifactId
+      enemyArtifactId.value = artifactId
     }
     return true
   }
 
   const removeArtifact = (team: Team) => {
     if (team === Team.ALLY) {
-      allyArtifact.value = null
+      allyArtifactId.value = null
     } else {
-      enemyArtifact.value = null
+      enemyArtifactId.value = null
     }
   }
 
   const clearAllArtifacts = () => {
-    allyArtifact.value = null
-    enemyArtifact.value = null
+    allyArtifactId.value = null
+    enemyArtifactId.value = null
   }
 
-  const getArtifact = (team: Team): string | null => {
-    return team === Team.ALLY ? allyArtifact.value : enemyArtifact.value
+  const getArtifactId = (team: Team): number | null => {
+    return team === Team.ALLY ? allyArtifactId.value : enemyArtifactId.value
   }
 
   return {
     // State (readonly)
-    allyArtifact: readonly(allyArtifact),
-    enemyArtifact: readonly(enemyArtifact),
+    allyArtifactId: readonly(allyArtifactId),
+    enemyArtifactId: readonly(enemyArtifactId),
 
     // Actions
     placeArtifact,
     removeArtifact,
     clearAllArtifacts,
-    getArtifact,
+    getArtifactId,
   }
 })

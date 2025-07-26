@@ -15,15 +15,15 @@ export interface GridState {
     team: Team
   }>
   artifacts: {
-    ally: string | null
-    enemy: string | null
+    ally: number | null
+    enemy: number | null
   }
 }
 
 export function serializeGridState(
   allTiles: GridTile[],
-  allyArtifact: string | null,
-  enemyArtifact: string | null,
+  allyArtifact: number | null,
+  enemyArtifact: number | null,
 ): GridState {
   // Serialize ALL tiles as they currently appear
   const tiles = allTiles.map((tile) => ({
@@ -69,7 +69,7 @@ export function validateGridState(state: any): state is GridState {
     ) &&
     typeof state.artifacts === 'object' &&
     state.artifacts !== null &&
-    (state.artifacts.ally === null || typeof state.artifacts.ally === 'string') &&
-    (state.artifacts.enemy === null || typeof state.artifacts.enemy === 'string')
+    (state.artifacts.ally === null || typeof state.artifacts.ally === 'number') &&
+    (state.artifacts.enemy === null || typeof state.artifacts.enemy === 'number')
   )
 }

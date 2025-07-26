@@ -55,6 +55,12 @@ export const useGameDataStore = defineStore('gameData', () => {
     return character?.name
   }
 
+  // Helper to get artifact by ID
+  const getArtifactById = (artifactId: number): ArtifactType | undefined => {
+    return artifacts.value.find(artifact => artifact.id === artifactId)
+  }
+
+
   return {
     // State (readonly)
     characters: readonly(characters),
@@ -69,6 +75,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     getCharacterRange,
     getCharacterById,
     getCharacterNameById,
+    getArtifactById,
 
     // Expose for other stores
     characterRanges: readonly(characterRanges),

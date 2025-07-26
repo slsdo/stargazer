@@ -324,8 +324,8 @@ defineExpose({
 
       <!-- Artifact Display -->
       <GridArtifacts
-        :allyArtifact="artifactStore.allyArtifact"
-        :enemyArtifact="artifactStore.enemyArtifact"
+        :allyArtifactId="artifactStore.allyArtifactId"
+        :enemyArtifactId="artifactStore.enemyArtifactId"
         :artifactImages="artifactImages"
       />
     </div>

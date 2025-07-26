@@ -39,8 +39,8 @@ export function decodeGridStateFromUrl(encodedState: string): GridState | null {
 
 export function generateShareableUrl(
   allTiles: GridTile[],
-  allyArtifact: string | null,
-  enemyArtifact: string | null,
+  allyArtifact: number | null,
+  enemyArtifact: number | null,
 ): string {
   const gridState = serializeGridState(allTiles, allyArtifact, enemyArtifact)
 
@@ -65,8 +65,8 @@ export function getGridStateFromCurrentUrl(): GridState | null {
 /* Uses replaceState to avoid creating new history entries */
 export function updateUrlWithGridState(
   allTiles: GridTile[],
-  allyArtifact: string | null,
-  enemyArtifact: string | null,
+  allyArtifact: number | null,
+  enemyArtifact: number | null,
 ): void {
   try {
     const shareableUrl = generateShareableUrl(allTiles, allyArtifact, enemyArtifact)

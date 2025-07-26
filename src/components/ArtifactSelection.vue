@@ -17,20 +17,20 @@ const { selectedTeam, artifactStore } = useSelectionState()
 const handleArtifactClick = (artifact: ArtifactType) => {
   // Check if this artifact is already placed for the selected team
   const isAlreadyPlaced =
-    (selectedTeam.value === Team.ALLY && artifactStore.allyArtifact === artifact.name) ||
-    (selectedTeam.value === Team.ENEMY && artifactStore.enemyArtifact === artifact.name)
+    (selectedTeam.value === Team.ALLY && artifactStore.allyArtifactId === artifact.id) ||
+    (selectedTeam.value === Team.ENEMY && artifactStore.enemyArtifactId === artifact.id)
 
   if (isAlreadyPlaced) {
     // Remove the artifact if it's already placed
     artifactStore.removeArtifact(selectedTeam.value)
   } else {
     // Place artifact for the selected team
-    artifactStore.placeArtifact(artifact.name, selectedTeam.value)
+    artifactStore.placeArtifact(artifact.id, selectedTeam.value)
   }
 }
 
-const isArtifactPlaced = (artifactId: string): boolean => {
-  return artifactStore.allyArtifact === artifactId || artifactStore.enemyArtifact === artifactId
+const isArtifactPlaced = (artifactId: number): boolean => {
+  return artifactStore.allyArtifactId === artifactId || artifactStore.enemyArtifactId === artifactId
 }
 
 const sortedArtifacts = computed(() => {
@@ -46,7 +46,7 @@ const sortedArtifacts = computed(() => {
         <Artifact
           :artifact="artifact"
           :artifactImage="artifactImages[artifact.name]"
-          :isPlaced="isArtifactPlaced(artifact.name)"
+          :isPlaced="isArtifactPlaced(artifact.id)"
           @artifact-click="handleArtifactClick"
         />
       </div>

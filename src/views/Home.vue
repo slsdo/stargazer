@@ -70,8 +70,8 @@ const handleCopyLink = async () => {
     // Generate shareable URL with current grid state exactly as it appears
     const shareableUrl = generateShareableUrl(
       gridStore.getAllTiles,
-      artifactStore.allyArtifact,
-      artifactStore.enemyArtifact,
+      artifactStore.allyArtifactId,
+      artifactStore.enemyArtifactId,
     )
 
     // Copy URL to clipboard

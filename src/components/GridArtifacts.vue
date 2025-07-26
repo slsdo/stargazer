@@ -1,14 +1,30 @@
 <script setup lang="ts">
 import { Team } from '../lib/types/team'
 import { useGridEvents } from '../composables/useGridEvents'
+import { useGameDataStore } from '../stores/gameData'
+import { computed } from 'vue'
 
 const props = defineProps<{
-  allyArtifact?: string | null
-  enemyArtifact?: string | null
+  allyArtifactId?: number | null
+  enemyArtifactId?: number | null
   artifactImages: Record<string, string>
 }>()
 
 const gridEvents = useGridEvents()
+const gameDataStore = useGameDataStore()
+
+// Convert artifact IDs to names for display
+const allyArtifactName = computed(() => {
+  if (props.allyArtifactId === null || props.allyArtifactId === undefined) return null
+  const artifact = gameDataStore.getArtifactById(props.allyArtifactId)
+  return artifact?.name || null
+})
+
+const enemyArtifactName = computed(() => {
+  if (props.enemyArtifactId === null || props.enemyArtifactId === undefined) return null
+  const artifact = gameDataStore.getArtifactById(props.enemyArtifactId)
+  return artifact?.name || null
+})
 
 const handleArtifactClick = (team: Team) => {
   gridEvents.emit('artifact:remove', team)
@@ -19,20 +35,20 @@ const handleArtifactClick = (team: Team) => {
   <div class="grid-artifacts">
     <!-- Ally Artifact (bottom left) -->
     <div
-      v-if="allyArtifact"
+      v-if="allyArtifactName"
       class="grid-artifact ally-artifact"
       @click="handleArtifactClick(Team.ALLY)"
     >
-      <img :src="artifactImages[allyArtifact]" :alt="allyArtifact" class="artifact-image" />
+      <img :src="artifactImages[allyArtifactName]" :alt="allyArtifactName" class="artifact-image" />
     </div>
 
     <!-- Enemy Artifact (top right) -->
     <div
-      v-if="enemyArtifact"
+      v-if="enemyArtifactName"
       class="grid-artifact enemy-artifact"
       @click="handleArtifactClick(Team.ENEMY)"
     >
-      <img :src="artifactImages[enemyArtifact]" :alt="enemyArtifact" class="artifact-image" />
+      <img :src="artifactImages[enemyArtifactName]" :alt="enemyArtifactName" class="artifact-image" />
     </div>
   </div>
 </template>
