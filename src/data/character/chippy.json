@@ -1,7 +1,6 @@
 {
   "id": 1,
   "name": "chippy",
-  "type": "character",
   "level": "s",
   "faction": "wilder",
   "class": "rogue",

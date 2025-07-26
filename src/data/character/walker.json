@@ -1,7 +1,6 @@
 {
   "id": 45,
   "name": "walker",
-  "type": "character",
   "level": "a",
   "faction": "lightbearer",
   "class": "rogue",
