@@ -14,6 +14,7 @@ import { useCharacterStore } from '../stores/character'
 import { useMapEditorStore } from '../stores/mapEditor'
 import { usePathfindingStore } from '../stores/pathfinding'
 import { useArtifactStore } from '../stores/artifact'
+import { useGameDataStore } from '../stores/gameData'
 import { computed, onMounted, inject, ref } from 'vue'
 import type { DragDropAPI } from './DragDropProvider.vue'
 import { provideGridEvents } from '../composables/useGridEvents'
@@ -46,6 +47,7 @@ const characterStore = useCharacterStore()
 const mapEditorStore = useMapEditorStore()
 const pathfindingStore = usePathfindingStore()
 const artifactStore = useArtifactStore()
+const gameDataStore = useGameDataStore()
 
 // Provide grid events to children
 const gridEvents = provideGridEvents()
@@ -147,7 +149,8 @@ const handleCharacterDragStart = (event: DragEvent, hexId: number, characterId: 
 
   // Add sourceHexId to differentiate from character selection drags
   const characterWithSource = { ...character, sourceHexId: hexId }
-  startDrag(event, characterWithSource, character?.id || 0, props.characterImages[character?.name || ''])
+  const characterName = character?.id ? gameDataStore.getCharacterNameById(character.id) : ''
+  startDrag(event, characterWithSource, character?.id || 0, props.characterImages[characterName || ''])
 }
 
 const handleCharacterDragEnd = (event: DragEvent) => {

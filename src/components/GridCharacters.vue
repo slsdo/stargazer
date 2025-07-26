@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useGridStore } from '../stores/grid'
+import { useGameDataStore } from '../stores/gameData'
 import type { Hex } from '../lib/hex'
 import type { Layout } from '../lib/layout'
 import type { CharacterType } from '../lib/types/character'
@@ -37,6 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Access Pinia grid store
 const gridStore = useGridStore()
+const gameDataStore = useGameDataStore()
 
 const emit = defineEmits<{
   characterClick: [hexId: number, characterId: number]
@@ -62,8 +64,7 @@ const getBackgroundColor = (characterId: number): string => {
 }
 
 const getCharacterName = (characterId: number): string => {
-  const character = props.characters.find((c) => c.id === characterId)
-  return character?.name || 'Unknown'
+  return gameDataStore.getCharacterNameById(characterId) || 'Unknown'
 }
 </script>
 
