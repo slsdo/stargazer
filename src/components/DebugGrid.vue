@@ -148,18 +148,6 @@ defineExpose({
         </li>
       </ul>
       
-      <!-- Debug Lines Controls -->
-      <div class="debug-controls" v-if="characterStore.charactersPlaced > 0">
-        <h4>Debug Lines</h4>
-        <div class="debug-actions">
-          <button @click="toggleAllDebugLines(true)" class="debug-action-btn">
-            Show All
-          </button>
-          <button @click="toggleAllDebugLines(false)" class="debug-action-btn">
-            Hide All
-          </button>
-        </div>
-      </div>
     </div>
 
     <!-- Artifact Selection Info -->
@@ -516,38 +504,6 @@ defineExpose({
   background: #c82333;
 }
 
-/* Debug lines controls */
-.debug-controls {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 2px solid #ddd;
-}
-
-.debug-controls h4 {
-  margin: 0 0 0.75rem 0;
-  color: #333;
-  font-size: 1rem;
-}
-
-.debug-actions {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.debug-action-btn {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-small);
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.debug-action-btn:hover {
-  background: var(--color-primary-hover);
-}
 
 .debug-toggle-inline {
   display: flex;

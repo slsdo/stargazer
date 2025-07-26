@@ -396,19 +396,71 @@ export function defaultCanTraverse(tile: GridTile): boolean {
 }
 
 /*
- * Check if two hexes are in the same row based on the grid preset.
+ * Check if two hexes are in the same diagonal row based on hex ID patterns.
+ * Pattern: [1,2], [3,4,5], [6,7], [8,9,10], [11,12,13,14], [15,16,17], [18,19,20,21], [22,23,24], [25,26,27,28], [29,30,31], [32,33,34,35], [36,37,38], [39,40], [41,42,43], [44,45], ...
+ * 
+ * Pattern analysis:
+ * - Rows alternate between having 2-3 elements and 3-4 elements
+ * - Every 4th row starting from row 5 has 4 elements, others have 2-3
+ * - Row sizes: 2, 3, 2, 3, 4, 3, 4, 3, 4, 3, 4, 3, 2, 3, 2, ...
  */
-export function areHexesInSameRow(
-  hexId1: number,
-  hexId2: number,
-  gridPreset: GridPreset = FULL_GRID,
-): boolean {
-  for (const row of gridPreset.hex) {
-    if (row.includes(hexId1) && row.includes(hexId2)) {
-      return true
+export function areHexesInSameDiagonalRow(hexId1: number, hexId2: number): boolean {
+  const getRowNumber = (hexId: number): number => {
+    // Define the exact row endings based on the pattern
+    const rowEndings = [
+      2,   // Row 1: [1, 2]
+      5,   // Row 2: [3, 4, 5] 
+      7,   // Row 3: [6, 7]
+      10,  // Row 4: [8, 9, 10]
+      14,  // Row 5: [11, 12, 13, 14]
+      17,  // Row 6: [15, 16, 17]
+      21,  // Row 7: [18, 19, 20, 21]
+      24,  // Row 8: [22, 23, 24]
+      28,  // Row 9: [25, 26, 27, 28]
+      31,  // Row 10: [29, 30, 31]
+      35,  // Row 11: [32, 33, 34, 35]
+      38,  // Row 12: [36, 37, 38]
+      40,  // Row 13: [39, 40]
+      43,  // Row 14: [41, 42, 43]
+      45,  // Row 15: [44, 45]
+    ]
+    
+    // Find which row this hexId belongs to
+    for (let i = 0; i < rowEndings.length; i++) {
+      if (hexId <= rowEndings[i]) {
+        return i + 1
+      }
     }
+    
+    // For hex IDs beyond our defined pattern, use a calculated approach
+    // This is a fallback - the pattern may need extension for larger grids
+    let currentEnd = 45
+    let rowNum = 16
+    let isLongRow = false // Tracks if we're in a 4-element row cycle
+    
+    while (hexId > currentEnd) {
+      // Determine row size based on pattern
+      let rowSize
+      if (rowNum % 4 === 1 && rowNum > 4) { // Every 4th row starting from 5 has 4 elements
+        rowSize = 4
+      } else if (rowNum % 2 === 0) { // Even rows tend to have 3 elements
+        rowSize = 3
+      } else { // Odd rows tend to have 2 elements
+        rowSize = 2
+      }
+      
+      currentEnd += rowSize
+      rowNum++
+      
+      if (hexId <= currentEnd) {
+        return rowNum
+      }
+    }
+    
+    return rowNum
   }
-  return false
+  
+  return getRowNumber(hexId1) === getRowNumber(hexId2)
 }
 
 /*
@@ -431,8 +483,8 @@ export function isVerticallyAligned(sourceHex: Hex, targetHex: Hex): boolean {
  *
  * Tie-breaking Rules (when multiple targets have same movement distance):
  * 1. Vertical alignment (same q coordinate) - preferred for straight-line movement
- * 2. Same row in grid preset - maintains spatial grouping
- * 3. Lower hex ID - consistent deterministic fallback
+ * 2. Same diagonal row position - prefer lower hex ID for consistency
+ * 3. Absolute closest distance (as if range = 1) - spatial proximity fallback
  */
 export function findClosestTarget(
   sourceTile: GridTile,
@@ -484,14 +536,16 @@ export function findClosestTarget(
         bestTarget = currentTarget
       } else if (!currentIsVertical && bestIsVertical) {
         // Keep current best (already vertical)
-      } else if (areHexesInSameRow(currentTarget.hex.getId(), bestTarget.hex.getId(), gridPreset)) {
-        // Same row: prefer lower hex ID
+      } else if (areHexesInSameDiagonalRow(currentTarget.hex.getId(), bestTarget.hex.getId())) {
+        // Same diagonal row: prefer lower hex ID
         if (currentTarget.hex.getId() < bestTarget.hex.getId()) {
           bestTarget = currentTarget
         }
       } else if (!currentIsVertical && !bestIsVertical) {
-        // Neither vertical, use hex ID comparison as final fallback
-        if (currentTarget.hex.getId() < bestTarget.hex.getId()) {
+        // Neither vertical, use absolute distance as final fallback
+        const currentDirectDistance = sourceTile.hex.distance(currentTarget.hex)
+        const bestDirectDistance = sourceTile.hex.distance(bestTarget.hex)
+        if (currentDirectDistance < bestDirectDistance) {
           bestTarget = currentTarget
         }
       }
@@ -542,7 +596,7 @@ export function findClosestTarget(
       const currentIsVertical = isVerticallyAligned(sourceTile.hex, targetTile.hex)
       const closestTile = targetTiles.find((t) => t.hex.getId() === closest!.hexId)!
       const closestIsVertical = isVerticallyAligned(sourceTile.hex, closestTile.hex)
-
+      
       if (currentIsVertical && !closestIsVertical) {
         // Prefer vertical alignment
         closest = {
@@ -551,8 +605,8 @@ export function findClosestTarget(
         }
       } else if (!currentIsVertical && closestIsVertical) {
         // Keep current (already vertical)
-      } else if (areHexesInSameRow(targetTile.hex.getId(), closest.hexId, gridPreset)) {
-        // Same row: prefer lower hex ID
+      } else if (areHexesInSameDiagonalRow(targetTile.hex.getId(), closest.hexId)) {
+        // Same diagonal row: prefer lower hex ID
         if (targetTile.hex.getId() < closest.hexId) {
           closest = {
             hexId: targetTile.hex.getId(),
@@ -560,8 +614,10 @@ export function findClosestTarget(
           }
         }
       } else if (!currentIsVertical && !closestIsVertical) {
-        // Neither vertical, use hex ID comparison as final fallback
-        if (targetTile.hex.getId() < closest.hexId) {
+        // Neither vertical, use absolute distance as final fallback
+        const currentDirectDistance = sourceTile.hex.distance(targetTile.hex)
+        const closestDirectDistance = sourceTile.hex.distance(closestTile.hex)
+        if (currentDirectDistance < closestDirectDistance) {
           closest = {
             hexId: targetTile.hex.getId(),
             distance: distance,
