@@ -5,6 +5,7 @@ import { FULL_GRID, type GridPreset } from './constants'
 import { Pathfinding } from './pathfinding'
 import { Team } from './types/team'
 import { MemoCache, generateGridCacheKey } from './memoization'
+import { findClosestTarget } from './sharedPathfinding'
 
 function iniGrid(preset: GridPreset): Hex[] {
   const centerRowIndex = Math.floor(preset.hex.length / 2)
@@ -251,104 +252,6 @@ export class Grid {
     return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
   }
 
-  // Check if two hexes share the same row in the grid preset
-  private areHexesInSameRow(hexId1: number, hexId2: number): boolean {
-    for (const row of this.gridPreset.hex) {
-      if (row.includes(hexId1) && row.includes(hexId2)) {
-        return true
-      }
-    }
-    return false
-  }
-
-  // Check vertical alignment (same q coordinate = straight line, no turns)
-  private isVerticallyAligned(sourceHex: Hex, targetHex: Hex): boolean {
-    return sourceHex.q === targetHex.q
-  }
-
-  /**
-   * Find the closest reachable target using A* pathfinding.
-   * 
-   * Tie-breaking for equal distances:
-   * 1. Prefer vertical alignment (straight line, no turns)
-   * 2. Within same row, prefer lower hex ID
-   */
-
-  private findClosestTarget(
-    sourceTile: GridTile,
-    targetTiles: GridTile[],
-    sourceRange: number,
-    canTraverse: (tile: GridTile) => boolean,
-  ): { hexId: number; distance: number } | null {
-    let closest: { hexId: number; distance: number } | null = null
-
-    // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
-    const getTileHelper = (hex: Hex) => {
-      try {
-        return this.getTile(hex)
-      } catch {
-        return undefined
-      }
-    }
-
-    for (const targetTile of targetTiles) {
-      const canTraverseToTarget = (tile: GridTile) => {
-        if (tile.hex.equals(targetTile.hex)) {
-          return true
-        }
-        return canTraverse(tile)
-      }
-
-      // Use range-aware pathfinding
-      const effectiveDistance = Pathfinding.calculateEffectiveDistance(
-        sourceTile.hex,
-        targetTile.hex,
-        sourceRange,
-        getTileHelper,
-        canTraverseToTarget,
-        this.cachingEnabled,
-      )
-
-      if (!effectiveDistance.canReach) {
-        continue
-      }
-
-      // Use movement distance for comparison (tiles needed to move)
-      const distance = effectiveDistance.movementDistance
-
-      if (!closest || distance < closest.distance) {
-        closest = {
-          hexId: targetTile.hex.getId(),
-          distance: distance,
-        }
-      } else if (distance === closest.distance) {
-        // Apply tie-breaking rules
-        const closestHex = this.getHexById(closest.hexId)
-        const currentIsVertical = this.isVerticallyAligned(sourceTile.hex, targetTile.hex)
-        const closestIsVertical = this.isVerticallyAligned(sourceTile.hex, closestHex)
-        
-        if (currentIsVertical && !closestIsVertical) {
-          // Prefer vertical alignment
-          closest = {
-            hexId: targetTile.hex.getId(),
-            distance: distance,
-          }
-        } else if (!currentIsVertical && closestIsVertical) {
-          // Keep current (already vertical)
-        } else if (this.areHexesInSameRow(targetTile.hex.getId(), closest.hexId)) {
-          // Same row: prefer lower ID
-          if (targetTile.hex.getId() < closest.hexId) {
-            closest = {
-              hexId: targetTile.hex.getId(),
-              distance: distance,
-            }
-          }
-        }
-      }
-    }
-
-    return closest
-  }
 
   /**
    * Calculate closest enemy for each ally character.
@@ -377,11 +280,26 @@ export class Grid {
     const allyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ALLY)
     const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
 
-    // For each ally character, find closest enemy using pathfinding
+    // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
+    const getTileHelper = (hex: Hex) => {
+      try {
+        return this.getTile(hex)
+      } catch {
+        return undefined
+      }
+    }
+
+    // For each ally character, find closest enemy using shared pathfinding logic
     for (const allyTile of allyTiles) {
       const range = allyTile.character ? (characterRanges.get(allyTile.character) ?? 1) : 1
-      const closestEnemy = this.findClosestTarget(allyTile, enemyTiles, range, (tile) =>
-        this.canTraverseToEnemy(tile),
+      const closestEnemy = findClosestTarget(
+        allyTile, 
+        enemyTiles, 
+        range, 
+        getTileHelper,
+        (tile) => this.canTraverseToEnemy(tile),
+        this.gridPreset,
+        this.cachingEnabled,
       )
 
       if (closestEnemy) {
@@ -426,11 +344,26 @@ export class Grid {
     const allyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ALLY)
     const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
 
-    // For each enemy character, find closest ally character using pathfinding
+    // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
+    const getTileHelper = (hex: Hex) => {
+      try {
+        return this.getTile(hex)
+      } catch {
+        return undefined
+      }
+    }
+
+    // For each enemy character, find closest ally using shared pathfinding logic
     for (const enemyTile of enemyTiles) {
       const range = enemyTile.character ? (characterRanges.get(enemyTile.character) ?? 1) : 1
-      const closestAlly = this.findClosestTarget(enemyTile, allyTiles, range, (tile) =>
-        this.canTraverseToAlly(tile),
+      const closestAlly = findClosestTarget(
+        enemyTile, 
+        allyTiles, 
+        range, 
+        getTileHelper,
+        (tile) => this.canTraverseToAlly(tile),
+        this.gridPreset,
+        this.cachingEnabled,
       )
 
       if (closestAlly) {

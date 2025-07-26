@@ -8,6 +8,7 @@ import type { GridTile } from '../lib/grid'
 import { useGridStore } from './grid'
 import { useCharacterStore } from './character'
 import { useGameDataStore } from './gameData'
+import { findClosestTarget } from '../lib/sharedPathfinding'
 
 export const usePathfindingStore = defineStore('pathfinding', () => {
   // Store instances created once at store level
@@ -53,56 +54,8 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
       }
     }
 
-    // Helper function to find closest target
-    const findClosestTarget = (
-      sourceTile: GridTile,
-      targetTiles: GridTile[],
-      sourceRange: number,
-      canTraverse: (tile: GridTile) => boolean,
-    ): { hexId: number; distance: number } | null => {
-      let closest: { hexId: number; distance: number } | null = null
 
-      for (const targetTile of targetTiles) {
-        const canTraverseToTarget = (tile: GridTile) => {
-          if (tile.hex.equals(targetTile.hex)) {
-            return true
-          }
-          return canTraverse(tile)
-        }
-
-        // Use range-aware pathfinding
-        const effectiveDistance = Pathfinding.calculateEffectiveDistance(
-          sourceTile.hex,
-          targetTile.hex,
-          sourceRange,
-          getTileHelper,
-          canTraverseToTarget,
-          false, // Don't use caching for debug
-        )
-
-        if (!effectiveDistance.canReach) {
-          continue
-        }
-
-        // Use movement distance for comparison (tiles needed to move)
-        const distance = effectiveDistance.movementDistance
-
-        if (
-          !closest ||
-          distance < closest.distance ||
-          (distance === closest.distance && targetTile.hex.getId() < closest.hexId)
-        ) {
-          closest = {
-            hexId: targetTile.hex.getId(),
-            distance: distance,
-          }
-        }
-      }
-
-      return closest
-    }
-
-    // Get paths from allies to closest enemies
+    // Get paths from allies to closest enemies using shared pathfinding logic
     for (const allyTile of allyTiles) {
       const range = allyTile.character
         ? (gameDataStore.getCharacterRange(allyTile.character) ?? 1)
@@ -111,7 +64,10 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
         allyTile,
         enemyTiles,
         range,
+        getTileHelper,
         (tile) => tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE,
+        undefined, // Use default FULL_GRID preset
+        false, // Don't use caching for debug
       )
 
       if (closestEnemy) {
@@ -135,7 +91,7 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
       }
     }
 
-    // Get paths from enemies to closest allies
+    // Get paths from enemies to closest allies using shared pathfinding logic
     for (const enemyTile of enemyTiles) {
       const range = enemyTile.character
         ? (gameDataStore.getCharacterRange(enemyTile.character) ?? 1)
@@ -144,7 +100,10 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
         enemyTile,
         allyTiles,
         range,
+        getTileHelper,
         (tile) => tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE,
+        undefined, // Use default FULL_GRID preset
+        false, // Don't use caching for debug
       )
 
       if (closestAlly) {

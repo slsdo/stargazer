@@ -127,6 +127,92 @@ export class Pathfinding {
   }
 
   /**
+   * Calculate minimum movement distance for a ranged unit to reach any target.
+   * Uses BFS to find the shortest path to a position where the unit can attack any target.
+   * Returns all reachable targets at the minimum distance for proper tie-breaking.
+   */
+  static calculateRangedMovementDistance(
+    start: Hex,
+    targets: Hex[],
+    range: number,
+    getTile: (hex: Hex) => GridTile | undefined,
+    canTraverse: (tile: GridTile) => boolean,
+  ): { movementDistance: number; canReach: boolean; reachableTargets: Hex[] } {
+    if (targets.length === 0) {
+      return { movementDistance: Infinity, canReach: false, reachableTargets: [] }
+    }
+
+    // First check if already within range of any target
+    const immediateTargets: Hex[] = []
+    for (const target of targets) {
+      const directDistance = start.distance(target)
+      if (directDistance <= range) {
+        immediateTargets.push(target)
+      }
+    }
+    
+    if (immediateTargets.length > 0) {
+      return { movementDistance: 0, canReach: true, reachableTargets: immediateTargets }
+    }
+
+    // BFS to find minimum moves to get within range of any target
+    let currentMoves = 0
+    let currentQueue: Hex[] = [start]
+    let nextQueue: Hex[] = []
+    const visited = new Set<string>()
+    visited.add(start.toString())
+
+    while (currentQueue.length > 0 && currentMoves < 20) {
+      const reachableAtThisDistance: Hex[] = []
+      
+      // Process all positions at current movement distance
+      for (const currentHex of currentQueue) {
+        // Try all 6 directions from current position
+        for (let direction = 0; direction < 6; direction++) {
+          const neighbor = currentHex.neighbor(direction)
+          const neighborKey = neighbor.toString()
+          
+          if (visited.has(neighborKey)) continue
+          
+          const tile = getTile(neighbor)
+          if (!tile || !canTraverse(tile)) continue
+          
+          visited.add(neighborKey)
+          nextQueue.push(neighbor)
+          
+          // Check if from this new position, we can reach any target
+          for (const target of targets) {
+            const distanceToTarget = neighbor.distance(target)
+            if (distanceToTarget <= range) {
+              reachableAtThisDistance.push(target)
+            }
+          }
+        }
+      }
+      
+      // If we found targets at this distance, return them all for tie-breaking
+      if (reachableAtThisDistance.length > 0) {
+        // Remove duplicates
+        const uniqueTargets = Array.from(new Set(reachableAtThisDistance.map(h => h.toString())))
+          .map(str => reachableAtThisDistance.find(h => h.toString() === str)!)
+        
+        return { 
+          movementDistance: currentMoves + 1, 
+          canReach: true, 
+          reachableTargets: uniqueTargets 
+        }
+      }
+      
+      // Move to next movement distance
+      currentQueue = nextQueue
+      nextQueue = []
+      currentMoves++
+    }
+
+    return { movementDistance: Infinity, canReach: false, reachableTargets: [] }
+  }
+
+  /**
    * Calculate effective movement distance considering character range.
    * Characters can attack without moving if target is within range, bypassing blocked tiles.
    * Returns movement tiles needed (0 if already in range) rather than total path distance.
