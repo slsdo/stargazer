@@ -92,20 +92,24 @@ defineExpose({
                 "
                 class="closest-info"
               >
-                <span class="closest-enemy">
-                  → Enemy at Hex
-                  {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} (distance:
-                  {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
-                </span>
-                <label class="debug-toggle-inline">
-                  <input
-                    type="checkbox"
-                    :checked="shouldShowDebugLines(tile.hex.getId())"
-                    @change="toggleCharacterDebugLines(tile.hex.getId())"
-                    class="debug-checkbox"
-                  />
-                  <span class="debug-label">lines</span>
-                </label>
+                <div class="closest-target-line">
+                  <span class="closest-enemy">
+                    → Enemy at Hex
+                    {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} (distance:
+                    {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
+                  </span>
+                </div>
+                <div class="debug-toggle-line">
+                  <label class="debug-toggle-inline">
+                    <input
+                      type="checkbox"
+                      :checked="shouldShowDebugLines(tile.hex.getId())"
+                      @change="toggleCharacterDebugLines(tile.hex.getId())"
+                      class="debug-checkbox"
+                    />
+                    <span class="debug-label">Show debug lines</span>
+                  </label>
+                </div>
               </div>
               <!-- Show closest ally info for Enemy characters -->
               <div
@@ -114,20 +118,24 @@ defineExpose({
                 "
                 class="closest-info"
               >
-                <span class="closest-ally">
-                  → Ally at Hex
-                  {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} (distance:
-                  {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.distance }})
-                </span>
-                <label class="debug-toggle-inline">
-                  <input
-                    type="checkbox"
-                    :checked="shouldShowDebugLines(tile.hex.getId())"
-                    @change="toggleCharacterDebugLines(tile.hex.getId())"
-                    class="debug-checkbox"
-                  />
-                  <span class="debug-label">lines</span>
-                </label>
+                <div class="closest-target-line">
+                  <span class="closest-ally">
+                    → Ally at Hex
+                    {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} (distance:
+                    {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.distance }})
+                  </span>
+                </div>
+                <div class="debug-toggle-line">
+                  <label class="debug-toggle-inline">
+                    <input
+                      type="checkbox"
+                      :checked="shouldShowDebugLines(tile.hex.getId())"
+                      @change="toggleCharacterDebugLines(tile.hex.getId())"
+                      class="debug-checkbox"
+                    />
+                    <span class="debug-label">Show debug lines</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -297,9 +305,19 @@ defineExpose({
 
 .closest-info {
   display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.closest-target-line {
+  display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
+}
+
+.debug-toggle-line {
+  display: flex;
+  align-items: center;
+  margin-left: var(--spacing-sm);
 }
 
 .character-tile.ally-character {

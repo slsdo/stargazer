@@ -2,10 +2,8 @@ import { Hex } from './hex'
 import { ARENA_1 } from './arena/arena1'
 import { State } from './types/state'
 import { FULL_GRID, type GridPreset } from './constants'
-import { Pathfinding } from './pathfinding'
 import { Team } from './types/team'
-import { MemoCache, generateGridCacheKey } from './memoization'
-import { findClosestTarget } from './sharedPathfinding'
+import { clearPathfindingCache } from './pathfinding'
 
 function iniGrid(preset: GridPreset): Hex[] {
   const centerRowIndex = Math.floor(preset.hex.length / 2)
@@ -41,21 +39,7 @@ export class Grid {
     [Team.ENEMY, new Set()],
   ])
   private readonly MAX_TEAM_SIZE = 5
-  private readonly gridPreset: GridPreset
-
-  // Caches for expensive calculations
-  private closestEnemyCache = new MemoCache<
-    string,
-    Map<number, { enemyHexId: number; distance: number }>
-  >(100)
-  private closestAllyCache = new MemoCache<
-    string,
-    Map<number, { allyHexId: number; distance: number }>
-  >(100)
-
-  // Caching configuration - set to false for debugging performance issues
-  // When false, all pathfinding and grid calculations run without memoization
-  private cachingEnabled = true
+  readonly gridPreset: GridPreset
 
   constructor(layout = FULL_GRID, map = ARENA_1) {
     this.gridPreset = layout
@@ -161,9 +145,9 @@ export class Grid {
 
     this.setCharacterOnTile(tile, characterId, team)
 
-    // Only invalidate caches if not skipping invalidation
+    // Clear pathfinding caches when grid state changes
     if (!skipCacheInvalidation) {
-      this.invalidateCaches()
+      clearPathfindingCache()
     }
 
     return true
@@ -191,9 +175,9 @@ export class Grid {
       this.removeCharacterFromTeam(characterId, team)
       this.clearCharacterFromTile(tile, hexOrId)
 
-      // Only invalidate caches if not skipping invalidation
+      // Clear pathfinding caches when grid state changes
       if (!skipCacheInvalidation) {
-        this.invalidateCaches()
+        clearPathfindingCache()
       }
     }
   }
@@ -225,8 +209,8 @@ export class Grid {
     this.teamCharacters.get(Team.ALLY)?.clear()
     this.teamCharacters.get(Team.ENEMY)?.clear()
 
-    // Invalidate caches when all characters are cleared
-    this.invalidateCaches()
+    // Clear pathfinding caches when grid state changes
+    clearPathfindingCache()
   }
 
   getCharacterTeam(hexOrId: Hex | number): Team | undefined {
@@ -243,144 +227,6 @@ export class Grid {
     return count
   }
 
-  // Pathfinding allows movement through all tiles except blocked ones
-  private canTraverseToEnemy(tile: GridTile): boolean {
-    return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
-  }
-
-  private canTraverseToAlly(tile: GridTile): boolean {
-    return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
-  }
-
-
-  /**
-   * Calculate closest enemy for each ally character.
-   * Returns map: ally hex ID -> {enemy hex ID, distance}
-   */
-
-  getClosestEnemyMap(
-    characterRanges: Map<string, number> = new Map(),
-  ): Map<number, { enemyHexId: number; distance: number }> {
-    // Generate cache key based on current grid state
-    const tilesWithCharacters = this.getTilesWithCharacters()
-
-    // Check cache first if caching is enabled
-    // Cache key includes character positions and ranges for accurate memoization
-    if (this.cachingEnabled) {
-      const cacheKey = generateGridCacheKey(tilesWithCharacters, characterRanges)
-      const cached = this.closestEnemyCache.get(cacheKey)
-      if (cached) {
-        return cached
-      }
-    }
-
-    const result = new Map<number, { enemyHexId: number; distance: number }>()
-
-    // Get all tiles with characters
-    const allyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ALLY)
-    const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
-
-    // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
-    const getTileHelper = (hex: Hex) => {
-      try {
-        return this.getTile(hex)
-      } catch {
-        return undefined
-      }
-    }
-
-    // For each ally character, find closest enemy using shared pathfinding logic
-    for (const allyTile of allyTiles) {
-      const range = allyTile.character ? (characterRanges.get(allyTile.character) ?? 1) : 1
-      const closestEnemy = findClosestTarget(
-        allyTile, 
-        enemyTiles, 
-        range, 
-        getTileHelper,
-        (tile) => this.canTraverseToEnemy(tile),
-        this.gridPreset,
-        this.cachingEnabled,
-      )
-
-      if (closestEnemy) {
-        result.set(allyTile.hex.getId(), {
-          enemyHexId: closestEnemy.hexId,
-          distance: closestEnemy.distance,
-        })
-      }
-    }
-
-    // Cache the result if caching is enabled
-    if (this.cachingEnabled) {
-      const cacheKey = generateGridCacheKey(tilesWithCharacters, characterRanges)
-      this.closestEnemyCache.set(cacheKey, result)
-    }
-    return result
-  }
-
-  /**
-   * Calculate closest ally for each enemy character.
-   * Returns map: enemy hex ID -> {ally hex ID, distance}
-   */
-
-  getClosestAllyMap(
-    characterRanges: Map<string, number> = new Map(),
-  ): Map<number, { allyHexId: number; distance: number }> {
-    // Generate cache key based on current grid state
-    const tilesWithCharacters = this.getTilesWithCharacters()
-
-    // Check cache first if caching is enabled
-    if (this.cachingEnabled) {
-      const cacheKey = generateGridCacheKey(tilesWithCharacters, characterRanges)
-      const cached = this.closestAllyCache.get(cacheKey)
-      if (cached) {
-        return cached
-      }
-    }
-
-    const result = new Map<number, { allyHexId: number; distance: number }>()
-
-    // Get all tiles with characters
-    const allyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ALLY)
-    const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
-
-    // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
-    const getTileHelper = (hex: Hex) => {
-      try {
-        return this.getTile(hex)
-      } catch {
-        return undefined
-      }
-    }
-
-    // For each enemy character, find closest ally using shared pathfinding logic
-    for (const enemyTile of enemyTiles) {
-      const range = enemyTile.character ? (characterRanges.get(enemyTile.character) ?? 1) : 1
-      const closestAlly = findClosestTarget(
-        enemyTile, 
-        allyTiles, 
-        range, 
-        getTileHelper,
-        (tile) => this.canTraverseToAlly(tile),
-        this.gridPreset,
-        this.cachingEnabled,
-      )
-
-      if (closestAlly) {
-        result.set(enemyTile.hex.getId(), {
-          allyHexId: closestAlly.hexId,
-          distance: closestAlly.distance,
-        })
-      }
-    }
-
-    // Cache the result if caching is enabled
-    if (this.cachingEnabled) {
-      const cacheKey = generateGridCacheKey(tilesWithCharacters, characterRanges)
-      this.closestAllyCache.set(cacheKey, result)
-    }
-    return result
-  }
 
   private removeCharacterFromTeam(characterId: string, team: Team | undefined): void {
     if (team !== undefined) {
@@ -401,13 +247,4 @@ export class Grid {
     tile.state = this.getOriginalTileState(hexOrId)
   }
 
-  /**
-   * Invalidate all caches - should be called when grid state changes
-   */
-  invalidateCaches(): void {
-    this.closestEnemyCache.clear()
-    this.closestAllyCache.clear()
-    // Also clear pathfinding caches
-    Pathfinding.clearCache()
-  }
 }

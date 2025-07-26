@@ -5,6 +5,7 @@ import { State } from '../lib/types/state'
 import { useGridStore } from './grid'
 import { useGameDataStore } from './gameData'
 import type { GridTile } from '../lib/grid'
+import { clearPathfindingCache } from '../lib/pathfinding'
 
 export const useCharacterStore = defineStore('character', () => {
   const gridStore = useGridStore()
@@ -143,12 +144,12 @@ export const useCharacterStore = defineStore('character', () => {
       grid.placeCharacter(toHexId, toCharacterId, toTeam, true) // Skip cache invalidation
       
       // Single cache invalidation before returning false
-      grid.invalidateCaches()
+      clearPathfindingCache()
       return false
     }
 
     // Final cache invalidation after all operations complete
-    grid.invalidateCaches()
+    clearPathfindingCache()
     return true
   }
 

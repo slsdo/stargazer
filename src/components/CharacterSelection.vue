@@ -87,6 +87,5 @@ const removeCharacterFromGrid = (characterId: string) => {
   background-color: var(--color-bg-light-gray);
   border-radius: var(--radius-large);
   max-height: 70vh;
-  overflow-y: auto;
 }
 </style>

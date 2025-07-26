@@ -8,6 +8,7 @@
 - Keep comments concise and focused on design concepts
 - Don't add comments if it just repeats a function name
 - Use functional and stateless approaches when possible
+- Pathfinding logic must remain in `src/lib/pathfinding.ts` as pure functions
 - Test changes: `npm run build` and `npm run type-check`
 - Do no run `npm run dev` to test dev server
 
@@ -36,12 +37,13 @@ src/
 - `hex.ts` - Hex coordinate system
 - `grid.ts` - Grid management and character placement
 - `layout.ts` - Hex-to-pixel conversions
-- `pathfinding.ts` - A\* pathfinding algorithms
+- `pathfinding.ts` - Complete pathfinding system (A*, BFS, target selection, distance calculations)
 - `maps.ts` - Map configuration management
 
 **State (`src/stores/`)**
 
 - `grid.ts` - Reactive wrapper around Grid class
+- `pathfinding.ts` - Minimal computed properties for pathfinding visualization
 
 **Components (`src/components/`)**
 
@@ -86,6 +88,84 @@ grid.removeCharacter(hexOrId)
 - Structure: `<script setup>`, `<template>`, `<style scoped>`
 - Use TypeScript interfaces for complex props
 - Prefer composition over inheritance
+
+## PATHFINDING ARCHITECTURE
+
+### Design Philosophy
+
+The pathfinding system follows pure functional programming principles with framework-agnostic design:
+
+- **Single Source of Truth**: All pathfinding logic consolidated in `src/lib/pathfinding.ts`
+- **Pure Functions**: No side effects except module-level caching for performance
+- **Framework Agnostic**: Zero Vue.js dependencies in core pathfinding logic
+- **Clear Separation**: Grid class handles state, pathfinding module handles algorithms
+
+### Core API
+
+```typescript
+// Core pathfinding algorithms
+export function findPath(start: Hex, goal: Hex, getTile: Function, canTraverse: Function): Hex[] | null
+export function calculateEffectiveDistance(...): DistanceResult
+export function calculateRangedMovementDistance(...): RangedDistanceResult
+
+// Target selection with comprehensive tie-breaking
+export function findClosestTarget(...): TargetResult | null
+
+// High-level game APIs
+export function getClosestEnemyMap(tilesWithCharacters, characterRanges, gridPreset, cachingEnabled): Map<number, TargetInfo>
+export function getClosestAllyMap(tilesWithCharacters, characterRanges, gridPreset, cachingEnabled): Map<number, TargetInfo>
+
+// Utility functions
+export function defaultCanTraverse(tile: GridTile): boolean
+export function areHexesInSameRow(hexId1: number, hexId2: number, gridPreset): boolean
+export function isVerticallyAligned(sourceHex: Hex, targetHex: Hex): boolean
+
+// Cache management
+export function clearPathfindingCache(): void
+```
+
+### Algorithm Selection
+
+- **Ranged Units (range > 1)**: Uses BFS-based `calculateRangedMovementDistance()` to find minimum movement to engage ANY target
+- **Melee Units (range = 1)**: Uses A*-based `calculateEffectiveDistance()` for individual target pathfinding
+
+### Tie-Breaking Rules
+
+Applied in exact order for consistent target selection:
+
+1. **Vertical alignment priority**: Prefer targets in straight vertical lines (same q coordinate, no turns required)
+2. **Same-row hex ID priority**: Within same row of grid preset, prefer lower hex ID
+3. **Fallback hex ID priority**: For all other ties, prefer lower hex ID
+
+### Usage Patterns
+
+**Grid Operations:**
+```typescript
+// Grid class focuses purely on state management
+grid.placeCharacter(hexOrId, characterId, team)
+grid.removeCharacter(hexOrId)
+
+// Pathfinding functions called separately with explicit parameters
+const closestEnemies = getClosestEnemyMap(tiles, ranges, gridPreset, true)
+```
+
+**Store Integration:**
+```typescript
+// Stores use minimal computed properties that call pathfinding functions
+const closestEnemyMap = computed(() => {
+  const tilesWithCharacters = characterStore.getTilesWithCharacters()
+  const characterRanges = new Map(gameDataStore.characterRanges)
+  const grid = gridStore._getGrid()
+  return getClosestEnemyMap(tilesWithCharacters, characterRanges, grid.gridPreset, true)
+})
+```
+
+### Performance Optimizations
+
+- **Module-level caching**: Separate cache instances for different calculation types
+- **Lazy evaluation**: Computed properties only recalculate when dependencies change
+- **Algorithm efficiency**: BFS for ranged movement, A* for precise pathfinding
+- **Cache invalidation**: Automatic clearing when grid state changes
 
 ## DRAG AND DROP SYSTEM
 
@@ -159,10 +239,12 @@ events.on('hex:hover', (hexId) => {
 
 ### Layer Guidelines
 
-- Core logic → `src/lib/`
-- State management → `src/stores/`
+- Core logic → `src/lib/` (pathfinding, grid, hex, layout)
+- State management → `src/stores/` (minimal computed properties only)
 - UI components → `src/components/`
 - Utilities → `src/utils/`
+
+**Important**: All pathfinding logic must remain consolidated in `src/lib/pathfinding.ts` as pure functions. Stores should only contain computed properties that call these functions.
 
 ### Validation
 
@@ -249,6 +331,19 @@ gridStore.swapCharacters(fromHexId, toHexId)
 // State queries
 const character = gridStore.getCharacterOnHex(hexId)
 const isOccupied = gridStore.isHexOccupied(hexId)
+```
+
+### Pathfinding Operations
+
+```typescript
+import { getClosestEnemyMap, getClosestAllyMap, findClosestTarget } from '../lib/pathfinding'
+
+// Get closest targets for all characters
+const enemyMap = getClosestEnemyMap(tilesWithCharacters, characterRanges, gridPreset, true)
+const allyMap = getClosestAllyMap(tilesWithCharacters, characterRanges, gridPreset, true)
+
+// Find closest target for specific character
+const result = findClosestTarget(sourceTile, targetTiles, range, getTile, canTraverse, gridPreset, true)
 ```
 
 ### State Formatting
