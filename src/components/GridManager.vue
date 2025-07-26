@@ -14,7 +14,7 @@ import { useCharacterStore } from '../stores/character'
 import { useMapEditorStore } from '../stores/mapEditor'
 import { usePathfindingStore } from '../stores/pathfinding'
 import { useArtifactStore } from '../stores/artifact'
-import { computed, onMounted, inject } from 'vue'
+import { computed, onMounted, inject, ref } from 'vue'
 import type { DragDropAPI } from './DragDropProvider.vue'
 import { provideGridEvents } from '../composables/useGridEvents'
 
@@ -67,6 +67,9 @@ const {
   registerHexDetector,
   registerDropHandler,
 } = dragDropAPI
+
+// Template refs
+const debugGridRef = ref<InstanceType<typeof DebugGrid> | null>(null)
 
 // Computed
 const hasCharacters = computed(() => characterStore.characterPlacements.size > 0)
@@ -264,7 +267,7 @@ defineExpose({
         </g>
 
         <!-- Debug pathfinding paths -->
-        <PathfindingDebug v-if="showDebug" />
+        <PathfindingDebug v-if="showDebug" :debugGridRef="debugGridRef" />
       </svg>
       <GridTiles
         :hexes="gridStore.hexes"
@@ -320,7 +323,7 @@ defineExpose({
 
     <!-- Debug Panel -->
     <div v-if="showDebug" class="debug-panel">
-      <DebugGrid />
+      <DebugGrid ref="debugGridRef" />
     </div>
   </div>
 </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useGridStore } from '../stores/grid'
 import { useCharacterStore } from '../stores/character'
 import { usePathfindingStore } from '../stores/pathfinding'
@@ -13,10 +14,44 @@ const characterStore = useCharacterStore()
 const pathfindingStore = usePathfindingStore()
 const artifactStore = useArtifactStore()
 
+// Character visibility toggles for debug lines
+const hiddenCharacters = ref<Set<number>>(new Set())
+
 // Helper function to extract image name from path
 const getImageName = (imageSrc: string): string => {
   return extractFileName(imageSrc)
 }
+
+// Toggle visibility of debug lines for a character
+const toggleCharacterDebugLines = (hexId: number) => {
+  if (hiddenCharacters.value.has(hexId)) {
+    hiddenCharacters.value.delete(hexId)
+  } else {
+    hiddenCharacters.value.add(hexId)
+  }
+  // Trigger reactivity
+  hiddenCharacters.value = new Set(hiddenCharacters.value)
+}
+
+// Check if debug lines should be shown for a character
+const shouldShowDebugLines = (hexId: number): boolean => {
+  return !hiddenCharacters.value.has(hexId)
+}
+
+// Show/hide all debug lines
+const toggleAllDebugLines = (show: boolean) => {
+  if (show) {
+    hiddenCharacters.value.clear()
+  } else {
+    const allHexIds = characterStore.getTilesWithCharacters().map(tile => tile.hex.getId())
+    hiddenCharacters.value = new Set(allHexIds)
+  }
+}
+
+// Expose functions for PathfindingDebug component
+defineExpose({
+  shouldShowDebugLines
+})
 </script>
 
 <template>
@@ -51,27 +86,49 @@ const getImageName = (imageSrc: string): string => {
                 {{ getStateName(tile.state) }}
               </span>
               <!-- Show closest enemy info for Ally characters -->
-              <span
+              <div
                 v-if="
                   tile.team === Team.ALLY && pathfindingStore.closestEnemyMap.has(tile.hex.getId())
                 "
-                class="closest-enemy"
+                class="closest-info"
               >
-                → Enemy at Hex
-                {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} (distance:
-                {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
-              </span>
+                <span class="closest-enemy">
+                  → Enemy at Hex
+                  {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} (distance:
+                  {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
+                </span>
+                <label class="debug-toggle-inline">
+                  <input
+                    type="checkbox"
+                    :checked="shouldShowDebugLines(tile.hex.getId())"
+                    @change="toggleCharacterDebugLines(tile.hex.getId())"
+                    class="debug-checkbox"
+                  />
+                  <span class="debug-label">lines</span>
+                </label>
+              </div>
               <!-- Show closest ally info for Enemy characters -->
-              <span
+              <div
                 v-if="
                   tile.team === Team.ENEMY && pathfindingStore.closestAllyMap.has(tile.hex.getId())
                 "
-                class="closest-ally"
+                class="closest-info"
               >
-                → Ally at Hex
-                {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} (distance:
-                {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.distance }})
-              </span>
+                <span class="closest-ally">
+                  → Ally at Hex
+                  {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} (distance:
+                  {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.distance }})
+                </span>
+                <label class="debug-toggle-inline">
+                  <input
+                    type="checkbox"
+                    :checked="shouldShowDebugLines(tile.hex.getId())"
+                    @change="toggleCharacterDebugLines(tile.hex.getId())"
+                    class="debug-checkbox"
+                  />
+                  <span class="debug-label">lines</span>
+                </label>
+              </div>
             </div>
           </div>
           <button
@@ -82,6 +139,19 @@ const getImageName = (imageSrc: string): string => {
           </button>
         </li>
       </ul>
+      
+      <!-- Debug Lines Controls -->
+      <div class="debug-controls" v-if="characterStore.charactersPlaced > 0">
+        <h4>Debug Lines</h4>
+        <div class="debug-actions">
+          <button @click="toggleAllDebugLines(true)" class="debug-action-btn">
+            Show All
+          </button>
+          <button @click="toggleAllDebugLines(false)" class="debug-action-btn">
+            Hide All
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Artifact Selection Info -->
@@ -223,6 +293,13 @@ const getImageName = (imageSrc: string): string => {
   margin: var(--spacing-sm) 0;
   border-radius: var(--radius-medium);
   border-left: 4px solid var(--color-border-light);
+}
+
+.closest-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
 }
 
 .character-tile.ally-character {
@@ -419,5 +496,61 @@ const getImageName = (imageSrc: string): string => {
 
 .remove-artifact-btn:hover {
   background: #c82333;
+}
+
+/* Debug lines controls */
+.debug-controls {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid #ddd;
+}
+
+.debug-controls h4 {
+  margin: 0 0 0.75rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.debug-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.debug-action-btn {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.debug-action-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.debug-toggle-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+
+.debug-checkbox {
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  margin: 0;
+}
+
+.debug-label {
+  font-style: italic;
+  color: var(--color-text-secondary);
 }
 </style>

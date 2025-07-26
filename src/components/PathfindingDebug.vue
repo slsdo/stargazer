@@ -4,6 +4,12 @@ import { useGridStore } from '../stores/grid'
 import { usePathfindingStore } from '../stores/pathfinding'
 import { Team } from '../lib/types/team'
 
+interface Props {
+  debugGridRef?: any
+}
+
+const props = defineProps<Props>()
+
 const gridStore = useGridStore()
 const pathfindingStore = usePathfindingStore()
 
@@ -12,7 +18,15 @@ const pathfindingResults = computed(() => pathfindingStore.debugPathfindingResul
 
 // Generate SVG path strings for each pathfinding result
 const pathElements = computed(() => {
-  return pathfindingResults.value.map((result) => {
+  return pathfindingResults.value
+    .filter((result) => {
+      // Filter based on debug grid visibility settings
+      if (props.debugGridRef?.shouldShowDebugLines) {
+        return props.debugGridRef.shouldShowDebugLines(result.fromHexId)
+      }
+      return true // Show all if no debug grid ref available
+    })
+    .map((result) => {
     const pathPoints = result.path
       .map((hex) => {
         const position = gridStore.layout.hexToPixel(hex)
