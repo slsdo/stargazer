@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
-import { findPath, findClosestTarget, getClosestEnemyMap, getClosestAllyMap, defaultCanTraverse } from '../lib/pathfinding'
+import {
+  findPathAStar,
+  findClosestTarget,
+  getClosestTargetMap,
+  defaultCanTraverse,
+} from '../lib/pathfinding'
 import { Team } from '../lib/types/team'
 import type { Hex } from '../lib/hex'
 import { useGridStore } from './grid'
@@ -24,26 +29,42 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
     const tilesWithCharacters = characterStore.getTilesWithCharacters()
     const characterRanges = new Map(gameDataStore.characterRanges)
     const grid = gridStore._getGrid()
-    return getClosestEnemyMap(tilesWithCharacters, characterRanges, grid.gridPreset, ENABLE_CACHE, (hex) => {
-      try {
-        return grid.getTile(hex)
-      } catch {
-        return undefined
-      }
-    })
+    return getClosestTargetMap(
+      tilesWithCharacters,
+      Team.ALLY,
+      Team.ENEMY,
+      characterRanges,
+      grid.gridPreset,
+      ENABLE_CACHE,
+      (hex) => {
+        try {
+          return grid.getTile(hex)
+        } catch {
+          return undefined
+        }
+      },
+    )
   })
 
   const closestAllyMap = computed(() => {
     const tilesWithCharacters = characterStore.getTilesWithCharacters()
     const characterRanges = new Map(gameDataStore.characterRanges)
     const grid = gridStore._getGrid()
-    return getClosestAllyMap(tilesWithCharacters, characterRanges, grid.gridPreset, ENABLE_CACHE, (hex) => {
-      try {
-        return grid.getTile(hex)
-      } catch {
-        return undefined
-      }
-    })
+    return getClosestTargetMap(
+      tilesWithCharacters,
+      Team.ENEMY,
+      Team.ALLY,
+      characterRanges,
+      grid.gridPreset,
+      ENABLE_CACHE,
+      (hex) => {
+        try {
+          return grid.getTile(hex)
+        } catch {
+          return undefined
+        }
+      },
+    )
   })
 
   // Debug pathfinding results for visualization
@@ -87,7 +108,7 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
       if (closestEnemy) {
         const targetTile = enemyTiles.find((t) => t.hex.getId() === closestEnemy.hexId)
         if (targetTile) {
-          const path = findPath(
+          const path = findPathAStar(
             allyTile.hex,
             targetTile.hex,
             getTileHelper,
@@ -123,7 +144,7 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
       if (closestAlly) {
         const targetTile = allyTiles.find((t) => t.hex.getId() === closestAlly.hexId)
         if (targetTile) {
-          const path = findPath(
+          const path = findPathAStar(
             enemyTile.hex,
             targetTile.hex,
             getTileHelper,

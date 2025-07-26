@@ -27,21 +27,21 @@ const pathElements = computed(() => {
       return true // Show all if no debug grid ref available
     })
     .map((result) => {
-    const pathPoints = result.path
-      .map((hex) => {
-        const position = gridStore.layout.hexToPixel(hex)
-        return `${position.x},${position.y}`
-      })
-      .join(' ')
+      const pathPoints = result.path
+        .map((hex) => {
+          const position = gridStore.layout.hexToPixel(hex)
+          return `${position.x},${position.y}`
+        })
+        .join(' ')
 
-    return {
-      id: `path-${result.fromHexId}-${result.toHexId}`,
-      points: pathPoints,
-      team: result.team,
-      fromHexId: result.fromHexId,
-      toHexId: result.toHexId,
-    }
-  })
+      return {
+        id: `path-${result.fromHexId}-${result.toHexId}`,
+        points: pathPoints,
+        team: result.team,
+        fromHexId: result.fromHexId,
+        toHexId: result.toHexId,
+      }
+    })
 })
 </script>
 

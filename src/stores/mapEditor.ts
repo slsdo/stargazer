@@ -15,7 +15,6 @@ export const useMapEditorStore = defineStore('mapEditor', () => {
    * Removes any existing character and resets the tile completely
    */
   const setHexState = (hexId: number, state: State): boolean => {
-
     const hex = gridStore.getHexById(hexId)
     if (!hex) return false
 

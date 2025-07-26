@@ -97,7 +97,6 @@ export class MemoCache<K, V> {
     return this.cache.size
   }
 
-
   private updateAccessOrder(key: K): void {
     const index = this.accessOrder.indexOf(key)
     if (index !== -1) {
@@ -142,4 +141,3 @@ export function generatePathCacheKey(
 ): string {
   return `${startHexId}-${goalHexId}-${range}`
 }
-

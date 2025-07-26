@@ -6,13 +6,13 @@ import { PriorityQueue } from './priorityQueue'
 import { MemoCache, generatePathCacheKey, generateGridCacheKey } from './memoization'
 import { FULL_GRID, type GridPreset } from './constants'
 
-// Types
-interface PathNode {
+// A* Algorithm Types
+interface AStarNode {
   hex: Hex
-  g: number // Cost from start to this node
-  h: number // Heuristic (estimated cost to goal)
-  f: number // Total cost (g + h)
-  parent: PathNode | null
+  gCost: number // Actual cost from start to this node
+  hCost: number // Heuristic cost estimate to goal
+  fCost: number // Total cost (gCost + hCost)
+  parent: AStarNode | null
 }
 
 interface DistanceResult {
@@ -132,38 +132,54 @@ const defaultCache = new PathfindingCache()
 
 /*
  * A* pathfinding algorithm for hex grids.
+ *
+ * A* uses f(n) = g(n) + h(n) where:
+ * - g(n) = actual cost from start to node n
+ * - h(n) = heuristic estimate from node n to goal
+ * - f(n) = estimated total cost of path through node n
+ *
+ * Returns array of hexes representing the optimal path, or null if no path exists.
  */
-export function findPath(
+export function findPathAStar(
   start: Hex,
   goal: Hex,
   getTile: (hex: Hex) => GridTile | undefined,
   canTraverse: (tile: GridTile) => boolean,
 ): Hex[] | null {
-  const openSet = new PriorityQueue<PathNode>()
-  const closedSet = new Set<string>()
-  const nodeMap = new Map<string, PathNode>()
+  // A* data structures
+  const openSet = new PriorityQueue<AStarNode>() // Nodes to be evaluated
+  const closedSet = new Set<string>() // Nodes already evaluated
+  const nodeMap = new Map<string, AStarNode>() // Quick node lookup
+  const MAX_NODES_EXPLORED = 1000 // Limit to prevent excessive memory usage
 
-  // Create start node
-  const startNode: PathNode = {
+  // Initialize start node with A* costs
+  const startNode: AStarNode = {
     hex: start,
-    g: 0,
-    h: start.distance(goal),
-    f: start.distance(goal),
+    gCost: 0,
+    hCost: start.distance(goal), // Heuristic: direct distance to goal
+    fCost: start.distance(goal), // f = g + h
     parent: null,
   }
 
-  openSet.enqueue(startNode, startNode.f)
+  openSet.enqueue(startNode, startNode.fCost)
   nodeMap.set(start.toString(), startNode)
 
+  // A* main loop
   while (!openSet.isEmpty()) {
-    const current = openSet.dequeue()
-    if (!current) break
+    // Get node with lowest f-cost
+    const currentNode = openSet.dequeue()
+    if (!currentNode) break
 
-    // Check if we reached the goal
-    if (current.hex.equals(goal)) {
-      // Reconstruct path
+    // Prevent excessive memory usage on large grids
+    if (nodeMap.size > MAX_NODES_EXPLORED) {
+      console.warn(`A* search limit reached (${MAX_NODES_EXPLORED} nodes), aborting`)
+      return null
+    }
+
+    // Goal reached - reconstruct path
+    if (currentNode.hex.equals(goal)) {
       const path: Hex[] = []
-      let node: PathNode | null = current
+      let node: AStarNode | null = currentNode
       while (node) {
         path.unshift(node.hex)
         node = node.parent
@@ -171,48 +187,51 @@ export function findPath(
       return path
     }
 
-    closedSet.add(current.hex.toString())
+    // Move current node from open to closed set
+    closedSet.add(currentNode.hex.toString())
 
-    // Check all 6 neighbors
+    // Evaluate all 6 hex neighbors
     for (let direction = 0; direction < 6; direction++) {
-      const neighbor = current.hex.neighbor(direction)
-      const neighborKey = neighbor.toString()
+      const neighborHex = currentNode.hex.neighbor(direction)
+      const neighborKey = neighborHex.toString()
 
-      // Skip if already evaluated
+      // Skip if already fully evaluated
       if (closedSet.has(neighborKey)) {
         continue
       }
 
       // Skip if not traversable
-      const tile = getTile(neighbor)
+      const tile = getTile(neighborHex)
       if (!tile || !canTraverse(tile)) {
         continue
       }
 
-      // Calculate tentative g score
-      const tentativeG = current.g + 1
+      // Calculate A* costs for this neighbor
+      const tentativeGCost = currentNode.gCost + 1 // Movement cost is always 1
+      const hCost = neighborHex.distance(goal) // Heuristic: direct distance
+      const tentativeFCost = tentativeGCost + hCost
 
-      // Check if neighbor is already known
+      // Check if neighbor is already in open set
       let neighborNode = nodeMap.get(neighborKey)
 
       if (!neighborNode) {
-        // Create new node
+        // New node - add to open set
         neighborNode = {
-          hex: neighbor,
-          g: tentativeG,
-          h: neighbor.distance(goal),
-          f: tentativeG + neighbor.distance(goal),
-          parent: current,
+          hex: neighborHex,
+          gCost: tentativeGCost,
+          hCost: hCost,
+          fCost: tentativeFCost,
+          parent: currentNode,
         }
         nodeMap.set(neighborKey, neighborNode)
-        openSet.enqueue(neighborNode, neighborNode.f)
-      } else if (tentativeG < neighborNode.g) {
-        // Update existing node if we found a better path
-        neighborNode.g = tentativeG
-        neighborNode.f = tentativeG + neighborNode.h
-        neighborNode.parent = current
+        openSet.enqueue(neighborNode, neighborNode.fCost)
+      } else if (tentativeGCost < neighborNode.gCost) {
+        // Better path to existing node - update it
+        neighborNode.gCost = tentativeGCost
+        neighborNode.fCost = tentativeFCost
+        neighborNode.parent = currentNode
         // Update priority in queue
-        openSet.updatePriority(neighborNode, neighborNode.f, (a, b) => a.hex.equals(b.hex))
+        openSet.updatePriority(neighborNode, neighborNode.fCost, (a, b) => a.hex.equals(b.hex))
       }
     }
   }
@@ -222,7 +241,8 @@ export function findPath(
 }
 
 /*
- * Find shortest path distance considering obstacles.
+ * Find shortest path distance using A* algorithm.
+ * Returns number of steps needed, or null if no path exists.
  */
 export function findPathDistance(
   start: Hex,
@@ -230,7 +250,7 @@ export function findPathDistance(
   getTile: (hex: Hex) => GridTile | undefined,
   canTraverse: (tile: GridTile) => boolean,
 ): number | null {
-  const path = findPath(start, goal, getTile, canTraverse)
+  const path = findPathAStar(start, goal, getTile, canTraverse)
   return path ? path.length - 1 : null // Subtract 1 to get number of steps
 }
 
@@ -269,8 +289,8 @@ export function calculateEffectiveDistance(
     return result
   }
 
-  // Need to move closer - find path to get within range
-  const path = findPath(start, goal, getTile, canTraverse)
+  // Need to move closer - use A* to find optimal path
+  const path = findPathAStar(start, goal, getTile, canTraverse)
 
   if (!path) {
     // No path exists, cannot reach target
@@ -300,7 +320,8 @@ export function calculateEffectiveDistance(
 }
 
 /*
- * Calculate minimum movement for ranged unit to reach any target using BFS.
+ * Calculate minimum movement distance to reach any target using BFS.
+ * Returns the movement distance and all targets reachable at that distance.
  */
 export function calculateRangedMovementDistance(
   start: Hex,
@@ -333,7 +354,9 @@ export function calculateRangedMovementDistance(
   const visited = new Set<string>()
   visited.add(start.toString())
 
-  while (currentQueue.length > 0 && currentMoves < 20) {
+  const MAX_MOVEMENT_DISTANCE = 20 // Limit to prevent excessive searches
+
+  while (currentQueue.length > 0 && currentMoves < MAX_MOVEMENT_DISTANCE) {
     const reachableAtThisDistance: Hex[] = []
 
     // Process all positions at current movement distance
@@ -396,71 +419,102 @@ export function defaultCanTraverse(tile: GridTile): boolean {
 }
 
 /*
+ * Apply tie-breaking rules when multiple targets have the same movement distance.
+ * Selection priority:
+ * 1. Vertically aligned targets (same q coordinate)
+ * 2. Same diagonal row targets with lower hex ID
+ * 3. Targets with minimum direct distance
+ */
+function applyTieBreakingRules(
+  candidates: GridTile[],
+  sourceHex: Hex,
+  currentBest: GridTile | null = null,
+): GridTile {
+  if (candidates.length === 0) {
+    throw new Error('applyTieBreakingRules: No candidates provided')
+  }
+
+  if (candidates.length === 1) {
+    return candidates[0]
+  }
+
+  let bestTarget = currentBest || candidates[0]
+  const startIndex = currentBest ? 0 : 1
+
+  for (let i = startIndex; i < candidates.length; i++) {
+    const candidate = candidates[i]
+    const candidateIsVertical = isVerticallyAligned(sourceHex, candidate.hex)
+    const bestIsVertical = isVerticallyAligned(sourceHex, bestTarget.hex)
+
+    if (candidateIsVertical && !bestIsVertical) {
+      // Rule 1: Prefer vertical alignment
+      bestTarget = candidate
+    } else if (!candidateIsVertical && bestIsVertical) {
+      // Keep current best (already vertical)
+      continue
+    } else if (areHexesInSameDiagonalRow(candidate.hex.getId(), bestTarget.hex.getId())) {
+      // Rule 2: Same diagonal row - prefer lower hex ID
+      if (candidate.hex.getId() < bestTarget.hex.getId()) {
+        bestTarget = candidate
+      }
+    } else if (!candidateIsVertical && !bestIsVertical) {
+      // Rule 3: Neither vertical - use absolute distance as fallback
+      const candidateDirectDistance = sourceHex.distance(candidate.hex)
+      const bestDirectDistance = sourceHex.distance(bestTarget.hex)
+      if (candidateDirectDistance < bestDirectDistance) {
+        bestTarget = candidate
+      } else if (
+        candidateDirectDistance === bestDirectDistance &&
+        candidate.hex.getId() < bestTarget.hex.getId()
+      ) {
+        // Final fallback: prefer lower hex ID for consistency
+        bestTarget = candidate
+      }
+    }
+  }
+
+  return bestTarget
+}
+
+// Diagonal rows organized by hex IDs - visually represents the hex grid structure
+const DIAGONAL_ROWS = [
+  [1, 2], // Row 1
+  [3, 4, 5], // Row 2
+  [6, 7], // Row 3
+  [8, 9, 10], // Row 4
+  [11, 12, 13, 14], // Row 5
+  [15, 16, 17], // Row 6
+  [18, 19, 20, 21], // Row 7
+  [22, 23, 24], // Row 8
+  [25, 26, 27, 28], // Row 9
+  [29, 30, 31], // Row 10
+  [32, 33, 34, 35], // Row 11
+  [36, 37, 38], // Row 12
+  [39, 40], // Row 13
+  [41, 42, 43], // Row 14
+  [44, 45], // Row 15
+]
+
+/*
+ * Get the diagonal row number for a given hex ID.
+ * Simple lookup in the DIAGONAL_ROWS array.
+ */
+function getDiagonalRowNumber(hexId: number): number {
+  for (let rowIndex = 0; rowIndex < DIAGONAL_ROWS.length; rowIndex++) {
+    if (DIAGONAL_ROWS[rowIndex].includes(hexId)) {
+      return rowIndex + 1 // Row numbers start at 1
+    }
+  }
+
+  // Hex ID not found in our grid - shouldn't happen in normal usage
+  return -1
+}
+
+/*
  * Check if two hexes are in the same diagonal row based on hex ID patterns.
- * Pattern: [1,2], [3,4,5], [6,7], [8,9,10], [11,12,13,14], [15,16,17], [18,19,20,21], [22,23,24], [25,26,27,28], [29,30,31], [32,33,34,35], [36,37,38], [39,40], [41,42,43], [44,45], ...
- * 
- * Pattern analysis:
- * - Rows alternate between having 2-3 elements and 3-4 elements
- * - Every 4th row starting from row 5 has 4 elements, others have 2-3
- * - Row sizes: 2, 3, 2, 3, 4, 3, 4, 3, 4, 3, 4, 3, 2, 3, 2, ...
  */
 export function areHexesInSameDiagonalRow(hexId1: number, hexId2: number): boolean {
-  const getRowNumber = (hexId: number): number => {
-    // Define the exact row endings based on the pattern
-    const rowEndings = [
-      2,   // Row 1: [1, 2]
-      5,   // Row 2: [3, 4, 5] 
-      7,   // Row 3: [6, 7]
-      10,  // Row 4: [8, 9, 10]
-      14,  // Row 5: [11, 12, 13, 14]
-      17,  // Row 6: [15, 16, 17]
-      21,  // Row 7: [18, 19, 20, 21]
-      24,  // Row 8: [22, 23, 24]
-      28,  // Row 9: [25, 26, 27, 28]
-      31,  // Row 10: [29, 30, 31]
-      35,  // Row 11: [32, 33, 34, 35]
-      38,  // Row 12: [36, 37, 38]
-      40,  // Row 13: [39, 40]
-      43,  // Row 14: [41, 42, 43]
-      45,  // Row 15: [44, 45]
-    ]
-    
-    // Find which row this hexId belongs to
-    for (let i = 0; i < rowEndings.length; i++) {
-      if (hexId <= rowEndings[i]) {
-        return i + 1
-      }
-    }
-    
-    // For hex IDs beyond our defined pattern, use a calculated approach
-    // This is a fallback - the pattern may need extension for larger grids
-    let currentEnd = 45
-    let rowNum = 16
-    let isLongRow = false // Tracks if we're in a 4-element row cycle
-    
-    while (hexId > currentEnd) {
-      // Determine row size based on pattern
-      let rowSize
-      if (rowNum % 4 === 1 && rowNum > 4) { // Every 4th row starting from 5 has 4 elements
-        rowSize = 4
-      } else if (rowNum % 2 === 0) { // Even rows tend to have 3 elements
-        rowSize = 3
-      } else { // Odd rows tend to have 2 elements
-        rowSize = 2
-      }
-      
-      currentEnd += rowSize
-      rowNum++
-      
-      if (hexId <= currentEnd) {
-        return rowNum
-      }
-    }
-    
-    return rowNum
-  }
-  
-  return getRowNumber(hexId1) === getRowNumber(hexId2)
+  return getDiagonalRowNumber(hexId1) === getDiagonalRowNumber(hexId2)
 }
 
 /*
@@ -475,16 +529,15 @@ export function isVerticallyAligned(sourceHex: Hex, targetHex: Hex): boolean {
  */
 
 /*
- * Find closest reachable target with optimized algorithms.
+ * Find the closest reachable target from a source tile.
  *
- * Algorithm Selection:
- * - Ranged units (range > 1): Uses BFS for efficient multi-target pathfinding
- * - Melee units (range = 1): Uses A* for precise individual target pathfinding
+ * Uses BFS to find the minimum movement distance required to engage any target.
+ * Works for both melee and ranged units based on their attack range.
  *
  * Tie-breaking Rules (when multiple targets have same movement distance):
- * 1. Vertical alignment (same q coordinate) - preferred for straight-line movement
- * 2. Same diagonal row position - prefer lower hex ID for consistency
- * 3. Absolute closest distance (as if range = 1) - spatial proximity fallback
+ * 1. Vertical alignment (same q coordinate) - straight-line movement preference
+ * 2. Same diagonal row position - lower hex ID preferred
+ * 3. Minimum direct distance - spatial proximity
  */
 export function findClosestTarget(
   sourceTile: GridTile,
@@ -492,142 +545,44 @@ export function findClosestTarget(
   sourceRange: number,
   getTile: (hex: Hex) => GridTile | undefined,
   canTraverse: (tile: GridTile) => boolean,
-  gridPreset: GridPreset = FULL_GRID,
-  cachingEnabled: boolean = false,
-  cache: PathfindingCache = defaultCache,
+  _gridPreset: GridPreset = FULL_GRID,
+  _cachingEnabled: boolean = false,
+  _cache: PathfindingCache = defaultCache,
 ): TargetResult | null {
   if (targetTiles.length === 0) {
     return null
   }
 
-  // For ranged units (range > 1), use optimized ranged movement calculation
-  if (sourceRange > 1) {
-    const targetHexes = targetTiles.map((tile) => tile.hex)
-    const rangedResult = calculateRangedMovementDistance(
-      sourceTile.hex,
-      targetHexes,
-      sourceRange,
-      getTile,
-      canTraverse,
-    )
+  // Use BFS to find minimum movement distance to any target
+  const targetHexes = targetTiles.map((tile) => tile.hex)
+  const bfsResult = calculateRangedMovementDistance(
+    sourceTile.hex,
+    targetHexes,
+    sourceRange,
+    getTile,
+    canTraverse,
+  )
 
-    if (!rangedResult.canReach || rangedResult.reachableTargets.length === 0) {
-      return null
-    }
-
-    // Convert reachable target hexes back to tiles for tie-breaking
-    const candidateTargets = targetTiles.filter((tile) =>
-      rangedResult.reachableTargets.some((reachableHex) => reachableHex.equals(tile.hex)),
-    )
-
-    if (candidateTargets.length === 0) {
-      return null
-    }
-
-    // Apply tie-breaking rules to candidate targets
-    let bestTarget = candidateTargets[0]
-    for (let i = 1; i < candidateTargets.length; i++) {
-      const currentTarget = candidateTargets[i]
-      const currentIsVertical = isVerticallyAligned(sourceTile.hex, currentTarget.hex)
-      const bestIsVertical = isVerticallyAligned(sourceTile.hex, bestTarget.hex)
-
-      if (currentIsVertical && !bestIsVertical) {
-        // Prefer vertical alignment
-        bestTarget = currentTarget
-      } else if (!currentIsVertical && bestIsVertical) {
-        // Keep current best (already vertical)
-      } else if (areHexesInSameDiagonalRow(currentTarget.hex.getId(), bestTarget.hex.getId())) {
-        // Same diagonal row: prefer lower hex ID
-        if (currentTarget.hex.getId() < bestTarget.hex.getId()) {
-          bestTarget = currentTarget
-        }
-      } else if (!currentIsVertical && !bestIsVertical) {
-        // Neither vertical, use absolute distance as final fallback
-        const currentDirectDistance = sourceTile.hex.distance(currentTarget.hex)
-        const bestDirectDistance = sourceTile.hex.distance(bestTarget.hex)
-        if (currentDirectDistance < bestDirectDistance) {
-          bestTarget = currentTarget
-        }
-      }
-    }
-
-    return {
-      hexId: bestTarget.hex.getId(),
-      distance: rangedResult.movementDistance,
-    }
+  if (!bfsResult.canReach || bfsResult.reachableTargets.length === 0) {
+    return null
   }
 
-  // For melee units (range = 1), use existing logic with individual target pathfinding
-  let closest: TargetResult | null = null
+  // Convert reachable target hexes back to tiles for tie-breaking
+  const candidateTargets = targetTiles.filter((tile) =>
+    bfsResult.reachableTargets.some((reachableHex) => reachableHex.equals(tile.hex)),
+  )
 
-  for (const targetTile of targetTiles) {
-    const canTraverseToTarget = (tile: GridTile) => {
-      if (tile.hex.equals(targetTile.hex)) {
-        return true
-      }
-      return canTraverse(tile)
-    }
-
-    // Use range-aware pathfinding
-    const effectiveDistance = calculateEffectiveDistance(
-      sourceTile.hex,
-      targetTile.hex,
-      sourceRange,
-      getTile,
-      canTraverseToTarget,
-      cachingEnabled,
-      cache,
-    )
-
-    if (!effectiveDistance.canReach) {
-      continue
-    }
-
-    // Use movement distance for comparison (tiles needed to move)
-    const distance = effectiveDistance.movementDistance
-
-    if (!closest || distance < closest.distance) {
-      closest = {
-        hexId: targetTile.hex.getId(),
-        distance: distance,
-      }
-    } else if (distance === closest.distance) {
-      // Apply tie-breaking rules
-      const currentIsVertical = isVerticallyAligned(sourceTile.hex, targetTile.hex)
-      const closestTile = targetTiles.find((t) => t.hex.getId() === closest!.hexId)!
-      const closestIsVertical = isVerticallyAligned(sourceTile.hex, closestTile.hex)
-      
-      if (currentIsVertical && !closestIsVertical) {
-        // Prefer vertical alignment
-        closest = {
-          hexId: targetTile.hex.getId(),
-          distance: distance,
-        }
-      } else if (!currentIsVertical && closestIsVertical) {
-        // Keep current (already vertical)
-      } else if (areHexesInSameDiagonalRow(targetTile.hex.getId(), closest.hexId)) {
-        // Same diagonal row: prefer lower hex ID
-        if (targetTile.hex.getId() < closest.hexId) {
-          closest = {
-            hexId: targetTile.hex.getId(),
-            distance: distance,
-          }
-        }
-      } else if (!currentIsVertical && !closestIsVertical) {
-        // Neither vertical, use absolute distance as final fallback
-        const currentDirectDistance = sourceTile.hex.distance(targetTile.hex)
-        const closestDirectDistance = sourceTile.hex.distance(closestTile.hex)
-        if (currentDirectDistance < closestDirectDistance) {
-          closest = {
-            hexId: targetTile.hex.getId(),
-            distance: distance,
-          }
-        }
-      }
-    }
+  if (candidateTargets.length === 0) {
+    return null
   }
 
-  return closest
+  // Apply tie-breaking rules to select the best target
+  const bestTarget = applyTieBreakingRules(candidateTargets, sourceTile.hex)
+
+  return {
+    hexId: bestTarget.hex.getId(),
+    distance: bfsResult.movementDistance,
+  }
 }
 
 /*
@@ -635,11 +590,13 @@ export function findClosestTarget(
  */
 
 /*
- * Calculate closest enemy for each ally character.
- * Returns map: ally hex ID -> {enemy hex ID, distance}
+ * Calculate closest targets for characters of a specific team.
+ * Returns map: source hex ID -> {target hex ID, distance}
  */
-export function getClosestEnemyMap(
+export function getClosestTargetMap(
   tilesWithCharacters: GridTile[],
+  sourceTeam: Team,
+  targetTeam: Team,
   characterRanges: Map<string, number> = new Map(),
   gridPreset: GridPreset = FULL_GRID,
   cachingEnabled: boolean = true,
@@ -649,7 +606,10 @@ export function getClosestEnemyMap(
   // Check cache first if caching is enabled
   if (cachingEnabled) {
     const cacheKey = generateGridCacheKey(tilesWithCharacters, characterRanges)
-    const cached = cache.getClosestEnemyMap(cacheKey)
+    const cached =
+      sourceTeam === Team.ALLY
+        ? cache.getClosestEnemyMap(cacheKey)
+        : cache.getClosestAllyMap(cacheKey)
     if (cached) {
       return cached
     }
@@ -657,11 +617,11 @@ export function getClosestEnemyMap(
 
   const result = new Map<number, TargetInfo>()
 
-  // Get all tiles with characters
-  const allyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ALLY)
-  const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
+  // Get tiles for source and target teams
+  const sourceTiles = tilesWithCharacters.filter((tile) => tile.team === sourceTeam)
+  const targetTiles = tilesWithCharacters.filter((tile) => tile.team === targetTeam)
 
-  // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
+  // getTile helper that handles out-of-bounds hexes
   const getTileHelper =
     getTile ||
     ((hex: Hex) => {
@@ -669,12 +629,12 @@ export function getClosestEnemyMap(
       return tile
     })
 
-  // For each ally character, find closest enemy using shared pathfinding logic
-  for (const allyTile of allyTiles) {
-    const range = allyTile.character ? (characterRanges.get(allyTile.character) ?? 1) : 1
-    const closestEnemy = findClosestTarget(
-      allyTile,
-      enemyTiles,
+  // For each source character, find closest target using shared pathfinding logic
+  for (const sourceTile of sourceTiles) {
+    const range = sourceTile.character ? (characterRanges.get(sourceTile.character) ?? 1) : 1
+    const closestTarget = findClosestTarget(
+      sourceTile,
+      targetTiles,
       range,
       getTileHelper,
       defaultCanTraverse,
@@ -683,83 +643,30 @@ export function getClosestEnemyMap(
       cache,
     )
 
-    if (closestEnemy) {
-      result.set(allyTile.hex.getId(), {
-        enemyHexId: closestEnemy.hexId,
-        distance: closestEnemy.distance,
-      })
+    if (closestTarget) {
+      // Create result with appropriate field name based on target team
+      const targetInfo: TargetInfo = {
+        distance: closestTarget.distance,
+      }
+
+      if (targetTeam === Team.ENEMY) {
+        targetInfo.enemyHexId = closestTarget.hexId
+      } else {
+        targetInfo.allyHexId = closestTarget.hexId
+      }
+
+      result.set(sourceTile.hex.getId(), targetInfo)
     }
   }
 
   // Cache the result if caching is enabled
   if (cachingEnabled) {
     const cacheKey = generateGridCacheKey(tilesWithCharacters, characterRanges)
-    cache.setClosestEnemyMap(cacheKey, result)
-  }
-  return result
-}
-
-/*
- * Calculate closest ally for each enemy character.
- * Returns map: enemy hex ID -> {ally hex ID, distance}
- */
-export function getClosestAllyMap(
-  tilesWithCharacters: GridTile[],
-  characterRanges: Map<string, number> = new Map(),
-  gridPreset: GridPreset = FULL_GRID,
-  cachingEnabled: boolean = true,
-  getTile?: (hex: Hex) => GridTile | undefined,
-  cache: PathfindingCache = defaultCache,
-): Map<number, TargetInfo> {
-  // Check cache first if caching is enabled
-  if (cachingEnabled) {
-    const cacheKey = generateGridCacheKey(tilesWithCharacters, characterRanges)
-    const cached = cache.getClosestAllyMap(cacheKey)
-    if (cached) {
-      return cached
+    if (sourceTeam === Team.ALLY) {
+      cache.setClosestEnemyMap(cacheKey, result)
+    } else {
+      cache.setClosestAllyMap(cacheKey, result)
     }
-  }
-
-  const result = new Map<number, TargetInfo>()
-
-  // Get all tiles with characters
-  const allyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ALLY)
-  const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
-
-  // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
-  const getTileHelper =
-    getTile ||
-    ((hex: Hex) => {
-      const tile = tilesWithCharacters.find((t) => t.hex.equals(hex))
-      return tile
-    })
-
-  // For each enemy character, find closest ally using shared pathfinding logic
-  for (const enemyTile of enemyTiles) {
-    const range = enemyTile.character ? (characterRanges.get(enemyTile.character) ?? 1) : 1
-    const closestAlly = findClosestTarget(
-      enemyTile,
-      allyTiles,
-      range,
-      getTileHelper,
-      defaultCanTraverse,
-      gridPreset,
-      cachingEnabled,
-      cache,
-    )
-
-    if (closestAlly) {
-      result.set(enemyTile.hex.getId(), {
-        allyHexId: closestAlly.hexId,
-        distance: closestAlly.distance,
-      })
-    }
-  }
-
-  // Cache the result if caching is enabled
-  if (cachingEnabled) {
-    const cacheKey = generateGridCacheKey(tilesWithCharacters, characterRanges)
-    cache.setClosestAllyMap(cacheKey, result)
   }
   return result
 }

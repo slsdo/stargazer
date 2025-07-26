@@ -8,7 +8,7 @@ import { useArtifactStore } from '../stores/artifact'
 export function useStateReset() {
   const characterStore = useCharacterStore()
   const artifactStore = useArtifactStore()
-  
+
   /**
    * Clears all characters and artifacts
    * Used by URL state restoration, map editor, and other reset operations
@@ -17,8 +17,8 @@ export function useStateReset() {
     characterStore.clearAllCharacters()
     artifactStore.clearAllArtifacts()
   }
-  
-  return { 
+
+  return {
     clearAllState,
     // Also expose individual clear functions for flexibility
     clearCharacters: () => characterStore.clearAllCharacters(),

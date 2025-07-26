@@ -36,7 +36,11 @@ const { selectedTeam, characterStore, artifactStore, handleTeamChange, handleCle
       <ClearButton @click="handleClearAll" />
     </div>
 
-    <slot :selectedTeam="selectedTeam" :characterStore="characterStore" :artifactStore="artifactStore" />
+    <slot
+      :selectedTeam="selectedTeam"
+      :characterStore="characterStore"
+      :artifactStore="artifactStore"
+    />
   </div>
 </template>
 

@@ -43,14 +43,14 @@ const toggleAllDebugLines = (show: boolean) => {
   if (show) {
     hiddenCharacters.value.clear()
   } else {
-    const allHexIds = characterStore.getTilesWithCharacters().map(tile => tile.hex.getId())
+    const allHexIds = characterStore.getTilesWithCharacters().map((tile) => tile.hex.getId())
     hiddenCharacters.value = new Set(allHexIds)
   }
 }
 
 // Expose functions for PathfindingDebug component
 defineExpose({
-  shouldShowDebugLines
+  shouldShowDebugLines,
 })
 </script>
 
@@ -95,7 +95,10 @@ defineExpose({
                 <div class="closest-target-line">
                   <span class="closest-enemy">
                     → Enemy at Hex
-                    {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }} (distance:
+                    {{
+                      pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId
+                    }}
+                    (distance:
                     {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
                   </span>
                 </div>
@@ -121,7 +124,10 @@ defineExpose({
                 <div class="closest-target-line">
                   <span class="closest-ally">
                     → Ally at Hex
-                    {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }} (distance:
+                    {{
+                      pathfindingStore.closestAllyMap.get(tile.hex.getId())?.allyHexId
+                    }}
+                    (distance:
                     {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.distance }})
                   </span>
                 </div>
@@ -147,7 +153,6 @@ defineExpose({
           </button>
         </li>
       </ul>
-      
     </div>
 
     <!-- Artifact Selection Info -->
@@ -503,7 +508,6 @@ defineExpose({
 .remove-artifact-btn:hover {
   background: #c82333;
 }
-
 
 .debug-toggle-inline {
   display: flex;

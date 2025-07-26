@@ -227,7 +227,6 @@ export class Grid {
     return count
   }
 
-
   private removeCharacterFromTeam(characterName: string, team: Team | undefined): void {
     if (team !== undefined) {
       this.teamCharacters.get(team)?.delete(characterName)
@@ -246,5 +245,4 @@ export class Grid {
     delete tile.team
     tile.state = this.getOriginalTileState(hexOrId)
   }
-
 }
