@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Character from './Character.vue'
 import SelectionContainer from './SelectionContainer.vue'
 import type { CharacterType } from '../lib/types/character'
 import { useSelectionState } from '../composables/useSelectionState'
 
-defineProps<{
+const props = defineProps<{
   characters: readonly CharacterType[]
   characterImages: Readonly<Record<string, string>>
   icons: Readonly<Record<string, string>>
@@ -12,6 +13,15 @@ defineProps<{
 }>()
 
 const { selectedTeam, characterStore } = useSelectionState()
+
+const sortedCharacters = computed(() =>
+  [...props.characters].sort(
+    (a, b) =>
+      a.faction.localeCompare(b.faction) ||
+      a.class.localeCompare(b.class) ||
+      a.name.localeCompare(b.name),
+  ),
+)
 
 const isCharacterPlaced = (characterName: string): boolean => {
   // Get all tiles with characters
@@ -58,8 +68,8 @@ const removeCharacterFromGrid = (characterName: string) => {
     <!-- Characters Grid -->
     <div class="characters">
       <Character
-        v-for="character in characters"
-        :key="character.name"
+        v-for="character in sortedCharacters"
+        :key="character.id"
         :character="{ ...character, team: selectedTeam }"
         :characterImage="characterImages[character.name]"
         :icons="icons"

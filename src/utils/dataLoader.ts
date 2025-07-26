@@ -28,11 +28,9 @@ export function loadCharacters(): CharacterType[] {
     return charactersCache
   }
 
-  const characters = (
-    Object.values(
-      import.meta.glob('../data/character/*.json', { eager: true, import: 'default' }),
-    ) as CharacterType[]
-  ).sort((a, b) => a.faction.localeCompare(b.faction))
+  const characters = Object.values(
+    import.meta.glob('../data/character/*.json', { eager: true, import: 'default' }),
+  ) as CharacterType[]
 
   charactersCache = characters
 
