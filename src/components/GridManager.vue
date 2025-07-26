@@ -235,6 +235,7 @@ defineExpose({
 <template>
   <div class="grid-container">
     <div id="map">
+      <!-- Arrows SVG (controlled by Show Details toggle) -->
       <svg
         v-if="showArrows"
         width="600"
@@ -265,9 +266,17 @@ defineExpose({
             :invert-curve="true"
           />
         </g>
+      </svg>
 
+      <!-- Debug lines SVG (controlled by Debug View toggle only) -->
+      <svg
+        v-if="showDebug"
+        width="600"
+        height="600"
+        style="position: absolute; pointer-events: none"
+      >
         <!-- Debug pathfinding paths -->
-        <PathfindingDebug v-if="showDebug" :debugGridRef="debugGridRef" />
+        <PathfindingDebug :debugGridRef="debugGridRef" />
       </svg>
       <GridTiles
         :hexes="gridStore.hexes"

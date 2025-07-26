@@ -38,13 +38,12 @@ interface TargetInfo {
   distance: number
 }
 
-// ============================================================================
-// Caching System
-// ============================================================================
+/*
+ * Caching System
+ */
 
-/**
- * Centralized cache management for pathfinding operations.
- * Provides a clean interface for different cache types while maintaining performance.
+/*
+ * Cache management for pathfinding operations.
  */
 export class PathfindingCache {
   private pathCache = new MemoCache<string, Hex[] | null>(500)
@@ -127,13 +126,12 @@ export class PathfindingCache {
 // Default cache instance for module-level operations
 const defaultCache = new PathfindingCache()
 
-// ============================================================================
-// Core Pathfinding Algorithms
-// ============================================================================
+/*
+ * Core Pathfinding Algorithms
+ */
 
-/**
+/*
  * A* pathfinding algorithm for hex grids.
- * Finds the shortest path between two hexes considering obstacles.
  */
 export function findPath(
   start: Hex,
@@ -223,9 +221,8 @@ export function findPath(
   return null
 }
 
-/**
+/*
  * Find shortest path distance considering obstacles.
- * Returns the number of steps needed to reach the goal, or null if no path exists.
  */
 export function findPathDistance(
   start: Hex,
@@ -237,10 +234,9 @@ export function findPathDistance(
   return path ? path.length - 1 : null // Subtract 1 to get number of steps
 }
 
-/**
+/*
  * Calculate effective movement distance considering character range.
- * Characters can attack without moving if target is within range, bypassing blocked tiles.
- * Returns movement tiles needed (0 if already in range) rather than total path distance.
+ * Returns movement tiles needed (0 if already in range).
  */
 export function calculateEffectiveDistance(
   start: Hex,
@@ -303,10 +299,8 @@ export function calculateEffectiveDistance(
   return result
 }
 
-/**
- * Calculate minimum movement distance for a ranged unit to reach any target.
- * Uses BFS to find the shortest path to a position where the unit can attack any target.
- * Returns all reachable targets at the minimum distance for proper tie-breaking.
+/*
+ * Calculate minimum movement for ranged unit to reach any target using BFS.
  */
 export function calculateRangedMovementDistance(
   start: Hex,
@@ -327,7 +321,7 @@ export function calculateRangedMovementDistance(
       immediateTargets.push(target)
     }
   }
-  
+
   if (immediateTargets.length > 0) {
     return { movementDistance: 0, canReach: true, reachableTargets: immediateTargets }
   }
@@ -341,22 +335,22 @@ export function calculateRangedMovementDistance(
 
   while (currentQueue.length > 0 && currentMoves < 20) {
     const reachableAtThisDistance: Hex[] = []
-    
+
     // Process all positions at current movement distance
     for (const currentHex of currentQueue) {
       // Try all 6 directions from current position
       for (let direction = 0; direction < 6; direction++) {
         const neighbor = currentHex.neighbor(direction)
         const neighborKey = neighbor.toString()
-        
+
         if (visited.has(neighborKey)) continue
-        
+
         const tile = getTile(neighbor)
         if (!tile || !canTraverse(tile)) continue
-        
+
         visited.add(neighborKey)
         nextQueue.push(neighbor)
-        
+
         // Check if from this new position, we can reach any target
         for (const target of targets) {
           const distanceToTarget = neighbor.distance(target)
@@ -366,20 +360,21 @@ export function calculateRangedMovementDistance(
         }
       }
     }
-    
+
     // If we found targets at this distance, return them all for tie-breaking
     if (reachableAtThisDistance.length > 0) {
       // Remove duplicates
-      const uniqueTargets = Array.from(new Set(reachableAtThisDistance.map(h => h.toString())))
-        .map(str => reachableAtThisDistance.find(h => h.toString() === str)!)
-      
-      return { 
-        movementDistance: currentMoves + 1, 
-        canReach: true, 
-        reachableTargets: uniqueTargets 
+      const uniqueTargets = Array.from(
+        new Set(reachableAtThisDistance.map((h) => h.toString())),
+      ).map((str) => reachableAtThisDistance.find((h) => h.toString() === str)!)
+
+      return {
+        movementDistance: currentMoves + 1,
+        canReach: true,
+        reachableTargets: uniqueTargets,
       }
     }
-    
+
     // Move to next movement distance
     currentQueue = nextQueue
     nextQueue = []
@@ -389,22 +384,25 @@ export function calculateRangedMovementDistance(
   return { movementDistance: Infinity, canReach: false, reachableTargets: [] }
 }
 
-// ============================================================================
-// Utility Functions
-// ============================================================================
+/*
+ * Utility Functions
+ */
 
-/**
+/*
  * Default traversal function - allows movement through all tiles except blocked ones.
  */
 export function defaultCanTraverse(tile: GridTile): boolean {
   return tile.state !== State.BLOCKED && tile.state !== State.BLOCKED_BREAKABLE
 }
 
-/**
+/*
  * Check if two hexes are in the same row based on the grid preset.
- * Used for tie-breaking when multiple targets have the same movement distance.
  */
-export function areHexesInSameRow(hexId1: number, hexId2: number, gridPreset: GridPreset = FULL_GRID): boolean {
+export function areHexesInSameRow(
+  hexId1: number,
+  hexId2: number,
+  gridPreset: GridPreset = FULL_GRID,
+): boolean {
   for (const row of gridPreset.hex) {
     if (row.includes(hexId1) && row.includes(hexId2)) {
       return true
@@ -413,46 +411,28 @@ export function areHexesInSameRow(hexId1: number, hexId2: number, gridPreset: Gr
   return false
 }
 
-/**
+/*
  * Check if source and target hex are vertically aligned (same q coordinate).
- * Vertical alignment means a straight line with no turns required.
  */
 export function isVerticallyAligned(sourceHex: Hex, targetHex: Hex): boolean {
   return sourceHex.q === targetHex.q
 }
 
-// ============================================================================
-// Target Selection and Tie-Breaking
-// ============================================================================
+/*
+ * Target Selection and Tie-Breaking
+ */
 
-/**
- * Find the closest reachable target using optimized pathfinding algorithms.
- * 
- * This is the core pathfinding function used by both main grid calculations and debug
- * visualization to ensure consistent target selection across the entire application.
- * 
+/*
+ * Find closest reachable target with optimized algorithms.
+ *
  * Algorithm Selection:
- * - **Ranged units (range > 1)**: Uses BFS-based `calculateRangedMovementDistance()` to find
- *   the minimum movement required to get within range of ANY target, then applies tie-breaking
- *   to all targets reachable at that minimum distance.
- * - **Melee units (range = 1)**: Uses individual target pathfinding with `calculateEffectiveDistance()`
- *   for each potential target, then applies tie-breaking rules.
- * 
- * Comprehensive Tie-breaking Rules (applied in order):
- * 1. **Vertical alignment priority**: Prefer targets in straight vertical lines (same q coordinate)
- *    as these require no turns and represent the most direct path.
- * 2. **Same-row hex ID priority**: When targets are in the same row of the grid preset, prefer
- *    the target with the lower hex ID for consistent, predictable behavior.
- * 3. **Fallback hex ID priority**: For all other tied cases, prefer lower hex ID as final tiebreaker.
- * 
- * @param sourceTile - The tile containing the character seeking a target
- * @param targetTiles - Array of potential target tiles to evaluate
- * @param sourceRange - Attack range of the source character (1 for melee, >1 for ranged)
- * @param getTile - Function to safely retrieve tiles, returns undefined for out-of-bounds
- * @param canTraverse - Function to check if a tile can be moved through during pathfinding
- * @param gridPreset - Grid layout preset for accurate row detection (defaults to FULL_GRID)
- * @param cachingEnabled - Whether to use pathfinding result caching for performance
- * @returns Object with target hex ID and movement distance, or null if no targets reachable
+ * - Ranged units (range > 1): Uses BFS for efficient multi-target pathfinding
+ * - Melee units (range = 1): Uses A* for precise individual target pathfinding
+ *
+ * Tie-breaking Rules (when multiple targets have same movement distance):
+ * 1. Vertical alignment (same q coordinate) - preferred for straight-line movement
+ * 2. Same row in grid preset - maintains spatial grouping
+ * 3. Lower hex ID - consistent deterministic fallback
  */
 export function findClosestTarget(
   sourceTile: GridTile,
@@ -470,7 +450,7 @@ export function findClosestTarget(
 
   // For ranged units (range > 1), use optimized ranged movement calculation
   if (sourceRange > 1) {
-    const targetHexes = targetTiles.map(tile => tile.hex)
+    const targetHexes = targetTiles.map((tile) => tile.hex)
     const rangedResult = calculateRangedMovementDistance(
       sourceTile.hex,
       targetHexes,
@@ -484,8 +464,8 @@ export function findClosestTarget(
     }
 
     // Convert reachable target hexes back to tiles for tie-breaking
-    const candidateTargets = targetTiles.filter(tile => 
-      rangedResult.reachableTargets.some(reachableHex => reachableHex.equals(tile.hex))
+    const candidateTargets = targetTiles.filter((tile) =>
+      rangedResult.reachableTargets.some((reachableHex) => reachableHex.equals(tile.hex)),
     )
 
     if (candidateTargets.length === 0) {
@@ -498,7 +478,7 @@ export function findClosestTarget(
       const currentTarget = candidateTargets[i]
       const currentIsVertical = isVerticallyAligned(sourceTile.hex, currentTarget.hex)
       const bestIsVertical = isVerticallyAligned(sourceTile.hex, bestTarget.hex)
-      
+
       if (currentIsVertical && !bestIsVertical) {
         // Prefer vertical alignment
         bestTarget = currentTarget
@@ -560,9 +540,9 @@ export function findClosestTarget(
     } else if (distance === closest.distance) {
       // Apply tie-breaking rules
       const currentIsVertical = isVerticallyAligned(sourceTile.hex, targetTile.hex)
-      const closestTile = targetTiles.find(t => t.hex.getId() === closest!.hexId)!
+      const closestTile = targetTiles.find((t) => t.hex.getId() === closest!.hexId)!
       const closestIsVertical = isVerticallyAligned(sourceTile.hex, closestTile.hex)
-      
+
       if (currentIsVertical && !closestIsVertical) {
         // Prefer vertical alignment
         closest = {
@@ -594,18 +574,13 @@ export function findClosestTarget(
   return closest
 }
 
-// ============================================================================
-// High-Level Game APIs
-// ============================================================================
+/*
+ * High-Level Game APIs
+ */
 
-/**
+/*
  * Calculate closest enemy for each ally character.
  * Returns map: ally hex ID -> {enemy hex ID, distance}
- * 
- * @param tilesWithCharacters - All tiles containing characters
- * @param characterRanges - Map of character IDs to their attack ranges
- * @param gridPreset - Grid layout for spatial calculations
- * @param cachingEnabled - Whether to use result caching
  */
 export function getClosestEnemyMap(
   tilesWithCharacters: GridTile[],
@@ -631,18 +606,20 @@ export function getClosestEnemyMap(
   const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
 
   // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
-  const getTileHelper = getTile || ((hex: Hex) => {
-    const tile = tilesWithCharacters.find(t => t.hex.equals(hex))
-    return tile
-  })
+  const getTileHelper =
+    getTile ||
+    ((hex: Hex) => {
+      const tile = tilesWithCharacters.find((t) => t.hex.equals(hex))
+      return tile
+    })
 
   // For each ally character, find closest enemy using shared pathfinding logic
   for (const allyTile of allyTiles) {
     const range = allyTile.character ? (characterRanges.get(allyTile.character) ?? 1) : 1
     const closestEnemy = findClosestTarget(
-      allyTile, 
-      enemyTiles, 
-      range, 
+      allyTile,
+      enemyTiles,
+      range,
       getTileHelper,
       defaultCanTraverse,
       gridPreset,
@@ -666,14 +643,9 @@ export function getClosestEnemyMap(
   return result
 }
 
-/**
+/*
  * Calculate closest ally for each enemy character.
  * Returns map: enemy hex ID -> {ally hex ID, distance}
- * 
- * @param tilesWithCharacters - All tiles containing characters
- * @param characterRanges - Map of character IDs to their attack ranges
- * @param gridPreset - Grid layout for spatial calculations
- * @param cachingEnabled - Whether to use result caching
  */
 export function getClosestAllyMap(
   tilesWithCharacters: GridTile[],
@@ -699,18 +671,20 @@ export function getClosestAllyMap(
   const enemyTiles = tilesWithCharacters.filter((tile) => tile.team === Team.ENEMY)
 
   // Safe getTile helper - returns undefined for out-of-bounds hexes during pathfinding
-  const getTileHelper = getTile || ((hex: Hex) => {
-    const tile = tilesWithCharacters.find(t => t.hex.equals(hex))
-    return tile
-  })
+  const getTileHelper =
+    getTile ||
+    ((hex: Hex) => {
+      const tile = tilesWithCharacters.find((t) => t.hex.equals(hex))
+      return tile
+    })
 
   // For each enemy character, find closest ally using shared pathfinding logic
   for (const enemyTile of enemyTiles) {
     const range = enemyTile.character ? (characterRanges.get(enemyTile.character) ?? 1) : 1
     const closestAlly = findClosestTarget(
-      enemyTile, 
-      allyTiles, 
-      range, 
+      enemyTile,
+      allyTiles,
+      range,
       getTileHelper,
       defaultCanTraverse,
       gridPreset,
@@ -734,21 +708,19 @@ export function getClosestAllyMap(
   return result
 }
 
-// ============================================================================
-// Cache Management
-// ============================================================================
+/*
+ * Cache Management
+ */
 
-/**
+/*
  * Clear all pathfinding caches.
- * Should be called when grid state changes significantly.
  */
 export function clearPathfindingCache(cache: PathfindingCache = defaultCache): void {
   cache.clear()
 }
 
-/**
+/*
  * Clear specific cache types.
- * Useful for targeted cache invalidation.
  */
 export function clearSpecificCache(
   cacheType: 'path' | 'effectiveDistance' | 'closestEnemy' | 'closestAlly',
@@ -757,7 +729,7 @@ export function clearSpecificCache(
   cache.clearSpecific(cacheType)
 }
 
-/**
+/*
  * Get cache statistics for debugging.
  */
 export function getCacheStats(cache: PathfindingCache = defaultCache) {

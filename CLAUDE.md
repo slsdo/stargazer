@@ -8,7 +8,6 @@
 - Keep comments concise and focused on design concepts
 - Don't add comments if it just repeats a function name
 - Use functional and stateless approaches when possible
-- Pathfinding logic must remain in `src/lib/pathfinding.ts` as pure functions
 - Test changes: `npm run build` and `npm run type-check`
 - Do no run `npm run dev` to test dev server
 
@@ -37,7 +36,7 @@ src/
 - `hex.ts` - Hex coordinate system
 - `grid.ts` - Grid management and character placement
 - `layout.ts` - Hex-to-pixel conversions
-- `pathfinding.ts` - Complete pathfinding system (A*, BFS, target selection, distance calculations)
+- `pathfinding.ts` - Complete pathfinding system (A\*, BFS, target selection, distance calculations)
 - `maps.ts` - Map configuration management
 
 **State (`src/stores/`)**
@@ -127,7 +126,7 @@ export function clearPathfindingCache(): void
 ### Algorithm Selection
 
 - **Ranged Units (range > 1)**: Uses BFS-based `calculateRangedMovementDistance()` to find minimum movement to engage ANY target
-- **Melee Units (range = 1)**: Uses A*-based `calculateEffectiveDistance()` for individual target pathfinding
+- **Melee Units (range = 1)**: Uses A\*-based `calculateEffectiveDistance()` for individual target pathfinding
 
 ### Tie-Breaking Rules
 
@@ -140,6 +139,7 @@ Applied in exact order for consistent target selection:
 ### Usage Patterns
 
 **Grid Operations:**
+
 ```typescript
 // Grid class focuses purely on state management
 grid.placeCharacter(hexOrId, characterId, team)
@@ -150,6 +150,7 @@ const closestEnemies = getClosestEnemyMap(tiles, ranges, gridPreset, true)
 ```
 
 **Store Integration:**
+
 ```typescript
 // Stores use minimal computed properties that call pathfinding functions
 const closestEnemyMap = computed(() => {
@@ -164,7 +165,7 @@ const closestEnemyMap = computed(() => {
 
 - **Module-level caching**: Separate cache instances for different calculation types
 - **Lazy evaluation**: Computed properties only recalculate when dependencies change
-- **Algorithm efficiency**: BFS for ranged movement, A* for precise pathfinding
+- **Algorithm efficiency**: BFS for ranged movement, A\* for precise pathfinding
 - **Cache invalidation**: Automatic clearing when grid state changes
 
 ## DRAG AND DROP SYSTEM
@@ -269,24 +270,24 @@ New map editing functionality allows users to paint hex states directly on the g
 
 ```typescript
 // MapEditor.vue - State selection UI
-emit('stateSelected', state)    // When user selects a state to paint with
-emit('clearMap')               // When user clicks "Clear Map" button
+emit('stateSelected', state) // When user selects a state to paint with
+emit('clearMap') // When user clicks "Clear Map" button
 
 // GridManager.vue - Integration layer
-isMapEditorMode: boolean       // Enable map editor functionality
+isMapEditorMode: boolean // Enable map editor functionality
 selectedMapEditorState: State // Current painting state
 
 // GridTiles.vue - Drag-to-paint implementation
-handleMapEditorMouseDown()     // Start drag-to-paint session
-handleMapEditorMouseUp()       // End drag-to-paint session
+handleMapEditorMouseDown() // Start drag-to-paint session
+handleMapEditorMouseUp() // End drag-to-paint session
 ```
 
 ### Grid Store Methods
 
 ```typescript
 // Map editor methods in grid store
-setHexState(hexId, state)      // Paint single hex (removes characters, resets tile)
-clearAllHexStates()           // Reset all hexes to DEFAULT (removes all characters)
+setHexState(hexId, state) // Paint single hex (removes characters, resets tile)
+clearAllHexStates() // Reset all hexes to DEFAULT (removes all characters)
 ```
 
 ### Usage Flow
@@ -343,7 +344,15 @@ const enemyMap = getClosestEnemyMap(tilesWithCharacters, characterRanges, gridPr
 const allyMap = getClosestAllyMap(tilesWithCharacters, characterRanges, gridPreset, true)
 
 // Find closest target for specific character
-const result = findClosestTarget(sourceTile, targetTiles, range, getTile, canTraverse, gridPreset, true)
+const result = findClosestTarget(
+  sourceTile,
+  targetTiles,
+  range,
+  getTile,
+  canTraverse,
+  gridPreset,
+  true,
+)
 ```
 
 ### State Formatting

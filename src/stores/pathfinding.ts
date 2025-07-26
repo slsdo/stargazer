@@ -8,6 +8,12 @@ import { useCharacterStore } from './character'
 import { useGameDataStore } from './gameData'
 
 export const usePathfindingStore = defineStore('pathfinding', () => {
+  /*
+   * Cache Configuration
+   */
+  // Set to false to disable all pathfinding caching across the application
+  const ENABLE_CACHE = true
+
   // Store instances created once at store level
   const gridStore = useGridStore()
   const characterStore = useCharacterStore()
@@ -18,7 +24,7 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
     const tilesWithCharacters = characterStore.getTilesWithCharacters()
     const characterRanges = new Map(gameDataStore.characterRanges)
     const grid = gridStore._getGrid()
-    return getClosestEnemyMap(tilesWithCharacters, characterRanges, grid.gridPreset, true, (hex) => {
+    return getClosestEnemyMap(tilesWithCharacters, characterRanges, grid.gridPreset, ENABLE_CACHE, (hex) => {
       try {
         return grid.getTile(hex)
       } catch {
@@ -31,7 +37,7 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
     const tilesWithCharacters = characterStore.getTilesWithCharacters()
     const characterRanges = new Map(gameDataStore.characterRanges)
     const grid = gridStore._getGrid()
-    return getClosestAllyMap(tilesWithCharacters, characterRanges, grid.gridPreset, true, (hex) => {
+    return getClosestAllyMap(tilesWithCharacters, characterRanges, grid.gridPreset, ENABLE_CACHE, (hex) => {
       try {
         return grid.getTile(hex)
       } catch {
@@ -75,7 +81,7 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
         getTileHelper,
         defaultCanTraverse,
         grid.gridPreset,
-        false, // Don't use caching for debug
+        false, // Don't use caching for debug (always fresh calculations for visualization)
       )
 
       if (closestEnemy) {
@@ -111,7 +117,7 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
         getTileHelper,
         defaultCanTraverse,
         grid.gridPreset,
-        false, // Don't use caching for debug
+        false, // Don't use caching for debug (always fresh calculations for visualization)
       )
 
       if (closestAlly) {
