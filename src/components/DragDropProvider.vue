@@ -8,9 +8,9 @@ export interface DragDropAPI {
   isDragging: Ref<boolean>
   hoveredHexId: Ref<number | null>
   dropHandled: Ref<boolean>
-  startDrag: (event: DragEvent, character: any, characterName: string, imageSrc?: string) => void
+  startDrag: (event: DragEvent, character: any, characterId: number, imageSrc?: string) => void
   endDrag: (event: DragEvent) => void
-  handleDrop: (event: DragEvent) => { character: any; characterName: string } | null
+  handleDrop: (event: DragEvent) => { character: any; characterId: number } | null
   setHoveredHex: (hexId: number | null) => void
   setDropHandled: (handled: boolean) => void
   registerHexDetector: (detector: (x: number, y: number) => number | null) => void

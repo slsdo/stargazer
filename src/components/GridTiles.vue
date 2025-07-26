@@ -207,7 +207,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
   // Hover state is managed by position-based detection
 
   if (dropResult) {
-    const { character, characterId, characterName } = dropResult
+    const { character, characterId } = dropResult
 
     setDropHandled(true) // Prevent duplicate processing
 

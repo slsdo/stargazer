@@ -147,7 +147,7 @@ const handleCharacterDragStart = (event: DragEvent, hexId: number, characterId: 
 
   // Add sourceHexId to differentiate from character selection drags
   const characterWithSource = { ...character, sourceHexId: hexId }
-  startDrag(event, characterWithSource, character?.name || '', props.characterImages[character?.name || ''])
+  startDrag(event, characterWithSource, character?.id || 0, props.characterImages[character?.name || ''])
 }
 
 const handleCharacterDragEnd = (event: DragEvent) => {
@@ -174,7 +174,7 @@ const triggerHexDrop = (event: DragEvent, hex: any) => {
   const dropResult = handleDrop(event)
 
   if (dropResult) {
-    const { character, characterId } = dropResult as { character: CharacterType; characterId: number; characterName: string }
+    const { character, characterId } = dropResult
 
     // Mark drop as handled
     setDropHandled(true)

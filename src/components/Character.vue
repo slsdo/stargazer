@@ -24,7 +24,7 @@ const CLICK_THRESHOLD = 200 // ms
 
 const handleDragStart = (event: DragEvent) => {
   if (!props.isDraggable) return
-  startDrag(event, props.character, props.character.name, props.characterImage)
+  startDrag(event, props.character, props.character.id, props.characterImage)
 }
 
 const handleDragEnd = (event: DragEvent) => {
