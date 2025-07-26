@@ -114,9 +114,9 @@ export class Grid {
     return this.MAX_TEAM_SIZE - (this.teamCharacters.get(team)?.size || 0)
   }
 
-  canPlaceCharacter(characterId: string, team: Team): boolean {
+  canPlaceCharacter(characterName: string, team: Team): boolean {
     if (this.getAvailableForTeam(team) <= 0) return false
-    return !this.teamCharacters.get(team)?.has(characterId)
+    return !this.teamCharacters.get(team)?.has(characterName)
   }
 
   canPlaceCharacterOnTile(hexOrId: Hex | number, team: Team): boolean {
@@ -130,12 +130,12 @@ export class Grid {
 
   placeCharacter(
     hexOrId: Hex | number,
-    characterId: string,
+    characterName: string,
     team: Team = Team.ALLY,
     skipCacheInvalidation: boolean = false,
   ): boolean {
     if (!this.canPlaceCharacterOnTile(hexOrId, team)) return false
-    if (!this.canPlaceCharacter(characterId, team)) return false
+    if (!this.canPlaceCharacter(characterName, team)) return false
 
     const tile = this.getTile(hexOrId)
 
@@ -143,7 +143,7 @@ export class Grid {
       this.removeCharacterFromTeam(tile.character, tile.team)
     }
 
-    this.setCharacterOnTile(tile, characterId, team)
+    this.setCharacterOnTile(tile, characterName, team)
 
     // Clear pathfinding caches when grid state changes
     if (!skipCacheInvalidation) {
@@ -169,10 +169,10 @@ export class Grid {
   removeCharacter(hexOrId: Hex | number, skipCacheInvalidation: boolean = false): void {
     const tile = this.getTile(hexOrId)
     if (tile.character) {
-      const characterId = tile.character
+      const characterName = tile.character
       const team = tile.team
 
-      this.removeCharacterFromTeam(characterId, team)
+      this.removeCharacterFromTeam(characterName, team)
       this.clearCharacterFromTile(tile, hexOrId)
 
       // Clear pathfinding caches when grid state changes
@@ -228,17 +228,17 @@ export class Grid {
   }
 
 
-  private removeCharacterFromTeam(characterId: string, team: Team | undefined): void {
+  private removeCharacterFromTeam(characterName: string, team: Team | undefined): void {
     if (team !== undefined) {
-      this.teamCharacters.get(team)?.delete(characterId)
+      this.teamCharacters.get(team)?.delete(characterName)
     }
   }
 
-  private setCharacterOnTile(tile: GridTile, characterId: string, team: Team): void {
-    tile.character = characterId
+  private setCharacterOnTile(tile: GridTile, characterName: string, team: Team): void {
+    tile.character = characterName
     tile.team = team
     tile.state = team === Team.ALLY ? State.OCCUPIED_ALLY : State.OCCUPIED_ENEMY
-    this.teamCharacters.get(team)?.add(characterId)
+    this.teamCharacters.get(team)?.add(characterName)
   }
 
   private clearCharacterFromTile(tile: GridTile, hexOrId: Hex | number): void {

@@ -13,13 +13,13 @@ defineProps<{
 
 const { selectedTeam, characterStore } = useSelectionState()
 
-const isCharacterPlaced = (characterId: string): boolean => {
+const isCharacterPlaced = (characterName: string): boolean => {
   // Get all tiles with characters
   const tilesWithCharacters = characterStore.getTilesWithCharacters()
 
   // Check if this character is placed for the current selected team
   return tilesWithCharacters.some(
-    (tile) => tile.character === characterId && tile.team === selectedTeam.value,
+    (tile) => tile.character === characterName && tile.team === selectedTeam.value,
   )
 }
 
@@ -34,11 +34,11 @@ const handleCharacterClick = (character: CharacterType) => {
   characterStore.autoPlaceCharacter(character.name, selectedTeam.value)
 }
 
-const removeCharacterFromGrid = (characterId: string) => {
+const removeCharacterFromGrid = (characterName: string) => {
   // Find the hex where this character is placed for the current team
   const tilesWithCharacters = characterStore.getTilesWithCharacters()
   const characterTile = tilesWithCharacters.find(
-    (tile) => tile.character === characterId && tile.team === selectedTeam.value,
+    (tile) => tile.character === characterName && tile.team === selectedTeam.value,
   )
 
   if (characterTile) {

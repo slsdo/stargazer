@@ -35,10 +35,10 @@ export const useUrlStateStore = defineStore('urlState', () => {
       })
 
       // Restore character placements
-      urlState.characters.forEach(({ hexId, characterId, team }) => {
-        const success = characterStore.placeCharacterOnHex(hexId, characterId, team)
+      urlState.characters.forEach(({ hexId, characterName, team }) => {
+        const success = characterStore.placeCharacterOnHex(hexId, characterName, team)
         if (!success) {
-          console.warn(`Failed to place character ${characterId} on hex ${hexId}`)
+          console.warn(`Failed to place character ${characterName} on hex ${hexId}`)
         }
       })
 

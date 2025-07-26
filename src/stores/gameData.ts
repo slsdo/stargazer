@@ -40,8 +40,8 @@ export const useGameDataStore = defineStore('gameData', () => {
   }
 
   // Helper to get character range
-  const getCharacterRange = (characterId: string): number => {
-    return characterRanges.value.get(characterId) ?? 1
+  const getCharacterRange = (characterName: string): number => {
+    return characterRanges.value.get(characterName) ?? 1
   }
 
   return {

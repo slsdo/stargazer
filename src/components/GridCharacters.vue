@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
 const gridStore = useGridStore()
 
 const emit = defineEmits<{
-  characterClick: [hexId: number, characterId: string]
+  characterClick: [hexId: number, characterName: string]
 }>()
 
 const hexExists = (hexId: number): boolean => {
@@ -51,13 +51,13 @@ const hexExists = (hexId: number): boolean => {
   }
 }
 
-const getCharacterLevel = (characterId: string): 's' | 'a' => {
-  const character = props.characters.find((c) => c.name === characterId)
+const getCharacterLevel = (characterName: string): 's' | 'a' => {
+  const character = props.characters.find((c) => c.name === characterName)
   return (character?.level as 's' | 'a') || 'a'
 }
 
-const getBackgroundColor = (characterId: string): string => {
-  const level = getCharacterLevel(characterId)
+const getBackgroundColor = (characterName: string): string => {
+  const level = getCharacterLevel(characterName)
   return level === 's' ? '#facd7e' : '#a78fc5'
 }
 </script>
@@ -65,7 +65,7 @@ const getBackgroundColor = (characterId: string): string => {
 <template>
   <g class="grid-characters-container">
     <!-- SVG elements for visual display -->
-    <g v-for="[hexId, characterId] in characterPlacements" :key="hexId" class="grid-characters">
+    <g v-for="[hexId, characterName] in characterPlacements" :key="hexId" class="grid-characters">
       <g v-if="hexExists(hexId)">
         <!-- Clipping mask for character image -->
         <defs>
@@ -82,14 +82,14 @@ const getBackgroundColor = (characterId: string): string => {
           :cx="gridStore.getHexPosition(hexId).x"
           :cy="gridStore.getHexPosition(hexId).y"
           :r="outerRadius"
-          :fill="getBackgroundColor(characterId)"
+          :fill="getBackgroundColor(characterName)"
           :fill-opacity="backgroundOpacity"
-          :stroke="getBackgroundColor(characterId)"
+          :stroke="getBackgroundColor(characterName)"
           :stroke-width="borderWidth"
         />
         <!-- Character image (clipped to inner circle) -->
         <image
-          :href="characterImages[characterId]"
+          :href="characterImages[characterName]"
           :x="gridStore.getHexPosition(hexId).x - outerRadius"
           :y="gridStore.getHexPosition(hexId).y - outerRadius"
           :width="outerRadius * 2"

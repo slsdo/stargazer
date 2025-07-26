@@ -31,14 +31,14 @@ export const useDragDrop = () => {
   const startDrag = (
     event: DragEvent,
     character: CharacterType,
-    characterId: string,
+    characterName: string,
     imageUrl?: string,
   ) => {
     if (!event.dataTransfer) return
 
     isDragging.value = true
     draggedCharacter.value = character
-    draggedImageSrc.value = imageUrl || characterId
+    draggedImageSrc.value = imageUrl || characterName
     dropHandled.value = false // Reset drop handled flag for new drag
 
     // Set initial position
@@ -49,7 +49,7 @@ export const useDragDrop = () => {
       CHARACTER_MIME_TYPE,
       JSON.stringify({
         character,
-        characterId,
+        characterName,
       }),
     )
 
@@ -121,7 +121,7 @@ export const useDragDrop = () => {
   // Handle drop
   const handleDrop = (
     event: DragEvent,
-  ): { character: CharacterType; characterId: string } | null => {
+  ): { character: CharacterType; characterName: string } | null => {
     event.preventDefault()
 
     if (!event.dataTransfer) {
@@ -135,8 +135,8 @@ export const useDragDrop = () => {
         return null
       }
 
-      const { character, characterId } = JSON.parse(dragData)
-      return { character, characterId }
+      const { character, characterName } = JSON.parse(dragData)
+      return { character, characterName }
     } catch (error) {
       console.error('Error parsing drag data:', error)
       return null

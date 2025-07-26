@@ -38,11 +38,11 @@ export const useCharacterStore = defineStore('character', () => {
   // Character management actions
   const placeCharacterOnHex = (
     hexId: number,
-    characterId: string,
+    characterName: string,
     team: Team = Team.ALLY,
   ): boolean => {
     const grid = gridStore._getGrid()
-    const success = grid.placeCharacter(hexId, characterId, team)
+    const success = grid.placeCharacter(hexId, characterName, team)
     return success
   }
 
@@ -66,9 +66,9 @@ export const useCharacterStore = defineStore('character', () => {
     return grid.hasCharacter(hexId)
   }
 
-  const canPlaceCharacter = (characterId: string, team: Team): boolean => {
+  const canPlaceCharacter = (characterName: string, team: Team): boolean => {
     const grid = gridStore._getGrid()
-    return grid.canPlaceCharacter(characterId, team)
+    return grid.canPlaceCharacter(characterName, team)
   }
 
   const canPlaceCharacterOnTile = (hexId: number, team: Team): boolean => {
@@ -153,7 +153,7 @@ export const useCharacterStore = defineStore('character', () => {
     return true
   }
 
-  const moveCharacter = (fromHexId: number, toHexId: number, characterId: string): boolean => {
+  const moveCharacter = (fromHexId: number, toHexId: number, characterName: string): boolean => {
     // Don't move if dropping on the same hex
     if (fromHexId === toHexId) {
       return false
@@ -188,30 +188,30 @@ export const useCharacterStore = defineStore('character', () => {
       grid.removeCharacter(fromHexId, true) // Skip cache invalidation
 
       // For cross-team moves, we should always be able to place the character
-      const success = grid.placeCharacter(toHexId, characterId, targetTeam) // Final operation - invalidate caches
+      const success = grid.placeCharacter(toHexId, characterName, targetTeam) // Final operation - invalidate caches
 
       if (!success) {
         // This should rarely happen for cross-team moves, but restore if it does
-        grid.placeCharacter(fromHexId, characterId, team)
+        grid.placeCharacter(fromHexId, characterName, team)
       }
 
       return success
     } else {
       // Same team move - use the original logic
       grid.removeCharacter(fromHexId, true) // Skip cache invalidation
-      const success = grid.placeCharacter(toHexId, characterId, targetTeam) // Final operation - invalidate caches
+      const success = grid.placeCharacter(toHexId, characterName, targetTeam) // Final operation - invalidate caches
 
       if (!success) {
-        grid.placeCharacter(fromHexId, characterId, team)
+        grid.placeCharacter(fromHexId, characterName, team)
       }
 
       return success
     }
   }
 
-  const autoPlaceCharacter = (characterId: string, team: Team): boolean => {
+  const autoPlaceCharacter = (characterName: string, team: Team): boolean => {
     // Check if character can be placed
-    if (!canPlaceCharacter(characterId, team)) {
+    if (!canPlaceCharacter(characterName, team)) {
       return false
     }
 
@@ -231,7 +231,7 @@ export const useCharacterStore = defineStore('character', () => {
     const randomIndex = Math.floor(Math.random() * availableTiles.length)
     const selectedTile = availableTiles[randomIndex]
 
-    return placeCharacterOnHex(selectedTile.hex.getId(), characterId, team)
+    return placeCharacterOnHex(selectedTile.hex.getId(), characterName, team)
   }
 
   const handleHexClick = (hex: import('../lib/hex').Hex): boolean => {

@@ -11,7 +11,7 @@ export interface GridState {
   }>
   characters: Array<{
     hexId: number
-    characterId: string
+    characterName: string
     team: Team
   }>
   artifacts: {
@@ -36,7 +36,7 @@ export function serializeGridState(
     .filter((tile) => tile.character && tile.team !== undefined)
     .map((tile) => ({
       hexId: tile.hex.getId(),
-      characterId: tile.character!,
+      characterName: tile.character!,
       team: tile.team!,
     }))
 
@@ -64,7 +64,7 @@ export function validateGridState(state: any): state is GridState {
     state.characters.every(
       (char: any) =>
         typeof char.hexId === 'number' &&
-        typeof char.characterId === 'string' &&
+        typeof char.characterName === 'string' &&
         typeof char.team === 'number',
     ) &&
     typeof state.artifacts === 'object' &&
