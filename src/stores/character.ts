@@ -38,11 +38,11 @@ export const useCharacterStore = defineStore('character', () => {
   // Character management actions
   const placeCharacterOnHex = (
     hexId: number,
-    characterName: string,
+    characterId: number,
     team: Team = Team.ALLY,
   ): boolean => {
     const grid = gridStore._getGrid()
-    const success = grid.placeCharacter(hexId, characterName, team)
+    const success = grid.placeCharacter(hexId, characterId, team)
     return success
   }
 
@@ -56,7 +56,7 @@ export const useCharacterStore = defineStore('character', () => {
     grid.clearAllCharacters()
   }
 
-  const getCharacterOnHex = (hexId: number): string | undefined => {
+  const getCharacterOnHex = (hexId: number): number | undefined => {
     const grid = gridStore._getGrid()
     return grid.getCharacter(hexId)
   }
@@ -66,9 +66,9 @@ export const useCharacterStore = defineStore('character', () => {
     return grid.hasCharacter(hexId)
   }
 
-  const canPlaceCharacter = (characterName: string, team: Team): boolean => {
+  const canPlaceCharacter = (characterId: number, team: Team): boolean => {
     const grid = gridStore._getGrid()
-    return grid.canPlaceCharacter(characterName, team)
+    return grid.canPlaceCharacter(characterId, team)
   }
 
   const canPlaceCharacterOnTile = (hexId: number, team: Team): boolean => {
@@ -153,7 +153,7 @@ export const useCharacterStore = defineStore('character', () => {
     return true
   }
 
-  const moveCharacter = (fromHexId: number, toHexId: number, characterName: string): boolean => {
+  const moveCharacter = (fromHexId: number, toHexId: number, characterId: number): boolean => {
     // Don't move if dropping on the same hex
     if (fromHexId === toHexId) {
       return false
@@ -188,36 +188,36 @@ export const useCharacterStore = defineStore('character', () => {
       grid.removeCharacter(fromHexId, true) // Skip cache invalidation
 
       // For cross-team moves, we should always be able to place the character
-      const success = grid.placeCharacter(toHexId, characterName, targetTeam) // Final operation - invalidate caches
+      const success = grid.placeCharacter(toHexId, characterId, targetTeam) // Final operation - invalidate caches
 
       if (!success) {
         // This should rarely happen for cross-team moves, but restore if it does
-        grid.placeCharacter(fromHexId, characterName, team)
+        grid.placeCharacter(fromHexId, characterId, team)
       }
 
       return success
     } else {
       // Same team move - use the original logic
       grid.removeCharacter(fromHexId, true) // Skip cache invalidation
-      const success = grid.placeCharacter(toHexId, characterName, targetTeam) // Final operation - invalidate caches
+      const success = grid.placeCharacter(toHexId, characterId, targetTeam) // Final operation - invalidate caches
 
       if (!success) {
-        grid.placeCharacter(fromHexId, characterName, team)
+        grid.placeCharacter(fromHexId, characterId, team)
       }
 
       return success
     }
   }
 
-  const autoPlaceCharacter = (characterName: string, team: Team): boolean => {
+  const autoPlaceCharacter = (characterId: number, team: Team): boolean => {
     // Check if character can be placed
-    if (!canPlaceCharacter(characterName, team)) {
+    if (!canPlaceCharacter(characterId, team)) {
       return false
     }
 
     // Get all tiles that can accept this team
     const availableTiles = gridStore.getAllTiles.filter(
-      (tile) => canPlaceCharacterOnTile(tile.hex.getId(), team) && !tile.character,
+      (tile) => canPlaceCharacterOnTile(tile.hex.getId(), team) && !tile.characterId,
     )
 
     if (availableTiles.length === 0) {
@@ -231,7 +231,7 @@ export const useCharacterStore = defineStore('character', () => {
     const randomIndex = Math.floor(Math.random() * availableTiles.length)
     const selectedTile = availableTiles[randomIndex]
 
-    return placeCharacterOnHex(selectedTile.hex.getId(), characterName, team)
+    return placeCharacterOnHex(selectedTile.hex.getId(), characterId, team)
   }
 
   const handleHexClick = (hex: import('../lib/hex').Hex): boolean => {

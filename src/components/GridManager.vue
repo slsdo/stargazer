@@ -141,13 +141,13 @@ const isPointInPolygon = (
 }
 
 // Grid character drag handlers
-const handleCharacterDragStart = (event: DragEvent, hexId: number, characterName: string) => {
-  const character = props.characters.find((c) => c.name === characterName)
+const handleCharacterDragStart = (event: DragEvent, hexId: number, characterId: number) => {
+  const character = props.characters.find((c) => c.id === characterId)
   if (!character) return
 
   // Add sourceHexId to differentiate from character selection drags
   const characterWithSource = { ...character, sourceHexId: hexId }
-  startDrag(event, characterWithSource, characterName, props.characterImages[characterName])
+  startDrag(event, characterWithSource, character?.name || '', props.characterImages[character?.name || ''])
 }
 
 const handleCharacterDragEnd = (event: DragEvent) => {
@@ -174,7 +174,7 @@ const triggerHexDrop = (event: DragEvent, hex: any) => {
   const dropResult = handleDrop(event)
 
   if (dropResult) {
-    const { character, characterName } = dropResult
+    const { character, characterId } = dropResult as { character: CharacterType; characterId: number; characterName: string }
 
     // Mark drop as handled
     setDropHandled(true)
@@ -189,7 +189,7 @@ const triggerHexDrop = (event: DragEvent, hex: any) => {
         characterStore.swapCharacters(sourceHexId, targetHexId)
       } else {
         // Target hex is empty, use regular move
-        characterStore.moveCharacter(sourceHexId, targetHexId, characterName)
+        characterStore.moveCharacter(sourceHexId, targetHexId, characterId)
       }
     } else {
       // This is a new character placement from the character selection
@@ -208,11 +208,11 @@ const triggerHexDrop = (event: DragEvent, hex: any) => {
       }
 
       // Check if the team has space for this character
-      if (!characterStore.canPlaceCharacter(characterName, team)) {
+      if (!characterStore.canPlaceCharacter(characterId, team)) {
         return
       }
 
-      const success = characterStore.placeCharacterOnHex(hexId, characterName, team)
+      const success = characterStore.placeCharacterOnHex(hexId, characterId, team)
       if (!success) {
         return
       }
@@ -305,7 +305,7 @@ defineExpose({
       <!-- HTML overlay system for dragging grid characters -->
       <div class="character-drag-overlay" v-if="hasCharacters">
         <div
-          v-for="[hexId, characterName] in characterStore.characterPlacements"
+          v-for="[hexId, characterId] in characterStore.characterPlacements"
           :key="hexId"
           class="character-drag-handle"
           :class="{ 'map-editor-disabled': props.isMapEditorMode }"
@@ -316,7 +316,7 @@ defineExpose({
             height: '60px',
           }"
           :draggable="!props.isMapEditorMode"
-          @dragstart="handleCharacterDragStart($event, hexId, characterName)"
+          @dragstart="handleCharacterDragStart($event, hexId, characterId)"
           @dragend="handleCharacterDragEnd($event)"
           @click="handleCharacterOverlayClick(hexId)"
         />

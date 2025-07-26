@@ -11,7 +11,7 @@ export interface GridState {
   }>
   characters: Array<{
     hexId: number
-    characterName: string
+    characterId: number
     team: Team
   }>
   artifacts: {
@@ -33,10 +33,10 @@ export function serializeGridState(
 
   // Extract characters from tiles that have them
   const characters = allTiles
-    .filter((tile) => tile.character && tile.team !== undefined)
+    .filter((tile) => tile.characterId && tile.team !== undefined)
     .map((tile) => ({
       hexId: tile.hex.getId(),
-      characterName: tile.character!,
+      characterId: tile.characterId!,
       team: tile.team!,
     }))
 
@@ -64,7 +64,7 @@ export function validateGridState(state: any): state is GridState {
     state.characters.every(
       (char: any) =>
         typeof char.hexId === 'number' &&
-        typeof char.characterName === 'string' &&
+        typeof char.characterId === 'number' &&
         typeof char.team === 'number',
     ) &&
     typeof state.artifacts === 'object' &&

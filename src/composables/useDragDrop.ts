@@ -49,6 +49,7 @@ export const useDragDrop = () => {
       CHARACTER_MIME_TYPE,
       JSON.stringify({
         character,
+        characterId: character.id,
         characterName,
       }),
     )
@@ -121,7 +122,7 @@ export const useDragDrop = () => {
   // Handle drop
   const handleDrop = (
     event: DragEvent,
-  ): { character: CharacterType; characterName: string } | null => {
+  ): { character: CharacterType; characterId: number; characterName: string } | null => {
     event.preventDefault()
 
     if (!event.dataTransfer) {
@@ -135,8 +136,8 @@ export const useDragDrop = () => {
         return null
       }
 
-      const { character, characterName } = JSON.parse(dragData)
-      return { character, characterName }
+      const { character, characterId, characterName } = JSON.parse(dragData)
+      return { character, characterId: characterId || character.id, characterName }
     } catch (error) {
       console.error('Error parsing drag data:', error)
       return null

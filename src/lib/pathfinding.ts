@@ -597,7 +597,7 @@ export function getClosestTargetMap(
   tilesWithCharacters: GridTile[],
   sourceTeam: Team,
   targetTeam: Team,
-  characterRanges: Map<string, number> = new Map(),
+  characterRanges: Map<number, number> = new Map(),
   gridPreset: GridPreset = FULL_GRID,
   cachingEnabled: boolean = true,
   getTile?: (hex: Hex) => GridTile | undefined,
@@ -631,7 +631,7 @@ export function getClosestTargetMap(
 
   // For each source character, find closest target using shared pathfinding logic
   for (const sourceTile of sourceTiles) {
-    const range = sourceTile.character ? (characterRanges.get(sourceTile.character) ?? 1) : 1
+    const range = sourceTile.characterId ? (characterRanges.get(sourceTile.characterId) ?? 1) : 1
     const closestTarget = findClosestTarget(
       sourceTile,
       targetTiles,

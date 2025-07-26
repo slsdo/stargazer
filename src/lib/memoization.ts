@@ -113,7 +113,7 @@ export class MemoCache<K, V> {
  */
 export function generateGridCacheKey(
   tiles: GridTile[],
-  characterRanges: Map<string, number>,
+  characterRanges: Map<number, number>,
 ): string {
   // Sort tiles by hex ID for consistent key generation
   const sortedTiles = [...tiles].sort((a, b) => a.hex.getId() - b.hex.getId())
@@ -121,9 +121,9 @@ export function generateGridCacheKey(
   // Build key from character positions and ranges
   const parts: string[] = []
   for (const tile of sortedTiles) {
-    if (tile.character && tile.team !== undefined) {
-      const range = characterRanges.get(tile.character) ?? 1
-      parts.push(`${tile.hex.getId()}:${tile.character}:${tile.team}:${range}`)
+    if (tile.characterId && tile.team !== undefined) {
+      const range = characterRanges.get(tile.characterId) ?? 1
+      parts.push(`${tile.hex.getId()}:${tile.characterId}:${tile.team}:${range}`)
     }
   }
 

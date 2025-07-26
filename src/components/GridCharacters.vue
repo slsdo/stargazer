@@ -5,7 +5,7 @@ import type { Layout } from '../lib/layout'
 import type { CharacterType } from '../lib/types/character'
 
 interface Props {
-  characterPlacements: Map<number, string>
+  characterPlacements: Map<number, number>
   hexes: Hex[]
   layout: Layout
   characterImages: Readonly<Record<string, string>>
@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
 const gridStore = useGridStore()
 
 const emit = defineEmits<{
-  characterClick: [hexId: number, characterName: string]
+  characterClick: [hexId: number, characterId: number]
 }>()
 
 const hexExists = (hexId: number): boolean => {
@@ -51,21 +51,26 @@ const hexExists = (hexId: number): boolean => {
   }
 }
 
-const getCharacterLevel = (characterName: string): 's' | 'a' => {
-  const character = props.characters.find((c) => c.name === characterName)
+const getCharacterLevel = (characterId: number): 's' | 'a' => {
+  const character = props.characters.find((c) => c.id === characterId)
   return (character?.level as 's' | 'a') || 'a'
 }
 
-const getBackgroundColor = (characterName: string): string => {
-  const level = getCharacterLevel(characterName)
+const getBackgroundColor = (characterId: number): string => {
+  const level = getCharacterLevel(characterId)
   return level === 's' ? '#facd7e' : '#a78fc5'
+}
+
+const getCharacterName = (characterId: number): string => {
+  const character = props.characters.find((c) => c.id === characterId)
+  return character?.name || 'Unknown'
 }
 </script>
 
 <template>
   <g class="grid-characters-container">
     <!-- SVG elements for visual display -->
-    <g v-for="[hexId, characterName] in characterPlacements" :key="hexId" class="grid-characters">
+    <g v-for="[hexId, characterId] in characterPlacements" :key="hexId" class="grid-characters">
       <g v-if="hexExists(hexId)">
         <!-- Clipping mask for character image -->
         <defs>
@@ -82,14 +87,14 @@ const getBackgroundColor = (characterName: string): string => {
           :cx="gridStore.getHexPosition(hexId).x"
           :cy="gridStore.getHexPosition(hexId).y"
           :r="outerRadius"
-          :fill="getBackgroundColor(characterName)"
+          :fill="getBackgroundColor(characterId)"
           :fill-opacity="backgroundOpacity"
-          :stroke="getBackgroundColor(characterName)"
+          :stroke="getBackgroundColor(characterId)"
           :stroke-width="borderWidth"
         />
         <!-- Character image (clipped to inner circle) -->
         <image
-          :href="characterImages[characterName]"
+          :href="characterImages[getCharacterName(characterId)]"
           :x="gridStore.getHexPosition(hexId).x - outerRadius"
           :y="gridStore.getHexPosition(hexId).y - outerRadius"
           :width="outerRadius * 2"

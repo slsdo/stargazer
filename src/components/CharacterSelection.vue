@@ -23,32 +23,32 @@ const sortedCharacters = computed(() =>
   ),
 )
 
-const isCharacterPlaced = (characterName: string): boolean => {
+const isCharacterPlaced = (characterId: number): boolean => {
   // Get all tiles with characters
   const tilesWithCharacters = characterStore.getTilesWithCharacters()
 
   // Check if this character is placed for the current selected team
   return tilesWithCharacters.some(
-    (tile) => tile.character === characterName && tile.team === selectedTeam.value,
+    (tile) => tile.characterId === characterId && tile.team === selectedTeam.value,
   )
 }
 
 const handleCharacterClick = (character: CharacterType) => {
   // Check if character is already placed for current team
-  if (isCharacterPlaced(character.name)) {
-    removeCharacterFromGrid(character.name)
+  if (isCharacterPlaced(character.id)) {
+    removeCharacterFromGrid(character.id)
     return
   }
 
   // Attempt to auto-place the character
-  characterStore.autoPlaceCharacter(character.name, selectedTeam.value)
+  characterStore.autoPlaceCharacter(character.id, selectedTeam.value)
 }
 
-const removeCharacterFromGrid = (characterName: string) => {
+const removeCharacterFromGrid = (characterId: number) => {
   // Find the hex where this character is placed for the current team
   const tilesWithCharacters = characterStore.getTilesWithCharacters()
   const characterTile = tilesWithCharacters.find(
-    (tile) => tile.character === characterName && tile.team === selectedTeam.value,
+    (tile) => tile.characterId === characterId && tile.team === selectedTeam.value,
   )
 
   if (characterTile) {
@@ -74,7 +74,7 @@ const removeCharacterFromGrid = (characterName: string) => {
         :characterImage="characterImages[character.name]"
         :icons="icons"
         :isDraggable="isDraggable"
-        :isPlaced="isCharacterPlaced(character.name)"
+        :isPlaced="isCharacterPlaced(character.id)"
         @character-click="handleCharacterClick"
       />
     </div>

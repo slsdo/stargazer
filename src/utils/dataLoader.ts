@@ -21,7 +21,7 @@ let artifactsCache: ArtifactType[] | null = null
 let characterImagesCache: Record<string, string> | null = null
 let artifactImagesCache: Record<string, string> | null = null
 let iconsCache: Record<string, string> | null = null
-let characterRangesCache: Map<string, number> | null = null
+let characterRangesCache: Map<number, number> | null = null
 
 export function loadCharacters(): CharacterType[] {
   if (charactersCache) {
@@ -35,9 +35,9 @@ export function loadCharacters(): CharacterType[] {
   charactersCache = characters
 
   // Build character ranges map
-  characterRangesCache = new Map<string, number>()
+  characterRangesCache = new Map<number, number>()
   characters.forEach((char) => {
-    characterRangesCache!.set(char.name, char.range)
+    characterRangesCache!.set(char.id, char.range)
   })
 
   return characters
@@ -106,7 +106,7 @@ export function loadIcons(): Record<string, string> {
   return icons
 }
 
-export function getCharacterRanges(): Map<string, number> {
+export function getCharacterRanges(): Map<number, number> {
   if (!characterRangesCache) {
     // Ensure characters are loaded first
     loadCharacters()

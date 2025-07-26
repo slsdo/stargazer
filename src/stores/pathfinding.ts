@@ -92,8 +92,8 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
 
     // Get paths from allies to closest enemies using shared pathfinding logic
     for (const allyTile of allyTiles) {
-      const range = allyTile.character
-        ? (gameDataStore.getCharacterRange(allyTile.character) ?? 1)
+      const range = allyTile.characterId
+        ? (gameDataStore.getCharacterRange(allyTile.characterId) ?? 1)
         : 1
       const closestEnemy = findClosestTarget(
         allyTile,
@@ -128,8 +128,8 @@ export const usePathfindingStore = defineStore('pathfinding', () => {
 
     // Get paths from enemies to closest allies using shared pathfinding logic
     for (const enemyTile of enemyTiles) {
-      const range = enemyTile.character
-        ? (gameDataStore.getCharacterRange(enemyTile.character) ?? 1)
+      const range = enemyTile.characterId
+        ? (gameDataStore.getCharacterRange(enemyTile.characterId) ?? 1)
         : 1
       const closestAlly = findClosestTarget(
         enemyTile,

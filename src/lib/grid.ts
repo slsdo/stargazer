@@ -28,13 +28,13 @@ function iniGrid(preset: GridPreset): Hex[] {
 export interface GridTile {
   hex: Hex
   state: State
-  character?: string
+  characterId?: number
   team?: Team
 }
 
 export class Grid {
   private storage: Map<string, GridTile>
-  private teamCharacters: Map<Team, Set<string>> = new Map([
+  private teamCharacters: Map<Team, Set<number>> = new Map([
     [Team.ALLY, new Set()],
     [Team.ENEMY, new Set()],
   ])
@@ -99,7 +99,7 @@ export class Grid {
   }
 
   getTilesWithCharacters(): GridTile[] {
-    return Array.from(this.storage.values()).filter((tile) => tile.character !== undefined)
+    return Array.from(this.storage.values()).filter((tile) => tile.characterId !== undefined)
   }
 
   getAvailableAlly(): number {
@@ -114,9 +114,9 @@ export class Grid {
     return this.MAX_TEAM_SIZE - (this.teamCharacters.get(team)?.size || 0)
   }
 
-  canPlaceCharacter(characterName: string, team: Team): boolean {
+  canPlaceCharacter(characterId: number, team: Team): boolean {
     if (this.getAvailableForTeam(team) <= 0) return false
-    return !this.teamCharacters.get(team)?.has(characterName)
+    return !this.teamCharacters.get(team)?.has(characterId)
   }
 
   canPlaceCharacterOnTile(hexOrId: Hex | number, team: Team): boolean {
@@ -130,20 +130,20 @@ export class Grid {
 
   placeCharacter(
     hexOrId: Hex | number,
-    characterName: string,
+    characterId: number,
     team: Team = Team.ALLY,
     skipCacheInvalidation: boolean = false,
   ): boolean {
     if (!this.canPlaceCharacterOnTile(hexOrId, team)) return false
-    if (!this.canPlaceCharacter(characterName, team)) return false
+    if (!this.canPlaceCharacter(characterId, team)) return false
 
     const tile = this.getTile(hexOrId)
 
-    if (tile.character) {
-      this.removeCharacterFromTeam(tile.character, tile.team)
+    if (tile.characterId) {
+      this.removeCharacterFromTeam(tile.characterId, tile.team)
     }
 
-    this.setCharacterOnTile(tile, characterName, team)
+    this.setCharacterOnTile(tile, characterId, team)
 
     // Clear pathfinding caches when grid state changes
     if (!skipCacheInvalidation) {
@@ -168,11 +168,11 @@ export class Grid {
 
   removeCharacter(hexOrId: Hex | number, skipCacheInvalidation: boolean = false): void {
     const tile = this.getTile(hexOrId)
-    if (tile.character) {
-      const characterName = tile.character
+    if (tile.characterId) {
+      const characterId = tile.characterId
       const team = tile.team
 
-      this.removeCharacterFromTeam(characterName, team)
+      this.removeCharacterFromTeam(characterId, team)
       this.clearCharacterFromTile(tile, hexOrId)
 
       // Clear pathfinding caches when grid state changes
@@ -182,19 +182,19 @@ export class Grid {
     }
   }
 
-  getCharacter(hexOrId: Hex | number): string | undefined {
-    return this.getTile(hexOrId).character
+  getCharacter(hexOrId: Hex | number): number | undefined {
+    return this.getTile(hexOrId).characterId
   }
 
   hasCharacter(hexOrId: Hex | number): boolean {
-    return this.getTile(hexOrId).character !== undefined
+    return this.getTile(hexOrId).characterId !== undefined
   }
 
-  getCharacterPlacements(): Map<number, string> {
-    const placements = new Map<number, string>()
+  getCharacterPlacements(): Map<number, number> {
+    const placements = new Map<number, number>()
     for (const entry of this.storage.values()) {
-      if (entry.character) {
-        placements.set(entry.hex.getId(), entry.character)
+      if (entry.characterId) {
+        placements.set(entry.hex.getId(), entry.characterId)
       }
     }
     return placements
@@ -202,7 +202,7 @@ export class Grid {
 
   clearAllCharacters(): void {
     for (const entry of this.storage.values()) {
-      if (entry.character) {
+      if (entry.characterId) {
         this.clearCharacterFromTile(entry, entry.hex.getId())
       }
     }
@@ -220,28 +220,28 @@ export class Grid {
   getCharacterCount(): number {
     let count = 0
     for (const entry of this.storage.values()) {
-      if (entry.character) {
+      if (entry.characterId) {
         count++
       }
     }
     return count
   }
 
-  private removeCharacterFromTeam(characterName: string, team: Team | undefined): void {
+  private removeCharacterFromTeam(characterId: number, team: Team | undefined): void {
     if (team !== undefined) {
-      this.teamCharacters.get(team)?.delete(characterName)
+      this.teamCharacters.get(team)?.delete(characterId)
     }
   }
 
-  private setCharacterOnTile(tile: GridTile, characterName: string, team: Team): void {
-    tile.character = characterName
+  private setCharacterOnTile(tile: GridTile, characterId: number, team: Team): void {
+    tile.characterId = characterId
     tile.team = team
     tile.state = team === Team.ALLY ? State.OCCUPIED_ALLY : State.OCCUPIED_ENEMY
-    this.teamCharacters.get(team)?.add(characterName)
+    this.teamCharacters.get(team)?.add(characterId)
   }
 
   private clearCharacterFromTile(tile: GridTile, hexOrId: Hex | number): void {
-    delete tile.character
+    delete tile.characterId
     delete tile.team
     tile.state = this.getOriginalTileState(hexOrId)
   }

@@ -14,7 +14,7 @@ export const useGameDataStore = defineStore('gameData', () => {
   const dataLoaded = ref(false)
 
   // Character ranges - internal state
-  const characterRanges = ref(new Map<string, number>())
+  const characterRanges = ref(new Map<number, number>())
 
   // Initialize all data using dataLoader
   const initializeData = () => {
@@ -39,9 +39,20 @@ export const useGameDataStore = defineStore('gameData', () => {
     }
   }
 
-  // Helper to get character range
-  const getCharacterRange = (characterName: string): number => {
-    return characterRanges.value.get(characterName) ?? 1
+  // Helper to get character range by ID
+  const getCharacterRange = (characterId: number): number => {
+    return characterRanges.value.get(characterId) ?? 1
+  }
+
+  // Helper to get character by ID
+  const getCharacterById = (characterId: number): CharacterType | undefined => {
+    return characters.value.find(char => char.id === characterId)
+  }
+
+  // Helper to get character name by ID
+  const getCharacterNameById = (characterId: number): string | undefined => {
+    const character = getCharacterById(characterId)
+    return character?.name
   }
 
   return {
@@ -56,6 +67,8 @@ export const useGameDataStore = defineStore('gameData', () => {
     // Actions
     initializeData,
     getCharacterRange,
+    getCharacterById,
+    getCharacterNameById,
 
     // Expose for other stores
     characterRanges: readonly(characterRanges),

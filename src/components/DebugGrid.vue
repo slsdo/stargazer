@@ -4,6 +4,7 @@ import { useGridStore } from '../stores/grid'
 import { useCharacterStore } from '../stores/character'
 import { usePathfindingStore } from '../stores/pathfinding'
 import { useArtifactStore } from '../stores/artifact'
+import { useGameDataStore } from '../stores/gameData'
 import { getStateName, getStateClass } from '../utils/stateFormatting'
 import { extractFileName } from '../utils/dataLoader'
 import { Team } from '../lib/types/team'
@@ -13,6 +14,7 @@ const gridStore = useGridStore()
 const characterStore = useCharacterStore()
 const pathfindingStore = usePathfindingStore()
 const artifactStore = useArtifactStore()
+const gameDataStore = useGameDataStore()
 
 // Character visibility toggles for debug lines
 const hiddenCharacters = ref<Set<number>>(new Set())
@@ -20,6 +22,11 @@ const hiddenCharacters = ref<Set<number>>(new Set())
 // Helper function to extract image name from path
 const getImageName = (imageSrc: string): string => {
   return extractFileName(imageSrc)
+}
+
+// Helper function to get character name by ID
+const getCharacterName = (characterId: number): string => {
+  return gameDataStore.getCharacterNameById(characterId) || 'Unknown'
 }
 
 // Toggle visibility of debug lines for a character
@@ -79,7 +86,7 @@ defineExpose({
           <div class="tile-info">
             <div class="tile-main">
               <span class="hex-id">Hex {{ tile.hex.getId() }}</span>
-              <span class="character-name">{{ getImageName(tile.character!) }}</span>
+              <span class="character-name">{{ getCharacterName(tile.characterId!) }}</span>
             </div>
             <div class="tile-state">
               <span class="state-label" :class="getStateClass(tile.state)">

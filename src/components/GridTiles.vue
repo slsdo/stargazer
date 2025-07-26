@@ -207,7 +207,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
   // Hover state is managed by position-based detection
 
   if (dropResult) {
-    const { character, characterName } = dropResult
+    const { character, characterId, characterName } = dropResult
 
     setDropHandled(true) // Prevent duplicate processing
 
@@ -221,7 +221,7 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
         characterStore.swapCharacters(sourceHexId, targetHexId)
       } else {
         // Empty target - regular move
-        characterStore.moveCharacter(sourceHexId, targetHexId, characterName)
+        characterStore.moveCharacter(sourceHexId, targetHexId, characterId)
       }
     } else {
       // Character selection placement
@@ -240,11 +240,11 @@ const handleHexDrop = (event: DragEvent, hex: Hex) => {
       }
 
       // Validate team capacity
-      if (!characterStore.canPlaceCharacter(characterName, team)) {
+      if (!characterStore.canPlaceCharacter(characterId, team)) {
         return
       }
 
-      const success = characterStore.placeCharacterOnHex(hexId, characterName, team)
+      const success = characterStore.placeCharacterOnHex(hexId, characterId, team)
       if (!success) {
         return
       }
@@ -281,7 +281,7 @@ const getHexDropClass = (hex: Hex) => {
         validDropZone = true
       } else {
         // Character selection: check team capacity
-        validDropZone = characterStore.canPlaceCharacter(draggedCharacter.value.name, tileTeam)
+        validDropZone = characterStore.canPlaceCharacter(draggedCharacter.value.id, tileTeam)
       }
     }
   }
