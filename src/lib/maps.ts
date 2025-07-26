@@ -6,6 +6,7 @@ import { ARENA_5 } from './arena/arena5'
 import { State } from './types/state'
 
 export interface MapConfig {
+  id: number
   name: string
   grid: Array<{
     type: State

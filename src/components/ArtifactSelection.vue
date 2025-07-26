@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Artifact from './Artifact.vue'
 import SelectionContainer from './SelectionContainer.vue'
 import type { ArtifactType } from '../lib/types/artifact'
@@ -31,13 +32,17 @@ const handleArtifactClick = (artifact: ArtifactType) => {
 const isArtifactPlaced = (artifactId: string): boolean => {
   return artifactStore.allyArtifact === artifactId || artifactStore.enemyArtifact === artifactId
 }
+
+const sortedArtifacts = computed(() => {
+  return [...props.artifacts].sort((a, b) => a.id - b.id)
+})
 </script>
 
 <template>
   <SelectionContainer containerClass="artifact-selection" :showCounts="false">
     <!-- Artifacts Grid -->
     <div class="artifacts">
-      <div v-for="artifact in props.artifacts" :key="artifact.name" class="artifact-profile">
+      <div v-for="artifact in sortedArtifacts" :key="artifact.name" class="artifact-profile">
         <Artifact
           :artifact="artifact"
           :artifactImage="artifactImages[artifact.name]"

@@ -1,6 +1,7 @@
 import { Team } from './team'
 
 export interface CharacterType {
+  id: number
   name: string
   type: string
   level: string
