@@ -22,7 +22,7 @@ const handleClick = () => {
     :class="[`season-${artifact.season}`, { placed: isPlaced }]"
     @click="handleClick"
   >
-    <img :src="artifactImage" :alt="artifact.id" class="portrait" />
+    <img :src="artifactImage" :alt="artifact.name" class="portrait" />
   </div>
 </template>
 

@@ -54,7 +54,7 @@ export function loadArtifacts(): ArtifactType[] {
     Object.values(
       import.meta.glob('../data/artifact/*.json', { eager: true, import: 'default' }),
     ) as ArtifactType[]
-  ).sort((a, b) => a.id.localeCompare(b.id))
+  ).sort((a, b) => a.name.localeCompare(b.name))
 
   artifactsCache = artifacts
   return artifacts
