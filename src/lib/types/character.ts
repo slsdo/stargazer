@@ -1,7 +1,7 @@
 import { Team } from './team'
 
 export interface CharacterType {
-  id: string
+  name: string
   type: string
   level: string
   faction: string

@@ -281,7 +281,7 @@ const getHexDropClass = (hex: Hex) => {
         validDropZone = true
       } else {
         // Character selection: check team capacity
-        validDropZone = characterStore.canPlaceCharacter(draggedCharacter.value.id, tileTeam)
+        validDropZone = characterStore.canPlaceCharacter(draggedCharacter.value.name, tileTeam)
       }
     }
   }

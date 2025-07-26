@@ -25,13 +25,13 @@ const isCharacterPlaced = (characterId: string): boolean => {
 
 const handleCharacterClick = (character: CharacterType) => {
   // Check if character is already placed for current team
-  if (isCharacterPlaced(character.id)) {
-    removeCharacterFromGrid(character.id)
+  if (isCharacterPlaced(character.name)) {
+    removeCharacterFromGrid(character.name)
     return
   }
 
   // Attempt to auto-place the character
-  characterStore.autoPlaceCharacter(character.id, selectedTeam.value)
+  characterStore.autoPlaceCharacter(character.name, selectedTeam.value)
 }
 
 const removeCharacterFromGrid = (characterId: string) => {
@@ -59,12 +59,12 @@ const removeCharacterFromGrid = (characterId: string) => {
     <div class="characters">
       <Character
         v-for="character in characters"
-        :key="character.id"
+        :key="character.name"
         :character="{ ...character, team: selectedTeam }"
-        :characterImage="characterImages[character.id]"
+        :characterImage="characterImages[character.name]"
         :icons="icons"
         :isDraggable="isDraggable"
-        :isPlaced="isCharacterPlaced(character.id)"
+        :isPlaced="isCharacterPlaced(character.name)"
         @character-click="handleCharacterClick"
       />
     </div>

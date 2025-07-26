@@ -15,7 +15,7 @@ const { isDragging, draggedCharacter, draggedImageSrc, dragPreviewPosition } = u
       }"
     >
       <div class="character-preview" :class="`level-${draggedCharacter.level}`">
-        <img :src="draggedImageSrc" :alt="draggedCharacter.id" class="portrait" />
+        <img :src="draggedImageSrc" :alt="draggedCharacter.name" class="portrait" />
       </div>
     </div>
   </Teleport>

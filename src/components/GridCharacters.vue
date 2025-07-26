@@ -52,7 +52,7 @@ const hexExists = (hexId: number): boolean => {
 }
 
 const getCharacterLevel = (characterId: string): 's' | 'a' => {
-  const character = props.characters.find((c) => c.id === characterId)
+  const character = props.characters.find((c) => c.name === characterId)
   return (character?.level as 's' | 'a') || 'a'
 }
 

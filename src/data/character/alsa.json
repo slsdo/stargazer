@@ -1,5 +1,5 @@
 {
-  "id": "alsa",
+  "name": "alsa",
   "type": "character",
   "level": "s",
   "faction": "mauler",

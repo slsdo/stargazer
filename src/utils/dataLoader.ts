@@ -39,7 +39,7 @@ export function loadCharacters(): CharacterType[] {
   // Build character ranges map
   characterRangesCache = new Map<string, number>()
   characters.forEach((char) => {
-    characterRangesCache!.set(char.id, char.range)
+    characterRangesCache!.set(char.name, char.range)
   })
 
   return characters

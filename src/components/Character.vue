@@ -24,7 +24,7 @@ const CLICK_THRESHOLD = 200 // ms
 
 const handleDragStart = (event: DragEvent) => {
   if (!props.isDraggable) return
-  startDrag(event, props.character, props.character.id, props.characterImage)
+  startDrag(event, props.character, props.character.name, props.characterImage)
 }
 
 const handleDragEnd = (event: DragEvent) => {
@@ -63,7 +63,7 @@ const handleMouseUp = (event: MouseEvent) => {
       @mousedown="handleMouseDown"
       @mouseup="handleMouseUp"
     >
-      <img :src="characterImage" :alt="character.id" class="portrait" />
+      <img :src="characterImage" :alt="character.name" class="portrait" />
     </div>
     <div class="character-info">
       <img :src="icons[`faction-${character.faction}`]" :alt="character.faction" class="icon" />

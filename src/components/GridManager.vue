@@ -142,7 +142,7 @@ const isPointInPolygon = (
 
 // Grid character drag handlers
 const handleCharacterDragStart = (event: DragEvent, hexId: number, characterId: string) => {
-  const character = props.characters.find((c) => c.id === characterId)
+  const character = props.characters.find((c) => c.name === characterId)
   if (!character) return
 
   // Add sourceHexId to differentiate from character selection drags
