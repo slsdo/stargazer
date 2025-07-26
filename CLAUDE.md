@@ -9,7 +9,7 @@
 - Don't add comments if it just repeats a function name
 - Use functional and stateless approaches when possible
 - Test changes: `npm run build` and `npm run type-check`
-- Do no run `npm run dev` to test dev server
+- Do not run `npm run dev` to test dev server
 
 ## ARCHITECTURE
 
@@ -36,33 +36,56 @@ src/
 - `hex.ts` - Hex coordinate system
 - `grid.ts` - Grid management and character placement
 - `layout.ts` - Hex-to-pixel conversions
-- `pathfinding.ts` - Complete pathfinding system (A\*, BFS, target selection, distance calculations)
+- `pathfinding.ts` - Complete pathfinding system (A*, BFS, target selection, distance calculations)
 - `maps.ts` - Map configuration management
+- `constants.ts` - Grid presets and game constants
+- `memoization.ts` - LRU caching system for performance
+- `priorityQueue.ts` - Priority queue implementation for A*
+- `types/` - TypeScript type definitions (state, team, character, artifact)
 
 **State (`src/stores/`)**
 
 - `grid.ts` - Reactive wrapper around Grid class
 - `pathfinding.ts` - Minimal computed properties for pathfinding visualization
+- `character.ts` - Character placement and selection logic
+- `gameData.ts` - Data loading and initialization
+- `artifact.ts` - Artifact management and state
+- `mapEditor.ts` - Map editing functionality
+- `urlState.ts` - URL state serialization and management
 
 **Components (`src/components/`)**
 
 - `GridManager.vue` - Centralized grid management and rendering coordination
 - `GridTiles.vue` - Hex grid rendering with drag/drop
 - `GridCharacters.vue` - Character overlay system
+- `GridArrow.vue` - Pathfinding arrow visualization
+- `GridArtifacts.vue` - Artifact overlay system
 - `CharacterSelection.vue` - Character roster
+- `Character.vue` - Individual character component
+- `ArtifactSelection.vue` - Artifact roster
+- `Artifact.vue` - Individual artifact component
 - `DragDropProvider.vue` - Drag/drop context provider using provide/inject
 - `DragPreview.vue` - Visual drag feedback
 - `TabNavigation.vue` - Tab system for Characters/Artifacts/Map Editor
 - `GridControls.vue` - Grid display toggles and action buttons
+- `ClearButton.vue` - Grid clearing functionality
+- `TeamToggle.vue` - Team selection component
+- `PathfindingDebug.vue` - Debug visualization for pathfinding
+- `DebugGrid.vue` - Grid debug overlay
 
 **Composables (`src/composables/`)**
 
 - `useDragDrop.ts` - Global drag/drop state management
 - `useGridEvents.ts` - Centralized event system with namespacing
+- `useSelectionState.ts` - Selection state management
+- `useStateReset.ts` - State reset functionality
 
 **Utilities (`src/utils/`)**
 
 - `dataLoader.ts` - Consolidated data loading for characters, artifacts, and assets
+- `stateFormatting.ts` - Hex state color and style utilities
+- `gridStateSerializer.ts` - Grid state serialization for URL
+- `urlStateManager.ts` - URL state management utilities
 
 ## DESIGN PRINCIPLES
 
@@ -71,7 +94,7 @@ src/
 Grid methods accept both `Hex` objects and hex IDs:
 
 ```typescript
-grid.placeCharacter(hexOrId, characterId, team)
+grid.placeCharacter(hexOrId, characterName, team)
 grid.getCharacter(hexOrId)
 grid.removeCharacter(hexOrId)
 ```
@@ -102,21 +125,20 @@ The pathfinding system follows pure functional programming principles with frame
 ### Core API
 
 ```typescript
-// Core pathfinding algorithms
-export function findPath(start: Hex, goal: Hex, getTile: Function, canTraverse: Function): Hex[] | null
+// A* pathfinding algorithm
+export function findPathAStar(start: Hex, goal: Hex, getTile: Function, canTraverse: Function): Hex[] | null
 export function calculateEffectiveDistance(...): DistanceResult
 export function calculateRangedMovementDistance(...): RangedDistanceResult
 
-// Target selection with comprehensive tie-breaking
+// Target selection with BFS and comprehensive tie-breaking
 export function findClosestTarget(...): TargetResult | null
 
-// High-level game APIs
-export function getClosestEnemyMap(tilesWithCharacters, characterRanges, gridPreset, cachingEnabled): Map<number, TargetInfo>
-export function getClosestAllyMap(tilesWithCharacters, characterRanges, gridPreset, cachingEnabled): Map<number, TargetInfo>
+// High-level game API (unified for both enemy and ally targeting)
+export function getClosestTargetMap(tilesWithCharacters, sourceTeam, targetTeam, characterRanges, gridPreset, cachingEnabled, getTile?, cache?): Map<number, TargetInfo>
 
 // Utility functions
 export function defaultCanTraverse(tile: GridTile): boolean
-export function areHexesInSameRow(hexId1: number, hexId2: number, gridPreset): boolean
+export function areHexesInSameDiagonalRow(hexId1: number, hexId2: number): boolean
 export function isVerticallyAligned(sourceHex: Hex, targetHex: Hex): boolean
 
 // Cache management
@@ -125,15 +147,15 @@ export function clearPathfindingCache(): void
 
 ### Algorithm Selection
 
-- **Ranged Units (range > 1)**: Uses BFS-based `calculateRangedMovementDistance()` to find minimum movement to engage ANY target
-- **Melee Units (range = 1)**: Uses A\*-based `calculateEffectiveDistance()` for individual target pathfinding
+- **All Units**: Uses BFS-based `calculateRangedMovementDistance()` to find minimum movement to engage ANY target
+- **Specific Pathfinding**: Uses A*-based `findPathAStar()` for point-to-point navigation
 
 ### Tie-Breaking Rules
 
 Applied in exact order for consistent target selection:
 
 1. **Vertical alignment priority**: Prefer targets in straight vertical lines (same q coordinate, no turns required)
-2. **Same-row hex ID priority**: Within same row of grid preset, prefer lower hex ID
+2. **Same diagonal row hex ID priority**: Within same diagonal row, prefer lower hex ID
 3. **Fallback hex ID priority**: For all other ties, prefer lower hex ID
 
 ### Usage Patterns
@@ -142,11 +164,11 @@ Applied in exact order for consistent target selection:
 
 ```typescript
 // Grid class focuses purely on state management
-grid.placeCharacter(hexOrId, characterId, team)
+grid.placeCharacter(hexOrId, characterName, team)
 grid.removeCharacter(hexOrId)
 
 // Pathfinding functions called separately with explicit parameters
-const closestEnemies = getClosestEnemyMap(tiles, ranges, gridPreset, true)
+const closestEnemies = getClosestTargetMap(tiles, Team.ALLY, Team.ENEMY, ranges, gridPreset, true)
 ```
 
 **Store Integration:**
@@ -157,7 +179,15 @@ const closestEnemyMap = computed(() => {
   const tilesWithCharacters = characterStore.getTilesWithCharacters()
   const characterRanges = new Map(gameDataStore.characterRanges)
   const grid = gridStore._getGrid()
-  return getClosestEnemyMap(tilesWithCharacters, characterRanges, grid.gridPreset, true)
+  return getClosestTargetMap(
+    tilesWithCharacters,
+    Team.ALLY,
+    Team.ENEMY,
+    characterRanges,
+    grid.gridPreset,
+    ENABLE_CACHE,
+    getTileHelper
+  )
 })
 ```
 
@@ -165,7 +195,7 @@ const closestEnemyMap = computed(() => {
 
 - **Module-level caching**: Separate cache instances for different calculation types
 - **Lazy evaluation**: Computed properties only recalculate when dependencies change
-- **Algorithm efficiency**: BFS for ranged movement, A\* for precise pathfinding
+- **Algorithm efficiency**: BFS for multi-target selection, A* for point-to-point pathfinding
 - **Cache invalidation**: Automatic clearing when grid state changes
 
 ## DRAG AND DROP SYSTEM
@@ -325,8 +355,8 @@ const allData = loadAllData()
 const gridStore = useGridStore()
 
 // Character placement
-gridStore.placeCharacterOnHex(hexId, characterId, team)
-gridStore.moveCharacter(fromHexId, toHexId, characterId)
+gridStore.placeCharacterOnHex(hexId, characterName, team)
+gridStore.moveCharacter(fromHexId, toHexId, characterName)
 gridStore.swapCharacters(fromHexId, toHexId)
 
 // State queries
@@ -337,11 +367,11 @@ const isOccupied = gridStore.isHexOccupied(hexId)
 ### Pathfinding Operations
 
 ```typescript
-import { getClosestEnemyMap, getClosestAllyMap, findClosestTarget } from '../lib/pathfinding'
+import { getClosestTargetMap, findClosestTarget, findPathAStar } from '../lib/pathfinding'
 
 // Get closest targets for all characters
-const enemyMap = getClosestEnemyMap(tilesWithCharacters, characterRanges, gridPreset, true)
-const allyMap = getClosestAllyMap(tilesWithCharacters, characterRanges, gridPreset, true)
+const enemyMap = getClosestTargetMap(tilesWithCharacters, Team.ALLY, Team.ENEMY, characterRanges, gridPreset, true)
+const allyMap = getClosestTargetMap(tilesWithCharacters, Team.ENEMY, Team.ALLY, characterRanges, gridPreset, true)
 
 // Find closest target for specific character
 const result = findClosestTarget(
@@ -353,6 +383,9 @@ const result = findClosestTarget(
   gridPreset,
   true,
 )
+
+// Get specific path between two points
+const path = findPathAStar(startHex, goalHex, getTile, canTraverse)
 ```
 
 ### State Formatting

@@ -95,9 +95,7 @@ defineExpose({
                 <div class="closest-target-line">
                   <span class="closest-enemy">
                     → Enemy at Hex
-                    {{
-                      pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId
-                    }}
+                    {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.enemyHexId }}
                     (distance:
                     {{ pathfindingStore.closestEnemyMap.get(tile.hex.getId())?.distance }})
                   </span>
@@ -124,9 +122,7 @@ defineExpose({
                 <div class="closest-target-line">
                   <span class="closest-ally">
                     → Ally at Hex
-                    {{
-                      pathfindingStore.closestAllyMap.get(tile.hex.getId())?.allyHexId
-                    }}
+                    {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.allyHexId }}
                     (distance:
                     {{ pathfindingStore.closestAllyMap.get(tile.hex.getId())?.distance }})
                   </span>
